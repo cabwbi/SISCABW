@@ -1,0 +1,32 @@
+{
+  "total": 136,
+  "counts": {
+    "fms": 53,
+    "administrativos": 21,
+    "finalisticos": 62
+  },
+  "grandComandos": [
+    "CMTAER",
+    "COMGAP",
+    "DCTA",
+    "DECEA",
+    "GABAER",
+    "SEFA"
+  ],
+  "ordenadoresDespesas": [
+    "CABW",
+    "CENIPA",
+    "CISCEA",
+    "DCTA",
+    "DECEA",
+    "DIRMAB",
+    "PAMAGL",
+    "PAMALS",
+    "PAMASP",
+    "PAME-RJ"
+  ],
+  "duplicates_check": "ok",
+  "source": "FISCAIS DE CONTRATO - OD CABW.xls",
+  "updatedFrom": "FISCAIS DE CONTRATO - OD CABW.xls",
+  "notMatchedToPreviousCategory": []
+}

@@ -1,0 +1,5 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Check CABW</title><link rel="stylesheet" href="css/style.css"><style>body{font-family:Arial;padding:24px}.ok{color:green}.bad{color:red}code{background:#eee;padding:2px 4px}</style></head><body><h1>Verificação de publicação</h1><p>Esta página verifica se os caminhos usados pelo site estão acessíveis.</p><ul id="out"></ul><script>
+const files=['css/style.css','assets/img/hero_aircraft_clean.png','assets/img/hero_eagle.png','assets/icons/home-credit.png','assets/icons/home-contract.png','assets/icons/home-process.png','cabw_logo.png'];
+const out=document.getElementById('out');
+Promise.all(files.map(async f=>{try{const r=await fetch(f,{cache:'no-store'}); out.insertAdjacentHTML('beforeend',`<li class="${r.ok?'ok':'bad'}"><code>${f}</code> ${r.status} ${r.ok?'OK':'FALHOU'}</li>`)}catch(e){out.insertAdjacentHTML('beforeend',`<li class="bad"><code>${f}</code> erro: ${e}</li>`)}}));
+</script></body></html>
