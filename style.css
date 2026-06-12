@@ -347,6 +347,18 @@ a:hover {
   line-height: 1;
 }
 
+.home-card__symbol img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.home-card__symbol--image {
+  background: transparent;
+  box-shadow: none;
+}
+
 .home-card h2 {
   margin: 0;
   color: var(--cabw-ink);
