@@ -1,6 +1,7 @@
 .nojekyll
 CHECK_PUBLICACAO.html
 MANIFESTO_ARQUIVOS.txt
+README_AJUSTE_VISUAL_KC390.md
 README_PUBLICACAO.md
 action.html
 assets/data/contracts-summary.json
@@ -16,6 +17,7 @@ assets/icons/process_icon.png
 assets/img/cabw_logo.png
 assets/img/hero_aircraft_clean.png
 assets/img/hero_eagle.png
+assets/img/hero_kc390_cabw.png
 assets/img/hero_sabre_alado.png
 assets/js/contracts-data.js
 assets/js/contracts-panel.js
@@ -46,8 +48,14 @@ governanca-paac.html
 governanca-pta.html
 governanca-rp.html
 governanca.html
+home-contract.png
+home-credit.png
+home-process.png
 icons/contract_icon.png
 icons/credit_icon.png
+icons/home-contract.png
+icons/home-credit.png
+icons/home-process.png
 icons/process_icon.png
 index.html
 process_icon.png

@@ -1,32 +1,77 @@
 {
   "total": 136,
   "counts": {
-    "fms": 53,
-    "administrativos": 21,
-    "finalisticos": 62
+    "administrativos": 26,
+    "finalisticos": 57,
+    "fms": 53
+  },
+  "totals": {
+    "count": 136,
+    "valorContrato": 1251965129.97,
+    "totalEmpenhadoUsd": 605874385.84,
+    "totalFaturadoUsd": 505171055.76
+  },
+  "byCategory": {
+    "administrativos": {
+      "count": 26,
+      "valorContrato": 13934783.41,
+      "totalEmpenhadoUsd": 12541085.75,
+      "totalFaturadoUsd": 11807975.82
+    },
+    "finalisticos": {
+      "count": 57,
+      "valorContrato": 766291834.83,
+      "totalEmpenhadoUsd": 207738749.24,
+      "totalFaturadoUsd": 133594890.86
+    },
+    "fms": {
+      "count": 53,
+      "valorContrato": 471738511.73,
+      "totalEmpenhadoUsd": 385594550.85,
+      "totalFaturadoUsd": 359768189.08
+    }
   },
   "grandComandos": [
-    "CMTAER",
-    "COMGAP",
-    "DCTA",
-    "DECEA",
-    "GABAER",
-    "SEFA"
+    "CEA",
+    "CIP",
+    "COP",
+    "CW",
+    "ED",
+    "ENS",
+    "GAB",
+    "GAP",
+    "GAR",
+    "GEP",
+    "SEF"
   ],
   "ordenadoresDespesas": [
-    "CABW",
-    "CENIPA",
-    "CISCEA",
-    "DCTA",
-    "DECEA",
-    "DIRMAB",
-    "PAMAGL",
-    "PAMALS",
-    "PAMASP",
-    "PAME-RJ"
+    "6L",
+    "AB",
+    "BE",
+    "CA",
+    "CH",
+    "CN",
+    "CS",
+    "CT",
+    "CW",
+    "DM",
+    "DN",
+    "DP",
+    "DS",
+    "EL",
+    "G1",
+    "GL",
+    "IE",
+    "IF",
+    "LS",
+    "OI",
+    "PB",
+    "SF",
+    "SP",
+    "TI"
   ],
   "duplicates_check": "ok",
-  "source": "FISCAIS DE CONTRATO - OD CABW.xls",
-  "updatedFrom": "FISCAIS DE CONTRATO - OD CABW.xls",
+  "source": "controle_financeiro_contratos(1).XLS",
+  "updatedFrom": "controle_financeiro_contratos(1).XLS",
   "notMatchedToPreviousCategory": []
 }
