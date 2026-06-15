@@ -1852,8 +1852,25 @@ table.dataTable thead th {
 </div>
 </nav>
 <main class="container-fluid mt-4">
-<h1>Consistência dos Dados</h1><p class="credit-position-note">Validação da carga realizada com base em <code>digitos(1).xlsx</code>.</p><div class="table-responsive"><table class="dataframe table table-striped table-sm"><thead><tr><th>Arquivo</th><th>Data/posição</th><th>Registros lidos</th><th>Registros com saldo</th><th>Crédito disponível</th></tr></thead><tbody><tr><td>digitos(1).xlsx</td><td>08/06/2026</td><td>268</td><td>84</td><td>US$ 3.953.301,18</td></tr></tbody></table></div><h2>Controles aplicados</h2><ul><li>Somatório do crédito disponível calculado pela coluna <strong>SALDO</strong>.</li><li>Rankings usam apenas registros com saldo diferente de zero.</li><li>O detalhamento preserva os nomes de campos existentes na planilha de dígitos.</li><li>Siglas de UG são compatibilizadas com <code>descricao_OM(2).xlsx</code> quando há código correspondente.</li></ul>
+<h1>Consistência dos Dados</h1>
+<p class="credit-position-note">Validação da carga atual proveniente de <strong>digitos.xlsx</strong>.</p>
+<section class="detail-workbench" aria-label="Filtros de crédito disponível">
+  <div class="detail-workbench__panel detail-workbench__panel--filters">
+    <div class="detail-section-heading"><span class="detail-section-heading__icon"><i class="bi bi-funnel" aria-hidden="true"></i></span><div><h2>Filtros</h2><p>Refine os dados por UG, ação, natureza de despesa e projeto.</p></div></div>
+    <div class="detail-filter-grid">
+      <label class="detail-field"><span>UG</span><select id="creditFilterUg"><option value="">Todas as UGs</option></select></label>
+      <label class="detail-field"><span>Ação</span><select id="creditFilterAcao"><option value="">Todas as ações</option></select></label>
+      <label class="detail-field"><span>Natureza de despesa</span><select id="creditFilterNatureza"><option value="">Todas as naturezas</option></select></label>
+      <label class="detail-field"><span>Projeto</span><select id="creditFilterProjeto"><option value="">Todos os projetos</option></select></label>
+    </div>
+    <div class="detail-actions-row"><button class="detail-button detail-button--secondary" id="clearCreditFilters" type="button"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Limpar filtros</button></div>
+  </div>
+</section>
+<section class="detail-table-card"><div class="detail-table-scroll"><table class="table table-striped table-sm detail-table"><thead><tr><th>Verificação</th><th class="text-right">Quantidade/Valor</th><th>Observação</th></tr></thead><tbody id="consistencyTableBody"></tbody></table></div></section>
 </main>
+<script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+<script src="assets/js/credit-data.js"></script>
+<script src="assets/js/credit-panel.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

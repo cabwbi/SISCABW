@@ -1,117 +1,31 @@
-// contracts-panel.js
-// Renderiza menus, indicadores, filtros, tabelas e PDF dos painéis de contratos CABW.
+
 (function(){
-  'use strict';
-  const root = window.CABW_CONTRACTS_DATA || {records: window.contractsData || window.CONTRACTS_DATA || [], summary: window.CONTRACTS_SUMMARY || {}};
-  const records = Array.isArray(root.records) ? root.records : (Array.isArray(root) ? root : []);
-  const summary = root.summary || window.CONTRACTS_SUMMARY || {};
-  const categoryLabels = {administrativos:'Contratos Administrativos', finalisticos:'Contratos Finalísticos', fms:'FMS'};
-  const categoryDescriptions = {
-    administrativos:'Classificação aplicada: contratos administrativos cujo Grande Comando é CW.',
-    finalisticos:'Contratos finalísticos, excluídos os administrativos e os FMS.',
-    fms:'Classificação aplicada: contratos FMS cujo CAGE da empresa é W2525.'
-  };
-  function $(sel, ctx){return (ctx||document).querySelector(sel)}
-  function $all(sel, ctx){return Array.from((ctx||document).querySelectorAll(sel))}
-  function text(el, value){if(el) el.textContent = value}
-  function esc(s){return String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-  function money(v, currency){
-    const n = Number(v||0); const cur = currency || 'USD';
-    try { return new Intl.NumberFormat('pt-BR',{style:'currency',currency:cur,maximumFractionDigits:2}).format(n); }
-    catch(e){ return cur+' '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-  }
-  function fmtNum(v){return Number(v||0).toLocaleString('pt-BR');}
-  function dateBr(s){if(!s) return '—'; const d = new Date(String(s).slice(0,10)+'T00:00:00'); return isNaN(d) ? String(s) : d.toLocaleDateString('pt-BR');}
-  function statusContrato(c){
-    if(!c.dataFinal) return 'Sem data final';
-    const d = new Date(String(c.dataFinal).slice(0,10)+'T00:00:00');
-    if(isNaN(d)) return 'Sem data final';
-    const today = new Date(); today.setHours(0,0,0,0);
-    return d < today ? 'Encerrado' : 'Vigente';
-  }
-  function unique(arr){return Array.from(new Set(arr.filter(v => v !== undefined && v !== null && String(v).trim() !== ''))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR'))}
-  function optionize(sel, values, first){
-    if(!sel) return;
-    const current = sel.value;
-    sel.innerHTML = '';
-    const opt = document.createElement('option'); opt.value=''; opt.textContent=first || 'Todos'; sel.appendChild(opt);
-    values.forEach(v=>{const o=document.createElement('option'); o.value=String(v); o.textContent=String(v); sel.appendChild(o);});
-    if(values.map(String).includes(current)) sel.value = current;
-  }
-  function catRows(cat){return records.filter(r=>r.category===cat)}
-  function aggregate(rows){return rows.reduce((a,r)=>{a.count++; a.value+=Number(r.valorContrato||0); a.paidUsd+=Number(r.totalEmpenhadoUsd||0); a.billedUsd+=Number(r.totalFaturadoUsd||0); return a;},{count:0,value:0,paidUsd:0,billedUsd:0});}
-  function renderOverview(){
-    if(!document.querySelector('[data-contract-overview]')) return;
-    const allAgg = aggregate(records);
-    text($('[data-all-contracts-count]'), fmtNum(allAgg.count));
-    text($('[data-all-contracts-paid]'), money(allAgg.paidUsd,'USD')+' empenhados');
-    text($('[data-contract-source]'), 'Fonte: '+(summary.source||'controle_financeiro_contratos.xlsx'));
-    $all('[data-contract-summary]').forEach(card=>{
-      const cat = card.getAttribute('data-contract-summary');
-      const rows = catRows(cat); const a = aggregate(rows);
-      text($('[data-summary-count]',card), fmtNum(a.count));
-      text($('[data-summary-value]',card), money(a.value, rows[0]?.moeda || 'USD'));
-      text($('[data-summary-paid]',card), money(a.paidUsd,'USD'));
-    });
-  }
-  function currentFilterRows(base, filters){
-    const q = (filters.search?.value || '').toLowerCase().trim();
-    return base.filter(r=>{
-      if(filters.empresa?.value && r.empresa !== filters.empresa.value) return false;
-      if(filters.unidade?.value && r.unidade !== filters.unidade.value) return false;
-      if(filters.gc?.value && r.grandComando !== filters.gc.value) return false;
-      if(filters.ordenador?.value && r.ordenadorDespesa !== filters.ordenador.value) return false;
-      if(filters.acao?.value && r.acao !== filters.acao.value) return false;
-      if(filters.moeda?.value && r.moeda !== filters.moeda.value) return false;
-      if(filters.status?.value && statusContrato(r) !== filters.status.value) return false;
-      if(q){
-        const hay = [r.contrato,r.numero,r.unidade,r.ordenadorDespesa,r.grandComando,r.empresa,r.objetoResumo,r.moeda,r.acao,r.cage].join(' ').toLowerCase();
-        if(!hay.includes(q)) return false;
-      }
-      return true;
-    });
-  }
-  function renderPanel(){
-    const cat = document.body.getAttribute('data-contract-category');
-    if(!cat) return;
-    const base = catRows(cat);
-    text($('#contract-section-title'), categoryLabels[cat] || 'Contratos');
-    text($('.contract-section-card__status'), categoryDescriptions[cat] || '');
-    const filters = {empresa: $('#filterEmpresa'), unidade: $('#filterUnidade'), gc: $('#filterGrandeComando'), ordenador: $('#filterOrdenador'), acao: $('#filterAcao'), moeda: $('#filterMoeda'), status: $('#filterStatus'), search: $('#filterContratoSearch')};
-    optionize(filters.empresa, unique(base.map(r=>r.empresa)), 'Todas as empresas');
-    optionize(filters.unidade, unique(base.map(r=>r.unidade)), 'Todas as unidades');
-    optionize(filters.gc, unique(base.map(r=>r.grandComando)), 'Todos os Grandes Comandos');
-    optionize(filters.ordenador, unique(base.map(r=>r.ordenadorDespesa)), 'Todos os Ordenadores de Despesas');
-    optionize(filters.acao, unique(base.map(r=>r.acao)), 'Todas as ações');
-    optionize(filters.moeda, unique(base.map(r=>r.moeda)), 'Todas as moedas');
-    function render(){
-      const rows = currentFilterRows(base, filters); const a = aggregate(rows);
-      text($('[data-kpi="count"]'), fmtNum(a.count));
-      text($('[data-kpi="value"]'), money(a.value, rows[0]?.moeda || 'USD'));
-      text($('[data-kpi="paidUsd"]'), money(a.paidUsd,'USD'));
-      text($('[data-kpi="billedUsd"]'), money(a.billedUsd,'USD'));
-      text($('[data-contract-results]'), fmtNum(rows.length)+' contrato(s)');
-      text($('[data-contract-source]'), 'Fonte: '+(summary.source||'controle_financeiro_contratos.xlsx'));
-      const tbody = $('#contractsTable tbody'); if(tbody){ tbody.innerHTML=''; rows.forEach(r=>{ const tr=document.createElement('tr');
-        tr.innerHTML = '<td>'+esc(r.contrato)+'</td><td>'+esc(r.numero)+'</td><td>'+esc(r.unidade)+'</td><td>'+esc(r.ordenadorDespesa)+'</td><td>'+esc(r.grandComando)+'</td><td>'+esc(r.empresa)+'</td><td>'+esc(r.objetoResumo)+'</td><td>'+esc(r.moeda)+'</td><td class="text-right">'+money(r.valorContrato,r.moeda||'USD')+'</td><td class="text-right">'+money(r.totalEmpenhadoUsd,'USD')+'</td><td class="text-right">'+money(r.totalFaturadoUsd,'USD')+'</td><td>'+dateBr(r.dataFinal)+'</td><td>'+statusContrato(r)+'</td>';
-        tbody.appendChild(tr);
-      }); }
-      const mobile = $('#contractsMobileList'); if(mobile){ mobile.innerHTML=''; rows.slice(0,300).forEach(r=>{ const d=document.createElement('article'); d.className='contracts-mobile-card'; d.innerHTML='<h3>'+esc(r.numero||r.contrato)+'</h3><p>'+esc(r.empresa)+'</p><p>'+esc(r.objetoResumo)+'</p><dl><div><dt>Contrato</dt><dd>'+esc(r.contrato)+'</dd></div><div><dt>Valor</dt><dd>'+money(r.valorContrato,r.moeda||'USD')+'</dd></div><div><dt>Vigência</dt><dd>'+statusContrato(r)+'</dd></div></dl>'; mobile.appendChild(d); }); }
-    }
-    Object.values(filters).forEach(el=>{ if(el) el.addEventListener(el.tagName==='INPUT'?'input':'change', render); });
-    const reset=$('#resetContractFilters'); if(reset) reset.addEventListener('click',()=>{ Object.values(filters).forEach(el=>{if(el) el.value='';}); render(); });
-    const pdf=$('#generateContractsPdf'); if(pdf) pdf.addEventListener('click',()=>generatePdf(categoryLabels[cat]||'Contratos', currentFilterRows(base, filters)));
-    render();
-  }
-  function generatePdf(title, rows){
-    if(!window.jspdf || !window.jspdf.jsPDF){ alert('Biblioteca PDF não carregada.'); return; }
-    const doc = new window.jspdf.jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
-    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.text('Painel CABW - '+title,40,40);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text('Fonte: '+(summary.source||'controle_financeiro_contratos.xlsx')+' | Registros filtrados: '+rows.length,40,58);
-    const body = rows.map(r=>[r.contrato,r.numero,r.unidade,r.ordenadorDespesa,r.grandComando,r.empresa,short(r.objetoResumo,70),r.moeda,money(r.valorContrato,r.moeda||'USD'),money(r.totalEmpenhadoUsd,'USD'),money(r.totalFaturadoUsd,'USD'),dateBr(r.dataFinal),statusContrato(r)]);
-    doc.autoTable({head:[['Contrato','Número','Unidade','OD','GC','Empresa','Objeto','Moeda','Valor','Emp. USD','Fat. USD','Data final','Vigência']],body, startY:75, styles:{fontSize:6,cellPadding:2,overflow:'linebreak'}, headStyles:{fillColor:[18,64,112]}, columnStyles:{6:{cellWidth:160},8:{halign:'right'},9:{halign:'right'},10:{halign:'right'}}});
-    doc.save('contratos-cabw.pdf');
-  }
-  function short(s,n){s=String(s||''); return s.length>n?s.slice(0,n-1)+'…':s;}
-  document.addEventListener('DOMContentLoaded',()=>{ renderOverview(); renderPanel(); });
+'use strict';
+const root=window.CABW_CONTRACTS_DATA||{records:[],summary:{}}; const records=Array.isArray(root.records)?root.records:[]; const summary=root.summary||{};
+const labels={administrativos:'Contratos Administrativos',finalisticos:'Contratos Finalísticos',fms:'FMS'};
+function $(s,c){return (c||document).querySelector(s)} function $all(s,c){return Array.from((c||document).querySelectorAll(s))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function money(v){return 'US$ '+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmt(v){return Number(v||0).toLocaleString('pt-BR')}
+function unique(a){return Array.from(new Set(a.filter(v=>v!==undefined&&v!==null&&String(v).trim()!==''))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR'))}
+function opt(sel, vals, first){if(!sel)return; const cur=sel.value; sel.innerHTML='<option value="">'+esc(first||'Todos')+'</option>'+vals.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join(''); if(vals.map(String).includes(cur)) sel.value=cur;}
+function daysToEnd(r){if(!r.dataFinal)return null; const end=new Date(String(r.dataFinal).slice(0,10)+'T00:00:00'); if(isNaN(end))return null; const now=new Date(); now.setHours(0,0,0,0); return Math.ceil((end-now)/86400000);}
+function vigenciaBucket(r){const d=daysToEnd(r); if(d===null)return 'Sem data final'; if(d<0)return 'Vigência expirada'; if(d<=90)return 'Vencimento em até 90 dias'; if(d<=150)return 'Vencimento entre 90 e 150 dias'; return 'Vencimento acima de 150 dias';}
+function risk(r){const d=daysToEnd(r); if(d===null)return ''; if(d<0)return 'Expirado'; if(d<=90)return 'Risco: menos de 90 dias'; return '';}
+function dateBr(s){if(!s)return '—'; const d=new Date(String(s).slice(0,10)+'T00:00:00'); return isNaN(d)?String(s):d.toLocaleDateString('pt-BR');}
+function catRows(c){return records.filter(r=>r.category===c)}
+function agg(rows){return rows.reduce((a,r)=>{a.count++;a.value+=+r.valorContrato||0;a.paid+=+r.totalEmpenhadoUsd||0;a.billed+=+r.totalFaturadoUsd||0;a.available+=+r.valorAEmpenhar||0;return a;},{count:0,value:0,paid:0,billed:0,available:0});}
+function ensureNumeroFilter(){const grid=$('.contracts-filter-grid'); if(grid && !$('#filterNumeroContrato')){const lab=document.createElement('label'); lab.className='contracts-field'; lab.setAttribute('for','filterNumeroContrato'); lab.innerHTML='<span>Número de contrato</span><select id="filterNumeroContrato"><option value="">Todos os números</option></select>'; const ref=$('#filterUnidade')?.closest('label'); grid.insertBefore(lab, ref || grid.firstChild);}}
+function ensureChart(){if(!$('#contractsValueChart')){const card=document.querySelector('.contracts-table-card'); if(card){const sec=document.createElement('section'); sec.className='contracts-table-card'; sec.setAttribute('aria-label','Gráfico de valores de contratos'); sec.innerHTML='<div class="contracts-table-toolbar"><h2>Valores dos contratos</h2><span>Valor contratado, empenhado, faturado e disponível para empenho</span></div><div id="contractsValueChart" style="min-height:360px"></div>'; card.parentNode.insertBefore(sec, card);}}}
+function renderOverview(){if(!document.querySelector('[data-contract-overview]'))return; const all=agg(records); $('[data-all-contracts-count]')&&($('[data-all-contracts-count]').textContent=fmt(all.count)); $('[data-all-contracts-paid]')&&($('[data-all-contracts-paid]').textContent=money(all.paid)+' empenhados'); $all('[data-contract-summary]').forEach(card=>{const cat=card.getAttribute('data-contract-summary');const rows=catRows(cat);const a=agg(rows); $('[data-summary-count]',card)&&($('[data-summary-count]',card).textContent=fmt(a.count)); $('[data-summary-value]',card)&&($('[data-summary-value]',card).textContent=money(a.value)); $('[data-summary-paid]',card)&&($('[data-summary-paid]',card).textContent=money(a.paid));});}
+function filterRows(base,f){const q=(f.search?.value||'').toLowerCase().trim();return base.filter(r=>{if(f.numero?.value&&r.numero!==f.numero.value)return false;if(f.empresa?.value&&r.empresa!==f.empresa.value)return false;if(f.unidade?.value&&r.unidade!==f.unidade.value)return false;if(f.gc?.value&&r.grandComando!==f.gc.value)return false;if(f.ordenador?.value&&r.ordenadorDespesa!==f.ordenador.value)return false;if(f.acao?.value&&r.acao!==f.acao.value)return false;if(f.moeda?.value&&r.moeda!==f.moeda.value)return false;if(f.status?.value&&vigenciaBucket(r)!==f.status.value)return false;if(q){const hay=[r.contrato,r.numero,r.unidade,r.ordenadorDespesa,r.grandComando,r.empresa,r.objetoResumo,r.moeda,r.acao,r.cage].join(' ').toLowerCase();if(!hay.includes(q))return false;}return true;});}
+function renderPanel(){const cat=document.body.getAttribute('data-contract-category'); if(!cat)return; ensureNumeroFilter(); ensureChart(); const base=catRows(cat); $('#contract-section-title')&&($('#contract-section-title').textContent=labels[cat]||'Contratos'); const f={numero:$('#filterNumeroContrato'),empresa:$('#filterEmpresa'),unidade:$('#filterUnidade'),gc:$('#filterGrandeComando'),ordenador:$('#filterOrdenador'),acao:$('#filterAcao'),moeda:$('#filterMoeda'),status:$('#filterStatus'),search:$('#filterContratoSearch')};
+ opt(f.numero,unique(base.map(r=>r.numero)),'Todos os números'); opt(f.empresa,unique(base.map(r=>r.empresa)),'Todas as empresas'); opt(f.unidade,unique(base.map(r=>r.unidade)),'Todas as unidades'); opt(f.gc,unique(base.map(r=>r.grandComando)),'Todos os Grandes Comandos'); opt(f.ordenador,unique(base.map(r=>r.ordenadorDespesa)),'Todos os Ordenadores'); opt(f.acao,unique(base.map(r=>r.acao)),'Todas as ações'); opt(f.moeda,unique(base.map(r=>r.moeda)),'Todas as moedas'); opt(f.status,['Vencimento acima de 150 dias','Vencimento entre 90 e 150 dias','Vencimento em até 90 dias','Vigência expirada','Sem data final'],'Todas');
+ function render(){const rows=filterRows(base,f), a=agg(rows); $('[data-kpi="count"]')&&($('[data-kpi="count"]').textContent=fmt(a.count)); $('[data-kpi="value"]')&&($('[data-kpi="value"]').textContent=money(a.value)); $('[data-kpi="paidUsd"]')&&($('[data-kpi="paidUsd"]').textContent=money(a.paid)); $('[data-kpi="billedUsd"]')&&($('[data-kpi="billedUsd"]').textContent=money(a.billed)); $('[data-contract-results]')&&($('[data-contract-results]').textContent=fmt(rows.length)+' contrato(s)'); $('[data-contract-source]')&&($('[data-contract-source]').textContent='Fonte: '+(summary.source||'controle_financeiro_contratos.xlsx'));
+ const tb=$('#contractsTable tbody'); if(tb){tb.innerHTML=rows.map(r=>'<tr class="'+(risk(r)?'contract-risk-row':'')+'"><td>'+esc(r.contrato)+'</td><td>'+esc(r.numero)+'</td><td>'+esc(r.unidade)+'</td><td>'+esc(r.ordenadorDespesa)+'</td><td>'+esc(r.grandComando)+'</td><td>'+esc(r.empresa)+'</td><td>'+esc(r.objetoResumo)+'</td><td>'+esc(r.moeda)+'</td><td class="text-right">'+money(r.valorContrato)+'</td><td class="text-right">'+money(r.totalEmpenhadoUsd)+'</td><td class="text-right">'+money(r.totalFaturadoUsd)+'</td><td class="text-right">'+money(r.valorAEmpenhar)+'</td><td>'+dateBr(r.dataFinal)+'</td><td>'+vigenciaBucket(r)+(risk(r)?' <strong class="risk-flag">'+risk(r)+'</strong>':'')+'</td></tr>').join('');}
+ const mob=$('#contractsMobileList'); if(mob){mob.innerHTML=rows.slice(0,200).map(r=>'<article class="contracts-mobile-card"><h3>'+esc(r.numero||r.contrato)+'</h3><p>'+esc(r.empresa)+'</p><p>'+esc(r.objetoResumo)+'</p><dl><div><dt>Contrato</dt><dd>'+esc(r.contrato)+'</dd></div><div><dt>Valor</dt><dd>'+money(r.valorContrato)+'</dd></div><div><dt>Vigência</dt><dd>'+vigenciaBucket(r)+'</dd></div></dl></article>').join('');}
+ renderChart(a); }
+ function renderChart(a){const el=$('#contractsValueChart'); if(!el)return; if(window.Plotly){Plotly.newPlot(el,[{type:'bar',x:['Valor contratado','Empenhado','Faturado','Disponível p/ empenho'],y:[a.value,a.paid,a.billed,a.available],text:[money(a.value),money(a.paid),money(a.billed),money(a.available)],textposition:'auto'}],{margin:{l:60,r:20,t:20,b:80},yaxis:{title:'US$'},height:360},{displayModeBar:false,responsive:true});} else {el.innerHTML='<div class="contracts-kpi-grid"><article class="contracts-kpi"><span>Valor contratado</span><strong>'+money(a.value)+'</strong></article><article class="contracts-kpi"><span>Empenhado</span><strong>'+money(a.paid)+'</strong></article><article class="contracts-kpi"><span>Faturado</span><strong>'+money(a.billed)+'</strong></article><article class="contracts-kpi"><span>Disponível</span><strong>'+money(a.available)+'</strong></article></div>';}}
+ Object.values(f).forEach(el=>el&&el.addEventListener(el.tagName==='INPUT'?'input':'change',render)); $('#resetContractFilters')?.addEventListener('click',()=>{Object.values(f).forEach(el=>{if(el)el.value=''});render();}); $('#generateContractsPdf')?.addEventListener('click',()=>alert('Use a visualização filtrada da tabela para conferência. A geração de PDF poderá ser acionada no navegador se jsPDF estiver disponível.')); render();}
+document.addEventListener('DOMContentLoaded',()=>{renderOverview();renderPanel();});
 })();

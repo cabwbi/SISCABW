@@ -5,32 +5,7 @@
     "finalisticos": 57,
     "fms": 53
   },
-  "totals": {
-    "count": 136,
-    "valorContrato": 1251965129.97,
-    "totalEmpenhadoUsd": 605874385.84,
-    "totalFaturadoUsd": 505171055.76
-  },
-  "byCategory": {
-    "administrativos": {
-      "count": 26,
-      "valorContrato": 13934783.41,
-      "totalEmpenhadoUsd": 12541085.75,
-      "totalFaturadoUsd": 11807975.82
-    },
-    "finalisticos": {
-      "count": 57,
-      "valorContrato": 766291834.83,
-      "totalEmpenhadoUsd": 207738749.24,
-      "totalFaturadoUsd": 133594890.86
-    },
-    "fms": {
-      "count": 53,
-      "valorContrato": 471738511.73,
-      "totalEmpenhadoUsd": 385594550.85,
-      "totalFaturadoUsd": 359768189.08
-    }
-  },
+  "odCabwCount": 46,
   "grandComandos": [
     "CEA",
     "CIP",
@@ -49,6 +24,7 @@
     "AB",
     "BE",
     "CA",
+    "CABW",
     "CH",
     "CN",
     "CS",
@@ -65,13 +41,14 @@
     "IF",
     "LS",
     "OI",
-    "PB",
     "SF",
     "SP",
     "TI"
   ],
-  "duplicates_check": "ok",
-  "source": "controle_financeiro_contratos(2).XLS",
-  "updatedFrom": "controle_financeiro_contratos(2).XLS",
-  "notMatchedToPreviousCategory": []
+  "totalValorContrato": 1251965129.97,
+  "totalEmpenhadoUsd": 614508530.6,
+  "totalFaturadoUsd": 518501845.12,
+  "totalValorAEmpenhar": 638118488.5000001,
+  "source": "controle_financeiro_contratos.xlsx",
+  "updated": "2026-06-15"
 }

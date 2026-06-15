@@ -1853,7 +1853,22 @@ table.dataTable thead th {
 </div>
 </nav>
 <main class="container-fluid mt-4">
-<h1>Análise por Ação Orçamentária</h1><p class="credit-position-note">Totalização atualizada pela coluna <strong>SALDO</strong> de <code>digitos(1).xlsx</code>.</p><div class="table-responsive"><table class="dataframe table table-striped table-sm"><thead><tr><th>Ação</th><th>Objetivo / descrição disponível</th><th>PTRES Vinculados</th><th>Lanç.</th><th>Crédito Disponível</th><th>% do Total</th></tr></thead><tbody><tr><td>20XV</td><td>PROVER RECURSOS PARA A VIDA VEGETATIVA DA CERNAI</td><td>229166</td><td>20</td><td>US$ 1.816.870,15</td><td>45,96%</td></tr><tr><td>2048</td><td>ATD LOG MNT PJT P3 (ANV-P3) - REQUISIÇÃO PUBLICAÇÃO</td><td>229177</td><td>26</td><td>US$ 1.328.130,27</td><td>33,60%</td></tr><tr><td>2868</td><td>RMJ ATD DEMANDA DE COMBUSTÍVEIS DE AVIAÇÃO NO EXTERIOR</td><td>229179</td><td>1</td><td>US$ 409.688,58</td><td>10,36%</td></tr><tr><td>20IH</td><td>ATD MODERNIZACAO T-25</td><td>249587, 249589</td><td>3</td><td>US$ 140.931,10</td><td>3,56%</td></tr><tr><td>21A0</td><td>DESC ATD LOG MNT PJT ARSENAL DE PREPARO</td><td>229226</td><td>4</td><td>US$ 85.518,59</td><td>2,16%</td></tr><tr><td>20X7</td><td>ATD LOG MNT PJT C8 (ANV KC-390)</td><td>228692</td><td>1</td><td>US$ 69.938,95</td><td>1,77%</td></tr><tr><td>2000</td><td>CABW - DESCENTRALIZAÇÃO GERAL - MÊS MARÇO/2026</td><td>168901, 168919, 204352</td><td>22</td><td>US$ 59.562,45</td><td>1,51%</td></tr><tr><td>21AI</td><td>ATD NECESSIDADE DO IAE COM O PROGRAMA FMS - CASE DCTA BR-D-QAT CONFORME NOTA DE</td><td>233453</td><td>1</td><td>US$ 34.985,84</td><td>0,88%</td></tr><tr><td>20X1</td><td>AQS E CONFECÇÃO  DE MAT  DE DIVULGACAO INSTITUCIONAL DURANTE O EXERC COMBINADO</td><td>259974</td><td>1</td><td>US$ 3.267,10</td><td>0,08%</td></tr><tr><td>151S</td><td>ATD DESP CNT DE SERV DE TERC DEST AO APOIO TECN LOG E ADM AS ACOES DO PESE-COMP</td><td>228676</td><td>1</td><td>US$ 2.000,00</td><td>0,05%</td></tr><tr><td>2004</td><td>DESCENTRALIZAÇÃO DE CRÉDITO - PARA ATENDER O PAGTO DE SEGURO-SAÚDE MILITARES CAB</td><td>214537, 214550</td><td>2</td><td>US$ 1.214,94</td><td>0,03%</td></tr><tr><td>2D55</td><td>EUA - APOIO A COMITIVA DO CEMCFA EM VIAGEM OFICIAL AOS ESTADOS UNIDOS DA AMÉRICA</td><td>228786</td><td>1</td><td>US$ 748,61</td><td>0,02%</td></tr><tr><td>00UU</td><td>SICOFFA-COTA DE PARTICIPAÇÃO ANUAL NO SICOFAA-ANO2026</td><td>229209</td><td>1</td><td>US$ 444,60</td><td>0,01%</td></tr></tbody></table></div>
+<h1>Análise por Ação Orçamentária</h1>
+<p class="credit-position-note">Ranking por ação, usando saldo disponível dos dígitos.</p>
+<section class="detail-workbench" aria-label="Filtros de crédito disponível">
+  <div class="detail-workbench__panel detail-workbench__panel--filters">
+    <div class="detail-section-heading"><span class="detail-section-heading__icon"><i class="bi bi-funnel" aria-hidden="true"></i></span><div><h2>Filtros</h2><p>Refine os dados por UG, ação, natureza de despesa e projeto.</p></div></div>
+    <div class="detail-filter-grid">
+      <label class="detail-field"><span>UG</span><select id="creditFilterUg"><option value="">Todas as UGs</option></select></label>
+      <label class="detail-field"><span>Ação</span><select id="creditFilterAcao"><option value="">Todas as ações</option></select></label>
+      <label class="detail-field"><span>Natureza de despesa</span><select id="creditFilterNatureza"><option value="">Todas as naturezas</option></select></label>
+      <label class="detail-field"><span>Projeto</span><select id="creditFilterProjeto"><option value="">Todos os projetos</option></select></label>
+    </div>
+    <div class="detail-actions-row"><button class="detail-button detail-button--secondary" id="clearCreditFilters" type="button"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Limpar filtros</button></div>
+  </div>
+</section>
+<section class="detail-table-card"><div id="actionChart" style="min-height:420px"></div></section>
+<section class="detail-table-card"><div class="detail-table-scroll"><table class="table table-striped table-sm detail-table"><thead><tr><th>Ação</th><th>Descrição/Objetivo</th><th>PTRES vinculados</th><th class="text-center">Dígitos</th><th class="text-right">Crédito disponível</th></tr></thead><tbody id="actionTableBody"></tbody></table></div></section>
 </main>
 <script>
 const actionLabels = ["00UU", "2D55", "2004", "20X1", "151S", "21GO", "2120", "21AI", "2000", "21A0", "20IH", "20X7", "2868", "21EM", "2048", "20XV"];
@@ -1871,6 +1886,9 @@ Plotly.newPlot('actionDistributionChart', [{
   yaxis: { title: 'Ação', gridcolor: '#ffffff' }
 }, { responsive: true });
 </script>
+<script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+<script src="assets/js/credit-data.js"></script>
+<script src="assets/js/credit-panel.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

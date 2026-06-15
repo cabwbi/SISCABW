@@ -1882,6 +1882,7 @@ table.dataTable thead th {
     </div>
     <div class="contracts-filter-grid">
       <label class="contracts-field" for="filterEmpresa"><span>Empresa</span><select id="filterEmpresa"><option value="">Todas as empresas</option></select></label>
+      <label class="contracts-field" for="filterNumeroContrato"><span>Número de contrato</span><select id="filterNumeroContrato"><option value="">Todos os números</option></select></label>
       <label class="contracts-field" for="filterUnidade"><span>Unidade</span><select id="filterUnidade"><option value="">Todas as unidades</option></select></label>
       <label class="contracts-field" for="filterGrandeComando"><span>Grande Comando</span><select id="filterGrandeComando"><option value="">Todos os Grandes Comandos</option></select></label>
       <label class="contracts-field" for="filterOrdenador"><span>Ordenador de Despesas</span><select id="filterOrdenador"><option value="">Todos os Ordenadores de Despesas</option></select></label>
@@ -1899,23 +1900,7 @@ table.dataTable thead th {
     </div>
     <div class="contracts-table-wrap">
       <table class="contracts-table" id="contractsTable">
-        <thead>
-          <tr>
-            <th>Contrato</th>
-            <th>Número</th>
-            <th>Unidade</th>
-            <th>Ordenador de Despesas</th>
-            <th>Grande Comando</th>
-            <th>Empresa</th>
-            <th>Objeto Resumido</th>
-            <th>Moeda</th>
-            <th class="text-right">Valor Contrato</th>
-            <th class="text-right">Empenhado USD</th>
-            <th class="text-right">Faturado USD</th>
-            <th>Data Final</th>
-            <th>Vigência</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Contrato</th><th>Número</th><th>Unidade</th><th>Ordenador</th><th>GC</th><th>Empresa</th><th>Objeto</th><th>Moeda</th><th>Valor</th><th>Emp. USD</th><th>Fat. USD</th><th>Disponível p/ Empenho</th><th>Fim vigência</th><th>Vigência/Risco</th></tr></thead>
         <tbody>
 <tr><td>044972</td><td>BR-D-PUN-USAF</td><td>DM</td><td>DM</td><td>GAP</td><td>DEFENSE FINANCE &amp; ACCOUNTING SERVICE</td><td>AQUISICAO DE PUBLICACOES TECNICAS</td><td>USD</td><td class="text-right">US$ 2.624.361,00</td><td class="text-right">US$ 2.075.743,30</td><td class="text-right">US$ 2.075.743,30</td><td>31/08/2025</td><td>Encerrado</td></tr>
 <tr><td>045076</td><td>BR-D-CCG-USAF</td><td>DM</td><td>DM</td><td>GAP</td><td>DEFENSE FINANCE &amp; ACCOUNTING SERVICE</td><td>AQUISICAO DE CAD/PAD* INCLUINDO NMCS**</td><td>USD</td><td class="text-right">US$ 6.369.690,00</td><td class="text-right">US$ 5.357.712,33</td><td class="text-right">US$ 5.357.712,33</td><td>15/12/2027</td><td>Vigente</td></tr>
@@ -1979,6 +1964,7 @@ table.dataTable thead th {
   <p class="contracts-source-note" data-contract-source>Fonte: controle_financeiro_contratos(2).XLS</p>
 </main>
 
+<script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="assets/js/contracts-data.js"></script>

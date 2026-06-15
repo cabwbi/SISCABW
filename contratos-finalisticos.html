@@ -1882,6 +1882,7 @@ table.dataTable thead th {
     </div>
     <div class="contracts-filter-grid">
       <label class="contracts-field" for="filterEmpresa"><span>Empresa</span><select id="filterEmpresa"><option value="">Todas as empresas</option></select></label>
+      <label class="contracts-field" for="filterNumeroContrato"><span>Número de contrato</span><select id="filterNumeroContrato"><option value="">Todos os números</option></select></label>
       <label class="contracts-field" for="filterUnidade"><span>Unidade</span><select id="filterUnidade"><option value="">Todas as unidades</option></select></label>
       <label class="contracts-field" for="filterGrandeComando"><span>Grande Comando</span><select id="filterGrandeComando"><option value="">Todos os Grandes Comandos</option></select></label>
       <label class="contracts-field" for="filterOrdenador"><span>Ordenador de Despesas</span><select id="filterOrdenador"><option value="">Todos os Ordenadores de Despesas</option></select></label>
@@ -1899,23 +1900,7 @@ table.dataTable thead th {
     </div>
     <div class="contracts-table-wrap">
       <table class="contracts-table" id="contractsTable">
-        <thead>
-          <tr>
-            <th>Contrato</th>
-            <th>Número</th>
-            <th>Unidade</th>
-            <th>Ordenador de Despesas</th>
-            <th>Grande Comando</th>
-            <th>Empresa</th>
-            <th>Objeto Resumido</th>
-            <th>Moeda</th>
-            <th class="text-right">Valor Contrato</th>
-            <th class="text-right">Empenhado USD</th>
-            <th class="text-right">Faturado USD</th>
-            <th>Data Final</th>
-            <th>Vigência</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Contrato</th><th>Número</th><th>Unidade</th><th>Ordenador</th><th>GC</th><th>Empresa</th><th>Objeto</th><th>Moeda</th><th>Valor</th><th>Emp. USD</th><th>Fat. USD</th><th>Disponível p/ Empenho</th><th>Fim vigência</th><th>Vigência/Risco</th></tr></thead>
         <tbody>
 <tr><td>190860</td><td>010/CABW/2020</td><td>SP</td><td>SP</td><td>GAP</td><td>BOEING DISTRIBUTION,  INC.</td><td>COMPRA DE MATERIAIS PARA APLICACAO NOS MOTORES  GE J-85 NAS AERONAVES F-5M.</td><td>USD</td><td class="text-right">US$ 28.648.650,88</td><td class="text-right">US$ 10.875.621,50</td><td class="text-right">US$ 9.228.886,58</td><td>10/11/2026</td><td>Vigente</td></tr>
 <tr><td>204922</td><td>012/CABW/2020</td><td>CW</td><td>CW</td><td>GAP</td><td>IAE INTERNATIONAL AERO ENGINES AG</td><td>SERVICO DE SUPORTE LOGISTICO AO MOTOR IAE V2531  E5  PROJETO KC 390</td><td>USD</td><td class="text-right">US$ 15.671.598,60</td><td class="text-right">US$ 11.193.354,62</td><td class="text-right">US$ 10.697.103,20</td><td>25/10/2026</td><td>Vigente</td></tr>
@@ -1983,6 +1968,7 @@ table.dataTable thead th {
   <p class="contracts-source-note" data-contract-source>Fonte: controle_financeiro_contratos(2).XLS</p>
 </main>
 
+<script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="assets/js/contracts-data.js"></script>
