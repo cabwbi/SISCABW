@@ -147,6 +147,19 @@
   .detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 1 !important; }
 }
 </style>
+
+<style id="cabw-layout-final-fix">
+.table-responsive, .cabw-table-scroll, .contracts-table-wrap { max-height: 560px !important; overflow-x: auto !important; overflow-y: auto !important; width: 100% !important; }
+.table-responsive table, .cabw-table-scroll table, .contracts-table-wrap table { min-width: 980px !important; }
+.detail-workbench.cabw-filter-report-layout { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(310px, 370px) !important; gap: 24px !important; align-items: stretch !important; }
+.detail-workbench.cabw-filter-report-layout > .detail-workbench__panel { grid-column: 1 !important; min-width: 0 !important; }
+.detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 2 !important; align-self: stretch !important; height: auto !important; }
+.contracts-workbench { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(310px,370px) !important; gap: 24px !important; align-items: stretch !important; }
+.contracts-workbench > .contracts-filter-header { grid-column: 1 !important; grid-row: 1 !important; }
+.contracts-workbench > .contracts-filter-grid { grid-column: 1 !important; grid-row: 2 !important; min-width: 0 !important; }
+.contracts-workbench > .cabw-report-panel { grid-column: 2 !important; grid-row: 1 / span 2 !important; align-self: stretch !important; }
+@media (max-width: 992px) { .detail-workbench.cabw-filter-report-layout, .contracts-workbench { grid-template-columns: 1fr !important; } .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; } }
+</style>
 </head><body><h1>Verificação de publicação</h1><p>Esta página verifica se os caminhos usados pelo site estão acessíveis.</p><ul id="out"></ul><script>
 const files=['css/style.css','assets/img/hero_aircraft_clean.png
 assets/img/hero_kc390_cabw.png','assets/img/hero_eagle.png','assets/icons/home-credit.png','assets/icons/home-contract.png','assets/icons/home-process.png','cabw_logo.png'];

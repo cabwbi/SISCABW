@@ -1977,6 +1977,19 @@ table.dataTable thead th {
   .detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 1 !important; }
 }
 </style>
+
+<style id="cabw-layout-final-fix">
+.table-responsive, .cabw-table-scroll, .contracts-table-wrap { max-height: 560px !important; overflow-x: auto !important; overflow-y: auto !important; width: 100% !important; }
+.table-responsive table, .cabw-table-scroll table, .contracts-table-wrap table { min-width: 980px !important; }
+.detail-workbench.cabw-filter-report-layout { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(310px, 370px) !important; gap: 24px !important; align-items: stretch !important; }
+.detail-workbench.cabw-filter-report-layout > .detail-workbench__panel { grid-column: 1 !important; min-width: 0 !important; }
+.detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 2 !important; align-self: stretch !important; height: auto !important; }
+.contracts-workbench { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(310px,370px) !important; gap: 24px !important; align-items: stretch !important; }
+.contracts-workbench > .contracts-filter-header { grid-column: 1 !important; grid-row: 1 !important; }
+.contracts-workbench > .contracts-filter-grid { grid-column: 1 !important; grid-row: 2 !important; min-width: 0 !important; }
+.contracts-workbench > .cabw-report-panel { grid-column: 2 !important; grid-row: 1 / span 2 !important; align-self: stretch !important; }
+@media (max-width: 992px) { .detail-workbench.cabw-filter-report-layout, .contracts-workbench { grid-template-columns: 1fr !important; } .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; } }
+</style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -1994,7 +2007,7 @@ table.dataTable thead th {
 <li class="nav-item"><a class="nav-link" href="requisicoes.html">Deep research</a></li>
 <li class="nav-item"><a class="nav-link" href="governanca.html">Governança</a></li>
 <!-- Navegação secundária do painel de crédito disponível -->
-<li class="nav-item"><a class="nav-link" href="ug.html">Análise por UG</a></li>
+<li class="nav-item"><a class="nav-link" href="ug.html">Detalhamento por OM</a></li>
 <li class="nav-item"><a class="nav-link" href="action.html">Análise por Ação</a></li>
 <li class="nav-item active"><a aria-current="page" class="nav-link" href="detail.html">Detalhamento</a></li>
 <li class="nav-item"><a class="nav-link" href="consistency.html">Consistência</a></li>
