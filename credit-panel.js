@@ -15,8 +15,72 @@ function hasAny(rowVals, selectedVals){ return !selectedVals.length || selectedV
 function filters(){return {ug:selected($('#creditFilterUg')), acao:selected($('#creditFilterAcao')), natureza:selected($('#creditFilterNatureza')), projeto:selected($('#creditFilterProjeto'))};}
 function rowMatches(r,f){return (!f.ug.length||f.ug.includes(omLabel(r))) && (!f.acao.length||f.acao.includes(r.acao||'')) && (!f.natureza.length||f.natureza.includes(r.natureza||'')) && hasAny(projectLabels(r), f.projeto);}
 function filtered(){const f=filters(); return {digits:data.digits.filter(r=>rowMatches(r,f)), pos:data.purchaseOrders.filter(r=>rowMatches(r,f)), sig:data.signatureOrders.filter(r=>rowMatches(r,f)), f};}
-function fillMulti(sel, vals){ if(!sel)return; const old=selected(sel); sel.multiple=true; sel.size=Math.min(6, Math.max(3, vals.length+1)); sel.classList.add('cabw-multi-select'); sel.innerHTML=vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); old.forEach(v=>{const o=Array.from(sel.options).find(o=>o.value===v); if(o)o.selected=true;}); }
-function initFilters(){ const d=data.digits||[], p=data.purchaseOrders||[], s=data.signatureOrders||[]; fillMulti($('#creditFilterUg'), unique([].concat(d.map(omLabel),p.map(omLabel),s.map(omLabel))).filter(v=>!/^[0-9]+$/.test(String(v).trim()))); fillMulti($('#creditFilterAcao'), unique([].concat(d.map(r=>r.acao),p.map(r=>r.acao),s.map(r=>r.acao)))); fillMulti($('#creditFilterNatureza'), unique([].concat(d.map(r=>r.natureza),p.map(r=>r.natureza),s.map(r=>r.natureza)))); fillMulti($('#creditFilterProjeto'), unique([].concat(...d.map(projectLabels),...p.map(projectLabels),...s.map(projectLabels)))); $all('#creditFilterUg,#creditFilterAcao,#creditFilterNatureza,#creditFilterProjeto').forEach(el=>el.addEventListener('change', renderAll)); $('#clearCreditFilters')?.addEventListener('click',()=>{$all('#creditFilterUg,#creditFilterAcao,#creditFilterNatureza,#creditFilterProjeto').forEach(e=>Array.from(e.options).forEach(o=>o.selected=false)); renderAll();}); }
+
+function ensureCabwMultiCss(){
+  if(document.getElementById('cabw-multi-dropdown-css')) return;
+  const st=document.createElement('style'); st.id='cabw-multi-dropdown-css';
+  st.textContent=`
+  select.cabw-native-multi-hidden{display:none!important;}
+  .cabw-multi-dropdown{position:relative;width:100%;font-family:inherit;}
+  .cabw-multi-button{width:100%;min-height:46px;border:1px solid #ccd6e6;border-radius:10px;background:#f8fbff;color:#001f55;padding:10px 42px 10px 14px;text-align:left;font-weight:500;box-shadow:inset 0 1px 0 rgba(255,255,255,.75);cursor:pointer;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cabw-multi-button:after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;color:#003b7a;pointer-events:none;}
+  .cabw-multi-dropdown.open .cabw-multi-button{border-color:#f5c400;box-shadow:0 0 0 .2rem rgba(245,196,0,.18);background:#fff;}
+  .cabw-multi-menu{display:none;position:absolute;z-index:3000;left:0;right:0;top:calc(100% + 6px);max-height:300px;overflow:auto;background:#fff;border:1px solid #ccd6e6;border-radius:12px;box-shadow:0 14px 32px rgba(0,31,85,.18);padding:6px;}
+  .cabw-multi-dropdown.open .cabw-multi-menu{display:block;}
+  .cabw-multi-option{display:flex;gap:9px;align-items:flex-start;padding:8px 9px;border-radius:8px;color:#001f55;font-size:14px;line-height:1.25;cursor:pointer;margin:0;}
+  .cabw-multi-option:hover{background:#eef5ff;}
+  .cabw-multi-option input{margin-top:2px;accent-color:#003b7a;flex:0 0 auto;}
+  .cabw-multi-actions{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e7edf6;margin-bottom:4px;padding:4px 4px 8px;position:sticky;top:0;background:#fff;z-index:1;}
+  .cabw-multi-actions button{border:0;border-radius:8px;background:#e9eef6;color:#003b7a;font-weight:700;padding:5px 8px;font-size:12px;cursor:pointer;}
+  .cabw-multi-actions button:hover{background:#dce6f2;}
+  .cabw-multi-empty{padding:10px;color:#6c7890;font-size:13px;}
+  `;
+  document.head.appendChild(st);
+  document.addEventListener('click',e=>{ if(!e.target.closest('.cabw-multi-dropdown')) document.querySelectorAll('.cabw-multi-dropdown.open').forEach(w=>w.classList.remove('open')); });
+}
+function multiPlaceholder(sel){
+  const label=sel.closest('label'); const span=label?label.querySelector('span'):null; const name=(span?span.textContent.trim():'opções').toLowerCase();
+  if(name.includes('empresa')) return 'Todas as empresas';
+  if(name.includes('número')) return 'Todos os números';
+  if(name.includes('unidade')) return 'Todas as unidades';
+  if(name.includes('orden')) return 'Todas as ordenações';
+  if(name.includes('grande')) return 'Todos os Grandes Comandos';
+  if(name.includes('ação')) return 'Todas as ações';
+  if(name.includes('moeda')) return 'Todas as moedas';
+  if(name.includes('vigência')) return 'Todas';
+  if(name.includes('natureza')) return 'Todas as naturezas';
+  if(name.includes('projeto')) return 'Todos os projetos';
+  if(name==='om') return 'Todas as OM';
+  return 'Todas as opções';
+}
+function updateCabwMulti(sel){
+  const wrap=sel.nextElementSibling && sel.nextElementSibling.classList && sel.nextElementSibling.classList.contains('cabw-multi-dropdown') ? sel.nextElementSibling : null;
+  if(!wrap) return;
+  const chosen=Array.from(sel.selectedOptions).map(o=>o.textContent.trim()).filter(Boolean);
+  const btn=wrap.querySelector('.cabw-multi-button');
+  if(btn){ btn.textContent = chosen.length ? (chosen.length<=2 ? chosen.join(', ') : `${chosen.length} selecionadas`) : multiPlaceholder(sel); btn.title = chosen.join(', '); }
+  wrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>{ const opt=Array.from(sel.options).find(o=>o.value===cb.value); cb.checked=!!(opt&&opt.selected); });
+}
+function rebuildCabwMulti(sel){
+  ensureCabwMultiCss();
+  sel.multiple=true; sel.size=1; sel.classList.remove('cabw-multi-select'); sel.classList.add('cabw-native-multi-hidden'); sel.setAttribute('aria-hidden','true'); sel.tabIndex=-1;
+  let wrap=sel.nextElementSibling && sel.nextElementSibling.classList && sel.nextElementSibling.classList.contains('cabw-multi-dropdown') ? sel.nextElementSibling : null;
+  if(!wrap){ wrap=document.createElement('div'); wrap.className='cabw-multi-dropdown'; sel.parentNode.insertBefore(wrap, sel.nextSibling); }
+  const options=Array.from(sel.options);
+  const menuItems=options.length ? options.map(o=>`<label class="cabw-multi-option"><input type="checkbox" value="${esc(o.value)}" ${o.selected?'checked':''}><span>${esc(o.textContent)}</span></label>`).join('') : '<div class="cabw-multi-empty">Sem opções disponíveis</div>';
+  wrap.innerHTML=`<button type="button" class="cabw-multi-button" aria-haspopup="listbox" aria-expanded="false"></button><div class="cabw-multi-menu"><div class="cabw-multi-actions"><button type="button" data-ms-action="all">Marcar todas</button><button type="button" data-ms-action="clear">Limpar</button></div>${menuItems}</div>`;
+  const btn=wrap.querySelector('.cabw-multi-button');
+  btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation(); document.querySelectorAll('.cabw-multi-dropdown.open').forEach(w=>{if(w!==wrap)w.classList.remove('open')}); wrap.classList.toggle('open'); btn.setAttribute('aria-expanded',wrap.classList.contains('open')?'true':'false');});
+  btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){e.preventDefault(); btn.click();}});
+  wrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{ const opt=Array.from(sel.options).find(o=>o.value===cb.value); if(opt) opt.selected=cb.checked; updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true})); }));
+  wrap.querySelector('[data-ms-action="all"]')?.addEventListener('click',e=>{e.preventDefault(); Array.from(sel.options).forEach(o=>o.selected=true); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
+  wrap.querySelector('[data-ms-action="clear"]')?.addEventListener('click',e=>{e.preventDefault(); Array.from(sel.options).forEach(o=>o.selected=false); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
+  updateCabwMulti(sel);
+}
+function updateAllCabwMultis(){document.querySelectorAll('select.cabw-native-multi-hidden').forEach(updateCabwMulti);}
+
+function fillMulti(sel, vals){ if(!sel)return; const old=selected(sel); sel.innerHTML=vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''); old.forEach(v=>{const o=Array.from(sel.options).find(o=>o.value===v); if(o)o.selected=true;}); rebuildCabwMulti(sel); }
+function initFilters(){ const d=data.digits||[], p=data.purchaseOrders||[], s=data.signatureOrders||[]; fillMulti($('#creditFilterUg'), unique([].concat(d.map(omLabel),p.map(omLabel),s.map(omLabel))).filter(v=>!/^[0-9]+$/.test(String(v).trim()))); fillMulti($('#creditFilterAcao'), unique([].concat(d.map(r=>r.acao),p.map(r=>r.acao),s.map(r=>r.acao)))); fillMulti($('#creditFilterNatureza'), unique([].concat(d.map(r=>r.natureza),p.map(r=>r.natureza),s.map(r=>r.natureza)))); fillMulti($('#creditFilterProjeto'), unique([].concat(...d.map(projectLabels),...p.map(projectLabels),...s.map(projectLabels)))); $all('#creditFilterUg,#creditFilterAcao,#creditFilterNatureza,#creditFilterProjeto').forEach(el=>el.addEventListener('change', renderAll)); $('#clearCreditFilters')?.addEventListener('click',()=>{$all('#creditFilterUg,#creditFilterAcao,#creditFilterNatureza,#creditFilterProjeto').forEach(e=>Array.from(e.options).forEach(o=>o.selected=false)); updateAllCabwMultis(); renderAll();}); }
 function agg(arr, keyFn, valFn){const m=new Map(); arr.forEach(r=>{const k=keyFn(r)||'N/I'; m.set(k,(m.get(k)||0)+Number(valFn(r)||0));}); return Array.from(m,([label,value])=>({label,value})).sort((a,b)=>b.value-a.value);}
 function drawPie(id, rows, title){const el=$('#'+id); if(!el)return; if(!window.Plotly){el.innerHTML='<p>Plotly não carregado.</p>';return;} Plotly.newPlot(el,[{type:'pie',labels:rows.map(r=>r.label),values:rows.map(r=>r.value),textinfo:'label+percent',hovertemplate:'%{label}<br>'+title+': %{value:$,.2f}<extra></extra>'}],{title:{text:title,font:{size:16}},height:360,margin:{l:20,r:20,t:60,b:20}}, {displayModeBar:false,responsive:true});}
 function drawBar(id, rows, title, yTitle){const el=$('#'+id); if(!el)return; if(!window.Plotly){el.innerHTML='<p>Plotly não carregado.</p>';return;} const top=rows.filter(r=>Number(r.value)>0).slice(0,20).reverse(); Plotly.newPlot(el,[{type:'bar',orientation:'h',y:top.map(r=>r.label),x:top.map(r=>r.value),text:top.map(r=>money(r.value)),textposition:'auto',hovertemplate:'%{y}<br>Valor: %{x:$,.2f}<extra></extra>',marker:{color:'#003b7a'}}],{title:{text:title,font:{size:16}},height:Math.max(360,top.length*26+120),margin:{l:170,r:30,t:60,b:50},xaxis:{title:yTitle||'US$'}}, {displayModeBar:false,responsive:true});}
