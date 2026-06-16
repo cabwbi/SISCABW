@@ -1858,6 +1858,26 @@ table.dataTable thead th {
 .cabw-multi-actions{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e7edf6;margin-bottom:4px;padding:4px 4px 8px;position:sticky;top:0;background:#fff;z-index:1;}
 .cabw-multi-actions button{min-height:28px!important;width:auto!important;min-width:0!important;border:0;border-radius:8px;background:#e9eef6;color:#003b7a;font-weight:700;padding:5px 10px;font-size:12px;cursor:pointer;}
 
+
+
+/* ===== Ajustes CABW: logo, filtros sem seleção inicial e área de relatórios ===== */
+.navbar, .cabw-navbar { padding-right: 96px !important; }
+.navbar-collapse { padding-right: 88px !important; }
+.navbar-nav { flex-wrap: wrap !important; }
+.header-logo, .cabw-header-logo { width: 54px !important; top: 18px !important; right: 18px !important; z-index: 2 !important; opacity: .96; }
+@media (max-width: 1200px){ .header-logo, .cabw-header-logo{ display:none !important; } .navbar, .cabw-navbar{ padding-right: 32px !important; } .navbar-collapse{ padding-right:0 !important; } }
+.cabw-filter-report-layout { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(280px,340px); gap:24px; align-items:stretch; }
+.cabw-filter-report-layout > .detail-workbench__panel { min-width:0; }
+.cabw-report-panel { background:#fff; border-radius:18px; box-shadow:0 18px 34px rgba(2,27,70,.10); padding:24px; border:1px solid rgba(0,31,85,.07); display:flex; flex-direction:column; justify-content:space-between; gap:16px; }
+.cabw-report-panel__icon { width:46px; height:46px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; background:#eef3fa; color:#003b7a; font-size:22px; }
+.cabw-report-panel h2 { margin:0; color:#00265f; font-size:1.45rem; font-weight:800; }
+.cabw-report-panel p { margin:0; color:#263a59; line-height:1.45; text-align:justify; }
+.cabw-report-button { border:0; border-radius:12px; background:#ffd200; color:#00265f; font-weight:800; padding:12px 16px; box-shadow:0 8px 20px rgba(0,31,85,.15); cursor:pointer; }
+.cabw-report-button:hover { filter:brightness(.96); transform:translateY(-1px); }
+.contracts-workbench { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(280px,340px); gap:24px; align-items:start; }
+.contracts-workbench .contracts-filter-header, .contracts-workbench .contracts-filter-grid { grid-column:1; }
+.contracts-workbench .cabw-report-panel { grid-column:2; grid-row:1 / span 2; height:100%; }
+@media (max-width: 992px){ .cabw-filter-report-layout, .contracts-workbench { grid-template-columns:1fr !important; } .contracts-workbench .cabw-report-panel { grid-column:1; grid-row:auto; } }
 </style>
 </head>
 <body class="contracts-page">
