@@ -1988,6 +1988,94 @@ table.dataTable thead th {
 .contracts-workbench > .cabw-report-panel { grid-column: 2 !important; grid-row: 1 / span 2 !important; align-self: stretch !important; }
 @media (max-width: 992px) { .detail-workbench.cabw-filter-report-layout, .contracts-workbench { grid-template-columns: 1fr !important; } .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; } }
 </style>
+
+<style id="cabw-mobile-responsive-fix">
+/* Correção responsiva mobile - preserva layout desktop e evita quebra em celulares */
+html, body { max-width: 100%; overflow-x: hidden; }
+body { -webkit-text-size-adjust: 100%; }
+img, svg, canvas, video { max-width: 100%; height: auto; }
+.container-fluid, main.container-fluid { max-width: 100%; }
+.cabw-header-logo, .header-logo { flex: 0 0 auto; z-index: 3; }
+.navbar, .cabw-navbar { max-width: 100%; }
+.navbar-nav { min-width: 0; }
+.nav-link { white-space: nowrap; }
+.home-hero { background-image: linear-gradient(180deg, rgba(0,37,92,.08) 0%, rgba(0,42,99,.38) 70%, rgba(0,41,96,.76) 100%), url('assets/img/hero_home_cabw_background.png') !important; background-size: cover !important; background-position: center center !important; background-repeat: no-repeat !important; }
+.cabw-filter-report-layout, .detail-workbench.cabw-filter-report-layout, .contracts-workbench { width: 100%; max-width: 100%; }
+.detail-workbench__panel, .cabw-report-panel, .contracts-filters-card, .contracts-table-card, .cabw-chart-card, .cabw-list-card, .detail-kpi-card, .home-card { min-width: 0; max-width: 100%; }
+.detail-filter-grid, .contracts-filter-grid { min-width: 0; }
+.detail-field, .contracts-field { min-width: 0; }
+.detail-field select, .contracts-field select, .detail-field input, .contracts-field input, .detail-field button, .contracts-field button { width: 100%; max-width: 100%; }
+.cabw-multi, .cabw-multi-trigger { width: 100%; max-width: 100%; }
+.cabw-multi-menu { max-width: min(520px, calc(100vw - 32px)) !important; min-width: 0 !important; box-sizing: border-box !important; }
+.cabw-chart-grid { max-width: 100%; }
+.cabw-chart-card { overflow: hidden; }
+.cabw-chart-card > div, .contracts-table-card > div[id$="Chart"], .js-plotly-plot { width: 100% !important; max-width: 100% !important; }
+.plot-container, .svg-container, .main-svg { max-width: 100% !important; }
+.table-responsive, .cabw-table-scroll { width: 100%; max-width: 100%; overflow-x: auto !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+.cabw-table-scroll { max-height: 68vh; border-radius: 12px; }
+.cabw-table-scroll table, .table-responsive table, table.cabw-table, .credit-summary-table { min-width: 760px; width: max-content; max-width: none; }
+.contracts-table-card .cabw-table-scroll table, table.contracts-table { min-width: 1120px; }
+.cabw-table-scroll th, .cabw-table-scroll td { white-space: nowrap; }
+.cabw-table-scroll td:last-child, .cabw-table-scroll th:last-child { white-space: normal; min-width: 220px; }
+@media (max-width: 1200px) {
+  .cabw-header-logo, .header-logo { width: 42px !important; height: auto !important; right: 10px !important; }
+  .navbar, .cabw-navbar { padding-right: 62px !important; }
+  .navbar-brand { flex: 0 0 auto; }
+  .navbar-collapse { min-width: 0; }
+  .navbar-nav { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+}
+@media (max-width: 992px) {
+  .navbar, .cabw-navbar { flex-wrap: nowrap !important; align-items: center !important; overflow-x: auto !important; overflow-y: hidden !important; padding: 10px 62px 10px 12px !important; }
+  .navbar-toggler { display: none !important; }
+  .navbar-collapse { display: flex !important; flex-basis: auto !important; flex-grow: 1 !important; width: auto !important; overflow-x: auto !important; }
+  .navbar-nav { flex-direction: row !important; flex-wrap: nowrap !important; gap: 6px !important; width: max-content !important; min-width: max-content !important; margin-right: 0 !important; }
+  .navbar-nav .nav-item { flex: 0 0 auto !important; }
+  .navbar-nav .nav-link { padding: 10px 12px !important; font-size: .92rem !important; }
+  .navbar-brand { font-size: 1rem !important; margin-right: 10px !important; }
+  .home-hero { min-height: 300px !important; padding: 70px 18px 72px !important; }
+  .home-hero h1 { font-size: clamp(2.2rem, 10vw, 4rem) !important; line-height: 1.05 !important; }
+  .home-hero p { font-size: 1rem !important; max-width: 90vw !important; }
+  .home-options { padding: 28px 14px !important; }
+  .home-grid, .home-grid--five { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; width: 100% !important; }
+  .home-card { min-height: 0 !important; padding: 26px 18px !important; }
+  .detail-workbench.cabw-filter-report-layout, .cabw-filter-report-layout, .contracts-workbench { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; }
+  .detail-workbench.cabw-filter-report-layout > .detail-workbench__panel, .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .cabw-filter-report-layout > .detail-workbench__panel, .cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > * { grid-column: 1 !important; grid-row: auto !important; width: 100% !important; }
+  .cabw-report-panel { height: auto !important; padding: 20px !important; }
+  .detail-filter-grid, .contracts-filter-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 14px !important; }
+  .detail-kpi-grid, .detail-kpi-grid--compact, .contracts-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px !important; }
+  .cabw-chart-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 18px !important; }
+  .cabw-chart-card, .cabw-list-card, .contracts-table-card { padding: 18px !important; }
+}
+@media (max-width: 640px) {
+  main.container-fluid, .container-fluid, .credit-page, .module-detail-page { padding-left: 12px !important; padding-right: 12px !important; }
+  h1 { font-size: clamp(1.85rem, 8vw, 2.6rem) !important; line-height: 1.08 !important; word-break: normal; }
+  h2 { font-size: 1.28rem !important; }
+  .credit-position-note, .detail-section-heading p, .cabw-report-panel p { font-size: .95rem !important; }
+  .navbar, .cabw-navbar { padding-right: 52px !important; }
+  .cabw-header-logo, .header-logo { width: 34px !important; top: 8px !important; right: 8px !important; }
+  .navbar-brand { font-size: .9rem !important; }
+  .navbar-nav .nav-link { font-size: .84rem !important; padding: 9px 10px !important; }
+  .home-hero { min-height: 250px !important; padding: 54px 14px 60px !important; background-position: center top !important; }
+  .hero-kicker { transform: scale(.78); }
+  .detail-workbench__panel, .cabw-report-panel, .contracts-filters-card, .contracts-table-card, .cabw-chart-card, .cabw-list-card { border-radius: 16px !important; padding: 16px !important; }
+  .detail-section-heading { align-items: flex-start !important; gap: 12px !important; }
+  .detail-section-heading__icon, .cabw-report-panel__icon { width: 40px !important; height: 40px !important; flex: 0 0 40px !important; }
+  .detail-kpi-grid, .detail-kpi-grid--compact, .contracts-kpi-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .detail-kpi-card strong, .contracts-kpi-card strong { font-size: 1.45rem !important; }
+  .cabw-report-button, .detail-button, .contracts-button { width: 100% !important; justify-content: center !important; }
+  .cabw-multi-menu { left: 0 !important; right: auto !important; width: min(100%, calc(100vw - 32px)) !important; max-height: 52vh !important; }
+  .cabw-chart-card > div, .js-plotly-plot { min-height: 300px !important; }
+  .cabw-table-scroll { max-height: 58vh !important; }
+  .cabw-table-scroll table, .table-responsive table, table.cabw-table, .credit-summary-table { min-width: 720px !important; font-size: .82rem !important; }
+  .contracts-table-card .cabw-table-scroll table, table.contracts-table { min-width: 980px !important; }
+}
+@media (max-width: 380px) {
+  .navbar-nav .nav-link { font-size: .78rem !important; padding: 8px 8px !important; }
+  .home-card h2 { font-size: 1.35rem !important; }
+  .cabw-table-scroll table, .table-responsive table { min-width: 680px !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -2016,5 +2104,46 @@ table.dataTable thead th {
 
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script id="cabw-mobile-responsive-js">
+(function(){
+  function resizePlots(){
+    if(!window.Plotly) return;
+    document.querySelectorAll('.js-plotly-plot').forEach(function(gd){
+      try{
+        var w = gd.clientWidth || gd.parentElement && gd.parentElement.clientWidth || window.innerWidth;
+        var isMobile = window.matchMedia('(max-width: 640px)').matches;
+        var update = {autosize:true};
+        if(isMobile){ update.margin = {l: Math.min(96, Math.max(46, Math.round(w*0.22))), r: 12, t: 54, b: 46}; }
+        Plotly.relayout(gd, update);
+        Plotly.Plots.resize(gd);
+      }catch(e){}
+    });
+  }
+  function normalizeTables(){
+    document.querySelectorAll('table').forEach(function(tbl){
+      if(tbl.closest('.cabw-table-scroll,.table-responsive')) return;
+      var parent = tbl.parentElement;
+      if(!parent || parent.classList.contains('cabw-table-scroll')) return;
+      if(parent.matches('section, article, div, main')){
+        var wrap = document.createElement('div');
+        wrap.className = 'cabw-table-scroll';
+        parent.insertBefore(wrap, tbl);
+        wrap.appendChild(tbl);
+      }
+    });
+  }
+  function syncDropdownBounds(){
+    document.querySelectorAll('.cabw-multi-menu').forEach(function(menu){
+      menu.style.maxWidth = Math.max(280, window.innerWidth - 32) + 'px';
+    });
+  }
+  window.addEventListener('load', function(){ normalizeTables(); syncDropdownBounds(); setTimeout(resizePlots, 250); setTimeout(resizePlots, 900); });
+  window.addEventListener('resize', function(){ syncDropdownBounds(); clearTimeout(window.__cabwResizeTimer); window.__cabwResizeTimer=setTimeout(resizePlots,160); });
+  window.addEventListener('orientationchange', function(){ setTimeout(resizePlots, 350); });
+  document.addEventListener('click', function(){ setTimeout(function(){ syncDropdownBounds(); resizePlots(); }, 80); }, true);
+})();
+</script>
+
 </body>
 </html>
