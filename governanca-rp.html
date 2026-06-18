@@ -1966,52 +1966,17 @@ table.dataTable thead th {
   .detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 1 !important; }
 }
 </style>
-</head>
-<style id="cabw-final-mobile-responsive-fix">
-html, body { max-width: 100%; overflow-x: hidden; }
-img, svg, canvas, iframe { max-width: 100%; }
-main, .page-shell, .container, .container-fluid, .dashboard-container, .contracts-container, .content-wrapper { max-width: 100%; }
-.navbar, .cabw-navbar, .topbar, .main-nav { max-width: 100%; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
-.navbar-nav, .nav-menu, .menu-list { flex-wrap: nowrap !important; white-space: nowrap; }
-.table-responsive, .cabw-table-scroll, .contracts-table-wrap, .table-wrap, .data-table-wrap { width: 100%; max-width: 100%; overflow-x: auto !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
-.table-responsive table, .cabw-table-scroll table, .contracts-table-wrap table, .table-wrap table, .data-table-wrap table { min-width: 920px; width: max-content; }
-.plotly-graph-div, .js-plotly-plot, .chart-container, .chart-card, .graph-card { max-width: 100% !important; overflow: hidden; }
-.detail-workbench.cabw-filter-report-layout, .contracts-workbench, .cabw-filter-report-layout { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(280px,370px) !important; gap: 24px !important; align-items: stretch !important; }
-.detail-workbench.cabw-filter-report-layout > .detail-workbench__panel, .contracts-workbench > .contracts-filter-header, .contracts-workbench > .contracts-filter-grid { grid-column: 1 !important; min-width: 0 !important; }
-.detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 2 !important; align-self: stretch !important; }
-.contracts-workbench > .contracts-filter-header { grid-row: 1 !important; }
-.contracts-workbench > .contracts-filter-grid { grid-row: 2 !important; }
-.contracts-workbench > .cabw-report-panel { grid-row: 1 / span 2 !important; }
-@media (max-width: 992px) {
-  .detail-workbench.cabw-filter-report-layout, .contracts-workbench, .cabw-filter-report-layout { grid-template-columns: 1fr !important; gap: 16px !important; }
-  .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; }
-}
-@media (max-width: 768px) {
-  body { font-size: 15px; }
-  main, .page-shell, .dashboard-container, .contracts-container { padding-left: 14px !important; padding-right: 14px !important; }
-  .home-hero { min-height: 330px !important; background-position: center top !important; }
-  .home-hero__content { padding-top: 142px !important; padding-left: 16px !important; padding-right: 16px !important; }
-  .home-hero h1 { font-size: clamp(2.2rem, 13vw, 3.2rem) !important; }
-  .home-hero p { font-size: 1rem !important; }
-  .home-grid, .cards-grid, .kpi-grid, .contracts-kpi-grid, .detail-kpi-grid, .charts-grid, .dashboard-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 16px !important; width: 100% !important; }
-  .filter-grid, .contracts-filter-grid, .detail-filter-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; }
-  .multi-select-dropdown, .dropdown-menu, .filter-dropdown { max-width: calc(100vw - 32px) !important; width: min(100%, calc(100vw - 32px)) !important; }
-  .cabw-report-panel { width: 100% !important; }
-  .table-responsive, .cabw-table-scroll, .contracts-table-wrap, .table-wrap, .data-table-wrap { max-height: 64vh !important; }
-  .plotly-graph-div, .js-plotly-plot { min-height: 300px !important; }
-}
+
+<style id="cabw-layout-final-fix">
+.table-responsive, .cabw-table-scroll, .contracts-table-wrap { max-height: 560px !important; overflow-x: auto !important; overflow-y: auto !important; width: 100% !important; }
+.table-responsive table, .cabw-table-scroll table, .contracts-table-wrap table { min-width: 980px !important; }
+.detail-workbench.cabw-filter-report-layout { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(310px, 370px) !important; gap: 24px !important; align-items: stretch !important; }
+.detail-workbench.cabw-filter-report-layout > .detail-workbench__panel { grid-column: 1 !important; min-width: 0 !important; }
+.detail-workbench.cabw-filter-report-layout > .cabw-report-panel { grid-column: 2 !important; align-self: stretch !important; height: auto !important; }
+.contracts-workbench { display: grid !important; grid-template-columns: minmax(0,1fr) minmax(310px,370px) !important; gap: 24px !important; align-items: stretch !important; }
+.contracts-workbench > .contracts-filter-header { grid-column: 1 !important; grid-row: 1 !important; }
+.contracts-workbench > .contracts-filter-grid { grid-column: 1 !important; grid-row: 2 !important; min-width: 0 !important; }
+.contracts-workbench > .cabw-report-panel { grid-column: 2 !important; grid-row: 1 / span 2 !important; align-self: stretch !important; }
+@media (max-width: 992px) { .detail-workbench.cabw-filter-report-layout, .contracts-workbench { grid-template-columns: 1fr !important; } .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; } }
 </style>
-<script id="cabw-final-mobile-plotly-resize">
-(function(){
-  function resizePlots(){
-    if(!window.Plotly) return;
-    document.querySelectorAll('.js-plotly-plot,.plotly-graph-div').forEach(function(el){
-      try { window.Plotly.Plots.resize(el); } catch(e) {}
-    });
-  }
-  window.addEventListener('load', function(){ setTimeout(resizePlots, 250); setTimeout(resizePlots, 1000); });
-  window.addEventListener('resize', function(){ setTimeout(resizePlots, 150); });
-  window.addEventListener('orientationchange', function(){ setTimeout(resizePlots, 500); });
-})();
-</script>
-<body class="module-page governance-page"><nav class="navbar navbar-expand-lg navbar-dark bg-primary"><a class="navbar-brand" href="index.html">Painel CABW</a><img src="cabw_logo.png" alt="Brasão da Comissão Aeronáutica Brasileira em Washington" class="header-logo"><button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarNav"><ul class="navbar-nav mr-auto"><li class="nav-item"><a class="nav-link" href="index.html">Início</a></li><li class="nav-item"><a class="nav-link" href="credito.html">Crédito Disponível</a></li><li class="nav-item"><a class="nav-link" href="contratos.html">Contratos</a></li><li class="nav-item"><a class="nav-link" href="processos.html">Processos de Contratação</a></li><li class="nav-item"><a class="nav-link" href="requisicoes.html">Deep research</a></li><li class="nav-item active"><a class="nav-link" href="governanca.html">Governança</a></li></ul></div></nav><main class="container-fluid mt-4 module-detail-page"><a href="governanca.html" class="contract-back-link"><i class="bi bi-arrow-left"></i> Voltar para Governança</a><section class="module-section-card"><span class="module-section-card__icon"><i class="bi bi-cash-coin"></i></span><div><h1>RP - Controle de Restos a Pagar</h1><p>Monitore saldos de Restos a Pagar por OM, contrato/PAG, ano do RP e empenho.</p><p class="module-section-card__status">Dados disponíveis em <code>assets/js/rp-data.js</code>.</p></div></section><section class="detail-table-card"><div id="rpPanelRoot"></div></section></main><script src="assets/js/rp-data.js"></script><script src="assets/js/rp-panel.js"></script><script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script></body></html>
+</head><body class="module-page governance-page"><nav class="navbar navbar-expand-lg navbar-dark bg-primary"><a class="navbar-brand" href="index.html">Painel CABW</a><img src="cabw_logo.png" alt="Brasão da Comissão Aeronáutica Brasileira em Washington" class="header-logo"><button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarNav"><ul class="navbar-nav mr-auto"><li class="nav-item"><a class="nav-link" href="index.html">Início</a></li><li class="nav-item"><a class="nav-link" href="credito.html">Crédito Disponível</a></li><li class="nav-item"><a class="nav-link" href="contratos.html">Contratos</a></li><li class="nav-item"><a class="nav-link" href="processos.html">Processos de Contratação</a></li><li class="nav-item"><a class="nav-link" href="requisicoes.html">Deep research</a></li><li class="nav-item active"><a class="nav-link" href="governanca.html">Governança</a></li></ul></div></nav><main class="container-fluid mt-4 module-detail-page"><a href="governanca.html" class="contract-back-link"><i class="bi bi-arrow-left"></i> Voltar para Governança</a><section class="module-section-card"><span class="module-section-card__icon"><i class="bi bi-cash-coin"></i></span><div><h1>RP - Controle de Restos a Pagar</h1><p>Monitore saldos de Restos a Pagar por OM, contrato/PAG, ano do RP e empenho.</p><p class="module-section-card__status">Dados disponíveis em <code>assets/js/rp-data.js</code>.</p></div></section><section class="detail-table-card"><div id="rpPanelRoot"></div></section></main><script src="assets/js/rp-data.js"></script><script src="assets/js/rp-panel.js"></script><script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script></body></html>
