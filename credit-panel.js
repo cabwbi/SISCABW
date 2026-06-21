@@ -36,10 +36,14 @@ function ensureCabwMultiCss(){
   .cabw-multi-empty{padding:10px;color:#6c7890;font-size:13px;}
   /* checkbox-proportional-fix */
   .detail-field .cabw-multi-option input[type="checkbox"],.contracts-field .cabw-multi-option input[type="checkbox"],.cabw-multi-option input[type="checkbox"]{appearance:auto!important;-webkit-appearance:checkbox!important;width:18px!important;min-width:18px!important;max-width:18px!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding:0!important;margin:1px 7px 0 0!important;border:1px solid #8fa2bd!important;border-radius:3px!important;background:#fff!important;box-shadow:none!important;flex:0 0 18px!important;transform:none!important;accent-color:#003b7a!important;}
-  .cabw-multi-menu{box-sizing:border-box!important;width:100%!important;min-width:100%!important;max-width:min(520px,calc(100vw - 32px))!important;max-height:260px!important;overflow-y:auto!important;overflow-x:hidden!important;}
+  .cabw-multi-menu{box-sizing:border-box!important;width:100%!important;min-width:100%!important;max-width:min(760px,calc(100vw - 32px))!important;max-height:260px!important;overflow-y:auto!important;overflow-x:auto!important;}
   .cabw-multi-option{display:flex!important;align-items:flex-start!important;gap:8px!important;padding:7px 8px!important;font-size:13px!important;line-height:1.25!important;}
-  .cabw-multi-option span{display:block;min-width:0;white-space:normal;overflow-wrap:anywhere;}
+  .cabw-multi-option span{display:block;min-width:0;white-space:nowrap;overflow:visible;}
   .cabw-multi-actions button{min-height:28px!important;width:auto!important;min-width:0!important;padding:5px 10px!important;}
+
+  .cabw-multi-filter-line{display:flex;gap:6px;align-items:center;border-bottom:1px solid #e7edf6;margin-bottom:4px;padding:4px 4px 8px;position:sticky;top:0;background:#fff;z-index:2;}
+  .cabw-multi-search{min-width:0;flex:1;border:1px solid #ccd6e6;border-radius:8px;padding:7px 8px;font:inherit;font-size:12px;color:#001f55;background:#f8fbff;}
+  .cabw-multi-search-button{border:0;border-radius:8px;background:#003b7a;color:#fff;font-weight:800;padding:7px 9px;font-size:11px;cursor:pointer;white-space:nowrap;}
 
   `;
   document.head.appendChild(st);
@@ -75,11 +79,12 @@ function rebuildCabwMulti(sel){
   if(!wrap){ wrap=document.createElement('div'); wrap.className='cabw-multi-dropdown'; sel.parentNode.insertBefore(wrap, sel.nextSibling); }
   const options=Array.from(sel.options);
   const menuItems=options.length ? options.map(o=>`<label class="cabw-multi-option"><input type="checkbox" value="${esc(o.value)}" ${o.selected?'checked':''}><span>${esc(o.textContent)}</span></label>`).join('') : '<div class="cabw-multi-empty">Sem opções disponíveis</div>';
-  wrap.innerHTML=`<button type="button" class="cabw-multi-button" aria-haspopup="listbox" aria-expanded="false"></button><div class="cabw-multi-menu"><div class="cabw-multi-actions"><button type="button" data-ms-action="all">Marcar todas</button><button type="button" data-ms-action="clear">Limpar</button></div>${menuItems}</div>`;
+  wrap.innerHTML=`<button type="button" class="cabw-multi-button" aria-haspopup="listbox" aria-expanded="false"></button><div class="cabw-multi-menu"><div class="cabw-multi-filter-line"><input type="search" class="cabw-multi-search" data-ms-search placeholder="Texto para selecionar..."><button type="button" class="cabw-multi-search-button" data-ms-action="contains">Selecionar</button></div><div class="cabw-multi-actions"><button type="button" data-ms-action="all">Marcar todas</button><button type="button" data-ms-action="clear">Limpar</button></div>${menuItems}</div>`;
   const btn=wrap.querySelector('.cabw-multi-button');
   btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation(); document.querySelectorAll('.cabw-multi-dropdown.open').forEach(w=>{if(w!==wrap)w.classList.remove('open')}); wrap.classList.toggle('open'); btn.setAttribute('aria-expanded',wrap.classList.contains('open')?'true':'false');});
   btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){e.preventDefault(); btn.click();}});
   wrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{ const opt=Array.from(sel.options).find(o=>o.value===cb.value); if(opt) opt.selected=cb.checked; updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true})); }));
+  const searchInput=wrap.querySelector('[data-ms-search]'); const filterOptions=()=>{const q=(searchInput?.value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); wrap.querySelectorAll('.cabw-multi-option').forEach(label=>{const txt=(label.textContent||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); label.style.display=!q||txt.includes(q)?'flex':'none';});}; searchInput?.addEventListener('input',filterOptions); searchInput?.addEventListener('click',e=>e.stopPropagation()); wrap.querySelector('[data-ms-action="contains"]')?.addEventListener('click',e=>{e.preventDefault(); const q=(searchInput?.value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); if(!q)return; Array.from(sel.options).forEach(o=>{const t=(o.textContent||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); if(t.includes(q)) o.selected=true;}); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
   wrap.querySelector('[data-ms-action="all"]')?.addEventListener('click',e=>{e.preventDefault(); Array.from(sel.options).forEach(o=>o.selected=true); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
   wrap.querySelector('[data-ms-action="clear"]')?.addEventListener('click',e=>{e.preventDefault(); Array.from(sel.options).forEach(o=>o.selected=false); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
   updateCabwMulti(sel);
