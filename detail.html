@@ -1990,6 +1990,20 @@ table.dataTable thead th {
 .contracts-workbench > .cabw-report-panel { grid-column: 2 !important; grid-row: 1 / span 2 !important; align-self: stretch !important; }
 @media (max-width: 992px) { .detail-workbench.cabw-filter-report-layout, .contracts-workbench { grid-template-columns: 1fr !important; } .detail-workbench.cabw-filter-report-layout > .cabw-report-panel, .contracts-workbench > .cabw-report-panel { grid-column: 1 !important; grid-row: auto !important; } }
 </style>
+
+<style id="cabw-filter-chart-final-fix">
+/* Ajuste de leitura dos filtros: 2 a 3 campos por linha e dropdown amplo */
+.contracts-filter-grid{grid-template-columns:repeat(3,minmax(230px,1fr))!important;align-items:end!important;gap:16px!important;}
+.contracts-field--wide{grid-column:span 2!important;}
+.cabw-multi-menu{box-sizing:border-box!important;left:0!important;right:auto!important;width:max-content!important;min-width:min(440px,calc(100vw - 48px))!important;max-width:min(780px,calc(100vw - 48px))!important;overflow-x:auto!important;}
+.cabw-multi-dropdown.cabw-align-right .cabw-multi-menu{left:auto!important;right:0!important;}
+.cabw-multi-option span{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;}
+.cabw-multi-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+.cabw-multi-actions button{width:100%!important;white-space:nowrap!important;}
+.cabw-multi-filter-line{grid-template-columns:minmax(160px,1fr) auto!important;}
+@media (max-width:1320px){.contracts-filter-grid{grid-template-columns:repeat(2,minmax(230px,1fr))!important;}.contracts-field--wide{grid-column:span 2!important;}}
+@media (max-width:768px){.contracts-filter-grid{grid-template-columns:1fr!important;}.contracts-field--wide{grid-column:auto!important;}.cabw-multi-menu{min-width:100%!important;max-width:calc(100vw - 32px)!important;}}
+</style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">

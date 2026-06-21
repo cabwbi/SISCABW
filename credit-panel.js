@@ -44,6 +44,12 @@ function ensureCabwMultiCss(){
   .cabw-multi-filter-line{display:flex;gap:6px;align-items:center;border-bottom:1px solid #e7edf6;margin-bottom:4px;padding:4px 4px 8px;position:sticky;top:0;background:#fff;z-index:2;}
   .cabw-multi-search{min-width:0;flex:1;border:1px solid #ccd6e6;border-radius:8px;padding:7px 8px;font:inherit;font-size:12px;color:#001f55;background:#f8fbff;}
   .cabw-multi-search-button{border:0;border-radius:8px;background:#003b7a;color:#fff;font-weight:800;padding:7px 9px;font-size:11px;cursor:pointer;white-space:nowrap;}
+  .cabw-multi-menu{left:0!important;right:auto!important;width:max-content!important;min-width:min(440px,calc(100vw - 48px))!important;max-width:min(780px,calc(100vw - 48px))!important;overflow-x:auto!important;}
+  .cabw-multi-dropdown.cabw-align-right .cabw-multi-menu{left:auto!important;right:0!important;}
+  .cabw-multi-option span{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;}
+  .cabw-multi-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+  .cabw-multi-actions button{width:100%!important;white-space:nowrap!important;padding:7px 10px!important;}
+  @media(max-width:768px){.cabw-multi-menu{min-width:100%!important;max-width:calc(100vw - 32px)!important;}}
 
   `;
   document.head.appendChild(st);
@@ -64,6 +70,7 @@ function multiPlaceholder(sel){
   if(name==='om') return 'Todas as OM';
   return 'Todas as opções';
 }
+function positionCabwMultiMenu(wrap){try{wrap.classList.remove('cabw-align-right'); const menu=wrap.querySelector('.cabw-multi-menu'); if(!menu)return; const r=menu.getBoundingClientRect(); if(r.right>window.innerWidth-16) wrap.classList.add('cabw-align-right');}catch(e){}}
 function updateCabwMulti(sel){
   const wrap=sel.nextElementSibling && sel.nextElementSibling.classList && sel.nextElementSibling.classList.contains('cabw-multi-dropdown') ? sel.nextElementSibling : null;
   if(!wrap) return;
@@ -81,7 +88,7 @@ function rebuildCabwMulti(sel){
   const menuItems=options.length ? options.map(o=>`<label class="cabw-multi-option"><input type="checkbox" value="${esc(o.value)}" ${o.selected?'checked':''}><span>${esc(o.textContent)}</span></label>`).join('') : '<div class="cabw-multi-empty">Sem opções disponíveis</div>';
   wrap.innerHTML=`<button type="button" class="cabw-multi-button" aria-haspopup="listbox" aria-expanded="false"></button><div class="cabw-multi-menu"><div class="cabw-multi-filter-line"><input type="search" class="cabw-multi-search" data-ms-search placeholder="Texto para selecionar..."><button type="button" class="cabw-multi-search-button" data-ms-action="contains">Selecionar</button></div><div class="cabw-multi-actions"><button type="button" data-ms-action="all">Marcar todas</button><button type="button" data-ms-action="clear">Limpar</button></div>${menuItems}</div>`;
   const btn=wrap.querySelector('.cabw-multi-button');
-  btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation(); document.querySelectorAll('.cabw-multi-dropdown.open').forEach(w=>{if(w!==wrap)w.classList.remove('open')}); wrap.classList.toggle('open'); btn.setAttribute('aria-expanded',wrap.classList.contains('open')?'true':'false');});
+  btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation(); document.querySelectorAll('.cabw-multi-dropdown.open').forEach(w=>{if(w!==wrap)w.classList.remove('open')}); wrap.classList.toggle('open'); btn.setAttribute('aria-expanded',wrap.classList.contains('open')?'true':'false'); if(wrap.classList.contains('open')) setTimeout(()=>positionCabwMultiMenu(wrap),0);});
   btn.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){e.preventDefault(); btn.click();}});
   wrap.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener('change',()=>{ const opt=Array.from(sel.options).find(o=>o.value===cb.value); if(opt) opt.selected=cb.checked; updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true})); }));
   const searchInput=wrap.querySelector('[data-ms-search]'); const filterOptions=()=>{const q=(searchInput?.value||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); wrap.querySelectorAll('.cabw-multi-option').forEach(label=>{const txt=(label.textContent||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); label.style.display=!q||txt.includes(q)?'flex':'none';});}; searchInput?.addEventListener('input',filterOptions); searchInput?.addEventListener('click',e=>e.stopPropagation()); wrap.querySelector('[data-ms-action="contains"]')?.addEventListener('click',e=>{e.preventDefault(); const q=(searchInput?.value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); if(!q)return; Array.from(sel.options).forEach(o=>{const t=(o.textContent||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); if(t.includes(q)) o.selected=true;}); updateCabwMulti(sel); sel.dispatchEvent(new Event('change',{bubbles:true}));});
