@@ -107,3 +107,4 @@ suprimento-data.js
 suprimento-fundos.html
 suprimento-fundos.js
 ug.html
+README_CORRECAO_ATUALIZACAO_DADOS_16072026.md
