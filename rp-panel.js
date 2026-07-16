@@ -83,13 +83,25 @@
       if(el.on){['plotly_legendclick','plotly_legenddoubleclick'].forEach(evt=>el.on(evt,()=>setTimeout(()=>Plotly.relayout(el,{'yaxis.autorange':true}),80)));}
     } else {el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';}
   }
+  function wrapHoverText(s, maxLen){
+    const words=String(s||'').replace(/\s+/g,' ').trim().split(' ');
+    const lines=[]; let line='';
+    words.forEach(w=>{ if((line+' '+w).trim().length>maxLen){ if(line)lines.push(line); line=w; } else { line=(line+' '+w).trim(); } });
+    if(line)lines.push(line);
+    return esc(lines.join('<br>'));
+  }
+  function rpTooltipItem(r){
+    const obj=wrapHoverText(r.objetosResumo||'sem objeto resumido',72);
+    const emp=wrapHoverText(r.empresa||'',64);
+    return '<b>PO '+esc(r.po)+'</b> — '+money(r.saldoAtualUsd)+'<br><b>Empresa:</b> '+emp+'<br><b>Objeto:</b> '+obj;
+  }
   function groupBars(rs, key, target, title){
     const map=new Map();
     rs.forEach(r=>{const k=r[key]||'Não informado'; if(!map.has(k))map.set(k,{label:k,total:0,items:[]}); const g=map.get(k); g.total+=Number(r.saldoAtualUsd||0); g.items.push(r);});
     const arr=Array.from(map.values()).sort((a,b)=>b.total-a.total).slice(0,25).reverse();
-    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total); const text=arr.map(g=>g.items.slice().sort((a,b)=>b.saldoAtualUsd-a.saldoAtualUsd).slice(0,12).map(r=>`${r.po}: ${money(r.saldoAtualUsd)} - ${r.objetosResumo||'sem objeto resumido'}`).join('<br>'));
+    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total); const text=arr.map(g=>g.items.slice().sort((a,b)=>b.saldoAtualUsd-a.saldoAtualUsd).slice(0,8).map(rpTooltipItem).join('<br><br>'));
     const el=$(target); if(!el)return;
-    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:text,hovertemplate:'<b>%{y}</b><br>Total RP: %{x:$,.2f}<br><br>%{customdata}<extra></extra>'}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:220,r:25,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
+    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:text,hovertemplate:'<b>%{y}</b><br><b>Total RP:</b> %{x:$,.2f}<br><br>%{customdata}<extra></extra>',hoverlabel:{align:'left',bgcolor:'#ffffff',bordercolor:'#cbd6ea',font:{size:12,color:'#111b63'}}}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:220,r:25,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},hoverlabel:{align:'left',font:{size:12}},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
     else el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';
   }
   function compactMoney(v){
