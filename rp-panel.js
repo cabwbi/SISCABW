@@ -10,7 +10,7 @@
   const money=v=>'US$ '+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const num=v=>Number(v||0).toLocaleString('pt-BR');
   const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  function rpTipWrap(s,max=76){const words=String(s||'').replace(/\s+/g,' ').trim().split(' '); const lines=[]; let line=''; words.forEach(w=>{if((line+' '+w).trim().length>max&&line){lines.push(line); line=w;} else line=(line+' '+w).trim();}); if(line)lines.push(line); return esc(lines.join('<br>'));}
+  function rpTipWrap(s,max=76){const words=String(s||'').replace(/\s+/g,' ').trim().split(' '); const lines=[]; let line=''; words.forEach(w=>{if((line+' '+w).trim().length>max&&line){lines.push(line); line=w;} else line=(line+' '+w).trim();}); if(line)lines.push(line); return esc(lines.join('\n')).replace(/\n/g,'<br>');}
   const uniq=a=>Array.from(new Set(a.filter(v=>v!==undefined&&v!==null&&String(v).trim()!==''))).sort((x,y)=>String(x).localeCompare(String(y),'pt-BR'));
   function selected(sel){return sel?Array.from(sel.selectedOptions).map(o=>o.value):[];}
   function labelFor(sel){const text=(sel.closest('label')?.querySelector('span')?.textContent||'opções').toLowerCase(); if(text==='ano de emissão da po')return 'Todos os anos'; if(text==='tipo de processo')return 'Todos os tipos'; return 'Todas as '+text.replace('om requisitante','OMs').replace('ug requisitante','UGs').replace('ação orçamentária','ações').replace('natureza de despesa','naturezas').replace('empresa contratada','empresas').replace('requisição atrasada','situações');}
@@ -89,7 +89,7 @@
     const lines=[]; let line='';
     words.forEach(w=>{ if((line+' '+w).trim().length>maxLen){ if(line)lines.push(line); line=w; } else { line=(line+' '+w).trim(); } });
     if(line)lines.push(line);
-    return esc(lines.join('<br>'));
+    return esc(lines.join('\n')).replace(/\n/g,'<br>');
   }
   function rpTooltipItem(r){
     const obj=wrapHoverText(r.objetosResumo||'sem objeto resumido',72);
@@ -116,7 +116,7 @@
   function showRpTooltip(html, ev){
     const t=ensureRpTooltip(); t.innerHTML=html; t.style.display='block';
     const x=(ev&&ev.clientX?ev.clientX:window.innerWidth/2)+16; const y=(ev&&ev.clientY?ev.clientY:window.innerHeight/2)+16;
-    t.style.left=Math.min(x, window.innerWidth-t.offsetWidth-16)+'px'; t.style.top=Math.min(y, window.innerHeight-t.offsetHeight-16)+'px';
+    t.style.left=Math.max(8,Math.min(x, window.innerWidth-t.offsetWidth-16))+'px'; t.style.top=Math.max(8,Math.min(y, window.innerHeight-t.offsetHeight-16))+'px';
   }
   function hideRpTooltip(){const t=document.getElementById('rpReadableTooltip'); if(t)t.style.display='none';}
   function groupBars(rs, key, target, title){
@@ -153,6 +153,49 @@
     ];
     if(window.Plotly){Plotly.newPlot(el,traces,{margin:{l:90,r:35,t:30,b:70},yaxis:{title:'Saldo de RP (US$)',rangemode:'tozero',autorange:true,automargin:true,tickformat:'$,.2s'},xaxis:{title:'2026',automargin:true},legend:{orientation:'h',x:0,y:1.16},hovermode:'x unified',paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
     else el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';
+  }
+
+
+  function compactMoney(v){
+    const n=Number(v||0);
+    if(Math.abs(n)>=1000000) return 'US$ '+(n/1000000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi';
+    if(Math.abs(n)>=1000) return 'US$ '+(n/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mil';
+    return money(n);
+  }
+  function pctLiquidado(liq, inicial){
+    const base=Number(inicial||0);
+    if(!base) return '0,0%';
+    return (Number(liq||0)/base*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+  }
+  function rpCardStats(rs){
+    const years=[2022,2023,2024,2025];
+    const out={};
+    years.forEach(y=>out[y]={atual:0,liquidado:0,inscrito:0});
+    const evo=(DATA.rpEvolution&&DATA.rpEvolution.items&&DATA.rpEvolution.items.length)?evolutionFiltered():null;
+    if(evo){
+      years.forEach(y=>{
+        const yr=evo.filter(r=>Number(r.anoEmpenho)===y);
+        const atual=yr.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0);
+        const liquidado=yr.reduce((a,r)=>a+(r.liquidacoes2026||[]).reduce((b,v)=>b+Number(v||0),0),0);
+        out[y]={atual,liquidado,inscrito:atual+liquidado};
+      });
+    } else {
+      const ev=eventsFor(rs);
+      const liqByPo=new Map();
+      ev.forEach(e=>liqByPo.set(e.po,(liqByPo.get(e.po)||0)+Number(e.valor||0)));
+      years.forEach(y=>{
+        const yr=rs.filter(r=>Number(r.anoEmpenho)===y);
+        const atual=yr.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0);
+        const liquidado=yr.reduce((a,r)=>a+Number(liqByPo.get(r.po)||0),0);
+        out[y]={atual,liquidado,inscrito:atual+liquidado};
+      });
+    }
+    out.geral=years.reduce((acc,y)=>({
+      atual:acc.atual+out[y].atual,
+      liquidado:acc.liquidado+out[y].liquidado,
+      inscrito:acc.inscrito+out[y].inscrito
+    }),{atual:0,liquidado:0,inscrito:0});
+    return out;
   }
 
   function renderYearCards(rs){
