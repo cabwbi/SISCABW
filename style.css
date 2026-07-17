@@ -1902,3 +1902,7 @@ select.cabw-native-multi-hidden{display:none!important;}
 .contracts-table thead th:first-child{z-index:5;background:#003b7a!important;color:#fff!important;}
 
 .contracts-table tbody tr.contract-row--regular td{background:rgba(0,59,122,.045)!important;border-bottom-color:rgba(0,59,122,.10)!important;}
+
+
+/* Ajuste 17/07/2026: coluna de risco/prazo dos contratos */
+.contract-risk-stack{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:112px}.contract-risk-days{font-size:.75rem;font-weight:900;color:#0a2450;white-space:nowrap}.contract-risk-chip{display:inline-flex;align-items:center;justify-content:center;min-width:86px;padding:6px 10px;border-radius:999px;font-weight:900;font-size:.78rem;line-height:1.15;white-space:nowrap}.contract-risk-chip--critico{background:#d71920!important;color:#fff!important;border:1px solid #a30f16!important}.contract-risk-chip--atencao{background:#ffd200!important;color:#4a3a00!important;border:1px solid #d4a900!important}.contract-risk-chip--normal{background:#003b7a!important;color:#fff!important;border:1px solid #00265f!important}.contract-risk-chip--sem-data{background:#e5e7eb!important;color:#374151!important;border:1px solid #cbd5e1!important}.contract-row--vencido td,.contract-row--ate-90 td{background:#fff1f2!important}.contract-row--ate-150 td{background:#fffbeb!important}.contract-row--regular td{background:#f8fbff!important}

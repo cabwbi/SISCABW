@@ -10,6 +10,7 @@
   const money=v=>'US$ '+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const num=v=>Number(v||0).toLocaleString('pt-BR');
   const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  function rpTipWrap(s,max=76){const words=String(s||'').replace(/\s+/g,' ').trim().split(' '); const lines=[]; let line=''; words.forEach(w=>{if((line+' '+w).trim().length>max&&line){lines.push(line); line=w;} else line=(line+' '+w).trim();}); if(line)lines.push(line); return esc(lines.join('<br>'));}
   const uniq=a=>Array.from(new Set(a.filter(v=>v!==undefined&&v!==null&&String(v).trim()!==''))).sort((x,y)=>String(x).localeCompare(String(y),'pt-BR'));
   function selected(sel){return sel?Array.from(sel.selectedOptions).map(o=>o.value):[];}
   function labelFor(sel){const text=(sel.closest('label')?.querySelector('span')?.textContent||'opções').toLowerCase(); if(text==='ano de emissão da po')return 'Todos os anos'; if(text==='tipo de processo')return 'Todos os tipos'; return 'Todas as '+text.replace('om requisitante','OMs').replace('ug requisitante','UGs').replace('ação orçamentária','ações').replace('natureza de despesa','naturezas').replace('empresa contratada','empresas').replace('requisição atrasada','situações');}
@@ -122,14 +123,35 @@
     const map=new Map();
     rs.forEach(r=>{const k=r[key]||'Não informado'; if(!map.has(k))map.set(k,{label:k,total:0,items:[]}); const g=map.get(k); g.total+=Number(r.saldoAtualUsd||0); g.items.push(r);});
     const arr=Array.from(map.values()).sort((a,b)=>b.total-a.total).slice(0,25).reverse();
-    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total); const html=arr.map(g=>rpTooltipHtml(g.label,g.total,g.items));
+    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total);
+    const details=arr.map(g=>g.items.slice().sort((a,b)=>Number(b.saldoAtualUsd||0)-Number(a.saldoAtualUsd||0)).slice(0,14).map(r=>{
+      const empresa=rpTipWrap(r.empresa||'',72); const objeto=rpTipWrap(r.objetosResumo||'sem objeto resumido',72);
+      return '<b>PO '+esc(r.po)+'</b> · '+money(r.saldoAtualUsd)+'<br>Empresa: '+empresa+'<br>Objeto: '+objeto;
+    }).join('<br><br>'));
     const el=$(target); if(!el)return;
-    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:html,hovertemplate:'<b>%{y}</b><br>Total RP: %{x:$,.2f}<extra></extra>',hoverlabel:{align:'left',bgcolor:'#ffffff',bordercolor:'#cbd6ea',font:{size:12,color:'#111b63'}}}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:260,r:30,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},hoverlabel:{align:'left',font:{size:12}},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true}).then(()=>{
-      if(el.__rpTooltipBound)return; el.__rpTooltipBound=true;
-      el.on('plotly_hover',data=>{const p=data&&data.points&&data.points[0]; showRpTooltip(p&&p.customdata?p.customdata:'', data.event);});
-      el.on('plotly_unhover',hideRpTooltip);
-      el.addEventListener('mouseleave',hideRpTooltip);
-    });}
+    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:details,hoverlabel:{align:'left',bgcolor:'#fff',bordercolor:'#14236a',font:{size:13,color:'#111b63'},namelength:-1},hovertemplate:'<b>%{y}</b><br>Total RP: %{x:$,.2f}<br><br>%{customdata}<extra></extra>'}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:260,r:40,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},hovermode:'closest',paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
+    else el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';
+  }
+
+  function drawProjectionChart(rs){
+    const el=$('#rpProjectionChart'); if(!el)return;
+    const evo=(DATA.rpEvolution&&DATA.rpEvolution.items&&DATA.rpEvolution.items.length)?evolutionFiltered():[];
+    const maxMonth=Math.max(1,Math.min(12,Number(DATA.rpEvolution&&DATA.rpEvolution.maxMonth||new Date().getMonth()+1)));
+    const xFull=['Início Jan'].concat(months);
+    const liqByMonth=Array.from({length:12},(_,i)=>evo.reduce((a,r)=>a+Number((r.liquidacoes2026||[])[i]||0),0));
+    const dpeByMonth=Array.from({length:12},(_,i)=>evo.reduce((a,r)=>a+Number((r.projecaoDpe2026||[])[i]||0),0));
+    const current=evo.length?evo.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0):rs.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0);
+    const initial=current+liqByMonth.reduce((a,v)=>a+v,0);
+    let actual=initial; const xActual=['Início Jan']; const yActual=[Math.max(0,actual)];
+    for(let m=0;m<maxMonth;m++){actual-=liqByMonth[m]; xActual.push(months[m]); yActual.push(Math.max(0,actual));}
+    const yLinear=[Math.max(0,initial)]; for(let m=1;m<=12;m++){yLinear.push(Math.max(0,initial*(1-m/12)));}
+    let dpe=initial; const yDpe=[Math.max(0,dpe)]; for(let m=0;m<12;m++){dpe-=dpeByMonth[m]; yDpe.push(Math.max(0,dpe));}
+    const traces=[
+      {type:'scatter',mode:'lines+markers',name:'RP total apurado',x:xActual,y:yActual,line:{width:4,color:'#003b7a'},marker:{size:7,color:'#003b7a'},hovertemplate:'%{x}<br>RP apurado: %{y:$,.2f}<extra></extra>'},
+      {type:'scatter',mode:'lines',name:'Projeção linear',x:xFull,y:yLinear,line:{width:3,color:'#c9d1d9',dash:'dash'},hovertemplate:'%{x}<br>Projeção linear: %{y:$,.2f}<extra></extra>'},
+      {type:'scatter',mode:'lines+markers',name:'Projeção por prazo de entrega',x:xFull,y:yDpe,line:{width:3,color:'#f3c500'},marker:{size:6,color:'#f3c500'},hovertemplate:'%{x}<br>Projeção por DPE: %{y:$,.2f}<extra></extra>'}
+    ];
+    if(window.Plotly){Plotly.newPlot(el,traces,{margin:{l:90,r:35,t:30,b:70},yaxis:{title:'Saldo de RP (US$)',rangemode:'tozero',autorange:true,automargin:true,tickformat:'$,.2s'},xaxis:{title:'2026',automargin:true},legend:{orientation:'h',x:0,y:1.16},hovermode:'x unified',paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
     else el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';
   }
 
@@ -148,7 +170,7 @@
     tb.innerHTML=sorted.map(i=>'<tr><td>'+esc(i.po)+'</td><td>'+esc(i.dataPO||'')+'</td><td>'+esc(i.empresa||'')+'</td><td>'+esc(i.descricaoRequisicao||i.requisicao||'')+'</td><td class="num">'+money(i.valorLiquidado)+'</td></tr>').join('')||'<tr><td colspan="5">Nenhuma liquidação do mês anterior encontrada para as ordens de compra filtradas.</td></tr>';
   }
   function renderTable(rs){const tb=$('#rpTable tbody'); if(!tb)return; const sorted=rs.slice().sort((a,b)=>{const ds=Number(b.saldoAtualUsd||0)-Number(a.saldoAtualUsd||0); if(Math.abs(ds)>0.005)return ds; return String(a.data).localeCompare(String(b.data));}); const html=sorted.map(r=>'<tr><td>'+esc(r.po)+'</td><td>'+esc(r.data)+'</td><td class="num">'+money(r.saldoAtualUsd)+'</td><td>'+esc(r.empresa)+'</td><td>'+esc(r.ug)+'</td><td>'+esc(r.acao)+'</td><td>'+esc(r.natureza)+'</td><td>'+esc(r.projetosReq||r.projeto)+'</td><td>'+esc(r.objetosResumo||'')+'</td><td>'+esc(r.requisicaoAtrasada)+'</td></tr>').join(''); tb.innerHTML=html||'<tr><td colspan="10">Nenhuma ordem de compra encontrada.</td></tr>';}
-  function render(){const rs=filtered(); const ev=eventsFor(rs); const evo=evolutionFiltered(); const liqTotal=evo.length?evo.reduce((a,r)=>a+(r.liquidacoes2026||[]).reduce((b,v)=>b+Number(v||0),0),0):ev.reduce((a,e)=>a+Number(e.valor||0),0); renderYearCards(rs); $('#rpSaldo').textContent=money(rs.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0)); $('#rpCount').textContent=num(rs.length); $('#rpNl').textContent=money(liqTotal); $('#rpEmpresas').textContent=num(uniq(rs.map(r=>r.empresa)).length); drawLineChart(rs); groupBars(rs,'empresa','#rpEmpresaChart','RP por empresa contratada'); groupBars(rs,'ug','#rpUgChart','RP por OM requisitante'); renderTopLiquidacoes(rs); renderTable(rs);}
+  function render(){const rs=filtered(); const ev=eventsFor(rs); const evo=evolutionFiltered(); const liqTotal=evo.length?evo.reduce((a,r)=>a+(r.liquidacoes2026||[]).reduce((b,v)=>b+Number(v||0),0),0):ev.reduce((a,e)=>a+Number(e.valor||0),0); renderYearCards(rs); $('#rpSaldo').textContent=money(rs.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0)); $('#rpCount').textContent=num(rs.length); $('#rpNl').textContent=money(liqTotal); $('#rpEmpresas').textContent=num(uniq(rs.map(r=>r.empresa)).length); drawLineChart(rs); drawProjectionChart(rs); groupBars(rs,'empresa','#rpEmpresaChart','RP por empresa contratada'); groupBars(rs,'ug','#rpUgChart','RP por OM requisitante'); renderTopLiquidacoes(rs); renderTable(rs);}
   function report(){const rows=$('#rpTable tbody')?.innerHTML||''; const nlRows=$('#rpTopNlTable tbody')?.innerHTML||''; const w=window.open('','_blank'); w.document.write('<html><head><title>Relatório RP</title><style>body{font-family:Arial;padding:24px;color:#111b63}table{width:100%;border-collapse:collapse;font-size:10px}td,th{border:1px solid #ddd;padding:5px;vertical-align:top}th{background:#111b63;color:white}.num{text-align:right}.kpi{display:inline-block;border:1px solid #dbe3f2;border-radius:12px;padding:12px;margin:6px}</style></head><body><h1>Relatório - Restos a Pagar</h1><div class="kpi"><b>Saldo filtrado</b><br>'+$('#rpSaldo').textContent+'</div><div class="kpi"><b>Ordens de compra</b><br>'+$('#rpCount').textContent+'</div><div class="kpi"><b>Liquidações 2026</b><br>'+$('#rpNl').textContent+'</div><div class="kpi"><b>Empresas</b><br>'+$('#rpEmpresas').textContent+'</div><h2>Principais liquidações do mês anterior em RP</h2><table><thead><tr><th>PO</th><th>Data da PO</th><th>Empresa</th><th>Descrição da requisição liquidada</th><th>Valor liquidado</th></tr></thead><tbody>'+nlRows+'</tbody></table><h2>Ordens de compra filtradas</h2><table><thead><tr><th>PO</th><th>Data</th><th>Saldo RP</th><th>Empresa</th><th>OM</th><th>Ação</th><th>ND</th><th>Projetos</th><th>Objeto resumido</th><th>Atrasada</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>'); w.document.close(); setTimeout(()=>w.print(),500);}
   document.addEventListener('click',e=>{if(!e.target.closest('.rp-multi'))$$('.rp-multi.open').forEach(w=>w.classList.remove('open'))});
   document.addEventListener('DOMContentLoaded',()=>{fill('#rpUg',uniq(records.map(r=>r.ug))); fill('#rpAcao',uniq(records.map(r=>r.acao))); fill('#rpNatureza',uniq(records.map(r=>r.natureza))); fill('#rpProjeto',uniq(records.flatMap(r=>String(r.projetosReq||r.projeto).split(',').map(s=>s.trim())))); fill('#rpEmpresa',uniq(records.map(r=>r.empresa))); fill('#rpAnoPO',['2022','2023','2024','2025']); fill('#rpTipoProcesso',['Contratos','Varejo']); fill('#rpAtrasada',['SIM','NÃO']); $('#rpClear').onclick=()=>{$$('#rpUg,#rpAcao,#rpNatureza,#rpProjeto,#rpEmpresa,#rpAnoPO,#rpTipoProcesso,#rpAtrasada').forEach(s=>Array.from(s.options).forEach(o=>o.selected=false)); $$('#rpUg,#rpAcao,#rpNatureza,#rpProjeto,#rpEmpresa,#rpAnoPO,#rpTipoProcesso,#rpAtrasada').forEach(updateMulti); render();}; $('#rpReport').onclick=report; render();});
