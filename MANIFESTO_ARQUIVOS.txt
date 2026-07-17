@@ -1,114 +1,113 @@
-./.nojekyll
-./CHECK_DADOS.html
-./CHECK_PUBLICACAO.html
-./CHECK_VISUAL_LINKS.html
-./MANIFESTO_ARQUIVOS.txt
-./README_AJUSTES_ROTULOS_RELATORIOS_TABELAS.md
-./README_AJUSTE_CARDS_RP_INSCRITO_LIQUIDADO.md
-./README_AJUSTE_DETALHAMENTO_PO_RELATORIO.md
-./README_AJUSTE_FILTROS_GRAFICOS.md
-./README_AJUSTE_FILTROS_MEDIA_SF.md
-./README_AJUSTE_GRAFICO_SF.md
-./README_AJUSTE_PO_FATURAMENTO_MENSAL.md
-./README_AJUSTE_RP_DEEP_SEARCH.md
-./README_AJUSTE_RP_FILTROS_ANO_TIPO.md
-./README_AJUSTE_VISUAL_KC390.md
-./README_AJUSTE_VISUAL_REAPLICADO.md
-./README_ATUALIZACAO_APENAS_DADOS.md
-./README_ATUALIZACAO_DADOS_06072026.md
-./README_ATUALIZACAO_DADOS_16072026.md
-./README_ATUALIZACAO_MULTI_FILTROS.md
-./README_ATUALIZACAO_OC_OBJETO.md
-./README_CONTRATOS_ATUALIZADOS.md
-./README_CORRECAO_AMEND_ASSINATURA.md
-./README_CORRECAO_ATUALIZACAO_DADOS_16072026.md
-./README_CORRECAO_CONTRATOS_DADOS.md
-./README_CORRECAO_CRITERIO_ATRASO_DPE.md
-./README_CORRECAO_DADOS_COMPLETOS.md
-./README_CORRECAO_DROPDOWN_MULTIFILTROS.md
-./README_CORRECAO_DROPDOWN_TAMANHO_OM.md
-./README_CORRECAO_FMS_FINALISTICOS.md
-./README_CORRECAO_GOVERNANCA_RP.md
-./README_CORRECAO_GRAFICO_LINHAS_RP.md
-./README_CORRECAO_LAYOUT_HERO_RELATORIOS_OM.md
-./README_CORRECAO_OM_RP_LIQUIDACOES.md
-./README_CORRECAO_SUPRIMENTO_FUNDOS_06072026.md
-./README_CORRECAO_VISUAL_DADOS.md
-./README_FILTROS_OM_PROJETOS.md
-./README_MELHORIA_TABELA_CONTRATOS_VENCIMENTO.md
-./README_PUBLICACAO.md
-./README_RECORRECAO_16072026.md
-./README_RELATORIOS_FILTROS.md
-./action.html
-./assets/data/contracts-summary.json
-./assets/data/credit-10062026.json
-./assets/data/credit-11062026.json
-./assets/data/credit-current.json
-./assets/icons/contract_icon.png
-./assets/icons/credit_icon.png
-./assets/icons/home-contract.png
-./assets/icons/home-credit.png
-./assets/icons/home-process.png
-./assets/icons/process_icon.png
-./assets/img/cabw_logo.png
-./assets/img/hero_aircraft_clean.png
-./assets/img/hero_eagle.png
-./assets/img/hero_home_cabw_background.png
-./assets/img/hero_kc390_cabw.png
-./assets/img/hero_sabre_alado.png
-./assets/js/contracts-data.js
-./assets/js/contracts-panel.js
-./assets/js/credit-data.js
-./assets/js/credit-panel.js
-./assets/js/rp-data.js
-./assets/js/rp-panel.js
-./assets/js/suprimento-data.js
-./auth.js
-./cabw_logo-01.png
-./cabw_logo.png
-./consistency.html
-./contract_icon.png
-./contracts-data.js
-./contracts-panel.js
-./contracts-summary.json
-./contratos-administrativos.html
-./contratos-finalisticos.html
-./contratos.html
-./credit-10062026.json
-./credit-11062026.json
-./credit-current.json
-./credit-data.js
-./credit-panel.js
-./credit_icon.png
-./credito.html
-./css/style.css
-./detail.html
-./evolution.html
-./fms.html
-./governanca-cabw-numeros.html
-./governanca-calendario.html
-./governanca-paac.html
-./governanca-pta.html
-./governanca-rp.html
-./governanca.html
-./hero_home_cabw_background.png
-./hero_kc390_cabw.png
-./home-contract.png
-./home-credit.png
-./home-process.png
-./icons/contract_icon.png
-./icons/credit_icon.png
-./icons/home-contract.png
-./icons/home-credit.png
-./icons/home-process.png
-./icons/process_icon.png
-./index.html
-./process_icon.png
-./processos.html
-./rp-data.js
-./rp-panel.js
-./style.css
-./suprimento-data.js
-./suprimento-fundos.html
-./suprimento-fundos.js
-./ug.html
+.nojekyll	0
+CHECK_DADOS.html	10729
+CHECK_PUBLICACAO.html	11351
+CHECK_VISUAL_LINKS.html	11301
+MANIFESTO_ARQUIVOS.txt	3222
+README_AJUSTES_17072026_CREDITO_CONTRATOS_RP.md	1014
+README_AJUSTES_ROTULOS_RELATORIOS_TABELAS.md	527
+README_AJUSTE_CARDS_RP_INSCRITO_LIQUIDADO.md	684
+README_AJUSTE_DETALHAMENTO_PO_RELATORIO.md	727
+README_AJUSTE_FILTROS_GRAFICOS.md	495
+README_AJUSTE_FILTROS_MEDIA_SF.md	553
+README_AJUSTE_GRAFICO_SF.md	235
+README_AJUSTE_PO_FATURAMENTO_MENSAL.md	402
+README_AJUSTE_RP_DEEP_SEARCH.md	696
+README_AJUSTE_RP_FILTROS_ANO_TIPO.md	688
+README_AJUSTE_VISUAL_KC390.md	618
+README_AJUSTE_VISUAL_REAPLICADO.md	570
+README_ATUALIZACAO_APENAS_DADOS.md	393
+README_ATUALIZACAO_DADOS_06072026.md	1080
+README_ATUALIZACAO_DADOS_16072026.md	870
+README_ATUALIZACAO_MULTI_FILTROS.md	585
+README_ATUALIZACAO_OC_OBJETO.md	368
+README_CONTRATOS_ATUALIZADOS.md	711
+README_CORRECAO_AMEND_ASSINATURA.md	736
+README_CORRECAO_ATUALIZACAO_DADOS_16072026.md	1102
+README_CORRECAO_CONTRATOS_DADOS.md	668
+README_CORRECAO_CRITERIO_ATRASO_DPE.md	773
+README_CORRECAO_DADOS_COMPLETOS.md	504
+README_CORRECAO_DROPDOWN_MULTIFILTROS.md	491
+README_CORRECAO_DROPDOWN_TAMANHO_OM.md	397
+README_CORRECAO_FMS_FINALISTICOS.md	323
+README_CORRECAO_GOVERNANCA_RP.md	616
+README_CORRECAO_GRAFICO_LINHAS_RP.md	1284
+README_CORRECAO_LAYOUT_HERO_RELATORIOS_OM.md	698
+README_CORRECAO_OM_RP_LIQUIDACOES.md	927
+README_CORRECAO_SUPRIMENTO_FUNDOS_06072026.md	915
+README_CORRECAO_VISUAL_DADOS.md	854
+README_FILTROS_OM_PROJETOS.md	452
+README_MELHORIA_TABELA_CONTRATOS_VENCIMENTO.md	1468
+README_PUBLICACAO.md	1135
+README_RECORRECAO_16072026.md	1632
+README_RELATORIOS_FILTROS.md	156
+assets/data/contracts-summary.json	741
+assets/data/credit-10062026.json	1715246
+assets/data/credit-11062026.json	1715246
+assets/data/credit-current.json	1715246
+assets/icons/contract_icon.png	1441
+assets/icons/credit_icon.png	1866
+assets/icons/home-contract.png	16569
+assets/icons/home-credit.png	15857
+assets/icons/home-process.png	18048
+assets/icons/process_icon.png	2457
+assets/img/cabw_logo.png	34344
+assets/img/hero_aircraft_clean.png	690174
+assets/img/hero_eagle.png	155350
+assets/img/hero_home_cabw_background.png	1394180
+assets/img/hero_kc390_cabw.png	690174
+assets/img/hero_sabre_alado.png	155350
+assets/js/contracts-data.js	2192909
+assets/js/contracts-panel.js	36270
+assets/js/credit-data.js	1715274
+assets/js/credit-panel.js	26371
+assets/js/rp-data.js	1606781
+assets/js/rp-panel.js	18256
+assets/js/suprimento-data.js	508805
+auth.js	6054
+cabw_logo-01.png	34344
+cabw_logo.png	34344
+consistency.html	48768
+contract_icon.png	1441
+contracts-data.js	2192909
+contracts-panel.js	36270
+contracts-summary.json	741
+contratos-administrativos.html	61905
+contratos-finalisticos.html	62037
+contratos.html	50850
+credit-10062026.json	1715246
+credit-11062026.json	1715246
+credit-current.json	1715246
+credit-data.js	1715274
+credit-panel.js	26371
+credit_icon.png	1866
+credito.html	61890
+css/style.css	42689
+detail.html	50482
+evolution.html	47645
+fms.html	61907
+governanca-cabw-numeros.html	2788
+governanca-calendario.html	2808
+governanca-paac.html	2764
+governanca-pta.html	47742
+governanca-rp.html	9939
+governanca.html	5851
+hero_home_cabw_background.png	1394180
+hero_kc390_cabw.png	690174
+home-contract.png	16569
+home-credit.png	15857
+home-process.png	18048
+icons/contract_icon.png	1441
+icons/credit_icon.png	1866
+icons/home-contract.png	16569
+icons/home-credit.png	15857
+icons/home-process.png	18048
+icons/process_icon.png	2457
+index.html	2900258
+process_icon.png	2457
+processos.html	47664
+rp-data.js	1606781
+rp-panel.js	18256
+style.css	42364
+suprimento-data.js	508805
+suprimento-fundos.html	2830699
+suprimento-fundos.js	16000

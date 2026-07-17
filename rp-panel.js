@@ -95,53 +95,44 @@
     const emp=wrapHoverText(r.empresa||'',64);
     return '<b>PO '+esc(r.po)+'</b> — '+money(r.saldoAtualUsd)+'<br><b>Empresa:</b> '+emp+'<br><b>Objeto:</b> '+obj;
   }
+  function wrapTextHtml(value, maxLen=68){
+    const words=String(value||'').split(/\s+/); let lines=[], line='';
+    words.forEach(w=>{ if((line+' '+w).trim().length>maxLen){ if(line)lines.push(line); line=w; } else line=(line+' '+w).trim(); });
+    if(line)lines.push(line); return esc(lines.join('\n')).replace(/\n/g,'<br>');
+  }
+  function rpTooltipHtml(group, total, items){
+    const rows=items.slice().sort((a,b)=>Number(b.saldoAtualUsd||0)-Number(a.saldoAtualUsd||0)).slice(0,10).map(r=>
+      '<div class="rp-tip-item"><b>PO:</b> '+esc(r.po)+' &nbsp; <b>Saldo:</b> '+money(r.saldoAtualUsd)+'<br><b>Empresa:</b> '+wrapTextHtml(r.empresa,72)+'<br><b>Objeto:</b> '+wrapTextHtml(r.objetosResumo||'sem objeto resumido',86)+'</div>'
+    ).join('');
+    const more=items.length>10?'<div class="rp-tip-more">+'+(items.length-10)+' PO(s) adicionais no grupo.</div>':'';
+    return '<div class="rp-readable-tip"><h3>'+wrapTextHtml(group,78)+'</h3><div><b>Total RP:</b> '+money(total)+'</div>'+rows+more+'</div>';
+  }
+  function ensureRpTooltip(){
+    let t=document.getElementById('rpReadableTooltip');
+    if(!t){t=document.createElement('div'); t.id='rpReadableTooltip'; t.style.cssText='position:fixed;display:none;z-index:99999;max-width:min(760px,calc(100vw - 32px));max-height:min(70vh,620px);overflow:auto;background:#fff;border:1px solid #cbd6ea;border-radius:14px;box-shadow:0 22px 48px rgba(2,27,70,.28);padding:14px 16px;color:#111b63;font:12px/1.35 Arial,Helvetica,sans-serif;pointer-events:none;white-space:normal;text-align:left;'; document.body.appendChild(t);}
+    return t;
+  }
+  function showRpTooltip(html, ev){
+    const t=ensureRpTooltip(); t.innerHTML=html; t.style.display='block';
+    const x=(ev&&ev.clientX?ev.clientX:window.innerWidth/2)+16; const y=(ev&&ev.clientY?ev.clientY:window.innerHeight/2)+16;
+    t.style.left=Math.min(x, window.innerWidth-t.offsetWidth-16)+'px'; t.style.top=Math.min(y, window.innerHeight-t.offsetHeight-16)+'px';
+  }
+  function hideRpTooltip(){const t=document.getElementById('rpReadableTooltip'); if(t)t.style.display='none';}
   function groupBars(rs, key, target, title){
     const map=new Map();
     rs.forEach(r=>{const k=r[key]||'Não informado'; if(!map.has(k))map.set(k,{label:k,total:0,items:[]}); const g=map.get(k); g.total+=Number(r.saldoAtualUsd||0); g.items.push(r);});
     const arr=Array.from(map.values()).sort((a,b)=>b.total-a.total).slice(0,25).reverse();
-    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total); const text=arr.map(g=>g.items.slice().sort((a,b)=>b.saldoAtualUsd-a.saldoAtualUsd).slice(0,8).map(rpTooltipItem).join('<br><br>'));
+    const y=arr.map(g=>g.label); const x=arr.map(g=>g.total); const html=arr.map(g=>rpTooltipHtml(g.label,g.total,g.items));
     const el=$(target); if(!el)return;
-    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:text,hovertemplate:'<b>%{y}</b><br><b>Total RP:</b> %{x:$,.2f}<br><br>%{customdata}<extra></extra>',hoverlabel:{align:'left',bgcolor:'#ffffff',bordercolor:'#cbd6ea',font:{size:12,color:'#111b63'}}}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:220,r:25,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},hoverlabel:{align:'left',font:{size:12}},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});}
+    if(window.Plotly){Plotly.newPlot(el,[{type:'bar',orientation:'h',x,y,text:x.map(money),textposition:'auto',marker:{color:'#14236a'},customdata:html,hovertemplate:'<b>%{y}</b><br>Total RP: %{x:$,.2f}<extra></extra>',hoverlabel:{align:'left',bgcolor:'#ffffff',bordercolor:'#cbd6ea',font:{size:12,color:'#111b63'}}}],{title:{text:title,font:{size:16,color:'#111b63'}},margin:{l:260,r:30,t:50,b:45},xaxis:{title:'Saldo RP (US$)',automargin:true},yaxis:{automargin:true},hoverlabel:{align:'left',font:{size:12}},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true}).then(()=>{
+      if(el.__rpTooltipBound)return; el.__rpTooltipBound=true;
+      el.on('plotly_hover',data=>{const p=data&&data.points&&data.points[0]; showRpTooltip(p&&p.customdata?p.customdata:'', data.event);});
+      el.on('plotly_unhover',hideRpTooltip);
+      el.addEventListener('mouseleave',hideRpTooltip);
+    });}
     else el.innerHTML='<p>Biblioteca de gráfico não carregada.</p>';
   }
-  function compactMoney(v){
-    const n=Number(v||0);
-    if(Math.abs(n)>=1000000) return 'US$ '+(n/1000000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi';
-    if(Math.abs(n)>=1000) return 'US$ '+(n/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mil';
-    return money(n);
-  }
-  function pctLiquidado(liq, inicial){
-    const base=Number(inicial||0);
-    if(!base) return '0,0%';
-    return (Number(liq||0)/base*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
-  }
-  function rpCardStats(rs){
-    const evo=(DATA.rpEvolution&&DATA.rpEvolution.items&&DATA.rpEvolution.items.length)?evolutionFiltered():null;
-    const years=[2022,2023,2024,2025];
-    const out={};
-    years.forEach(y=>out[y]={atual:0,liquidado:0,inscrito:0});
-    if(evo){
-      years.forEach(y=>{
-        const yr=evo.filter(r=>Number(r.anoEmpenho)===y);
-        const atual=yr.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0);
-        const liquidado=yr.reduce((a,r)=>a+(r.liquidacoes2026||[]).reduce((b,v)=>b+Number(v||0),0),0);
-        out[y]={atual,liquidado,inscrito:atual+liquidado};
-      });
-    } else {
-      const ev=eventsFor(rs);
-      const liqByPo=new Map();
-      ev.forEach(e=>liqByPo.set(e.po,(liqByPo.get(e.po)||0)+Number(e.valor||0)));
-      years.forEach(y=>{
-        const yr=rs.filter(r=>Number(r.anoEmpenho)===y);
-        const atual=yr.reduce((a,r)=>a+Number(r.saldoAtualUsd||0),0);
-        const liquidado=yr.reduce((a,r)=>a+Number(liqByPo.get(r.po)||0),0);
-        out[y]={atual,liquidado,inscrito:atual+liquidado};
-      });
-    }
-    const geral=years.reduce((a,y)=>({atual:a.atual+out[y].atual,liquidado:a.liquidado+out[y].liquidado,inscrito:a.inscrito+out[y].inscrito}),{atual:0,liquidado:0,inscrito:0});
-    out.geral=geral;
-    return out;
-  }
+
   function renderYearCards(rs){
     const el=$('#rpYearCards'); if(!el)return;
     const stats=rpCardStats(rs);
