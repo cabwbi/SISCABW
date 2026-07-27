@@ -2122,7 +2122,7 @@ table.dataTable thead th {
       <h2>Contratos</h2>
       <span class="home-card__rule" aria-hidden="true"></span>
       <p>Informações sobre contratos firmados, vigências e valores.</p>
-      <div class="home-card__metrics home-card__metrics--contracts"><div><strong>28</strong><span>Administrativos</span></div><div><strong>53</strong><span>FMS</span></div><div><strong>55</strong><span>Finalísticos</span></div></div>
+      <div class="home-card__metrics home-card__metrics--contracts"><div><strong data-home-contract-count="administrativos">24</strong><span>Administrativos</span></div><div><strong data-home-contract-count="fms">26</strong><span>FMS</span></div><div><strong data-home-contract-count="finalisticos">51</strong><span>Finalísticos</span></div></div>
       <span class="home-card__button">Acessar Painel</span>
     </a>
     <a href="processos.html" class="home-card" aria-label="Acessar painel Processos de Contratação">
@@ -2155,5 +2155,30 @@ table.dataTable thead th {
 
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var nodes = document.querySelectorAll('[data-home-contract-count]');
+  if (!nodes.length) return;
+
+  fetch('contracts-summary.json?v=' + Date.now(), { cache: 'no-store' })
+    .then(function (response) {
+      if (!response.ok) throw new Error('Falha ao carregar o resumo de contratos');
+      return response.json();
+    })
+    .then(function (summary) {
+      var counts = summary && summary.counts ? summary.counts : {};
+      nodes.forEach(function (node) {
+        var category = node.getAttribute('data-home-contract-count');
+        if (Number.isFinite(Number(counts[category]))) {
+          node.textContent = Number(counts[category]).toLocaleString('pt-BR');
+        }
+      });
+    })
+    .catch(function (error) {
+      console.warn('Resumo de contratos indisponível; mantidos os valores de reserva.', error);
+    });
+})();
+</script>
 </body>
 </html>
