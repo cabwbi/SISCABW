@@ -3,7 +3,7 @@ name: Publicar estado validado do SISCABW
 on:
   workflow_dispatch:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 permissions:
   contents: write
@@ -102,5 +102,5 @@ jobs:
             echo "O repositório oficial já contém o estado validado."
             exit 0
           fi
-          git commit -m "Publica atualização do SISCABW em 02-08-2026"
+          git commit -m "Publica atualização integral do SISCABW em 02-08-2026"
           git push origin HEAD:main
