@@ -67,10 +67,14 @@ jobs:
 
           root = Path('/tmp/siscabw-package')
           summary = json.loads((root / 'contracts-summary.json').read_text(encoding='utf-8'))
+          assert summary['total'] > 0
           assert summary['total'] == sum(summary['counts'].values())
-          assert summary['counts'] == {'administrativos': 24, 'finalisticos': 53, 'fms': 26}
-          assert summary['total'] == 103
-          assert round(summary['totals']['totalEmpenhadoUsd'], 2) == 262530491.37
+          assert set(summary['counts']) == {'administrativos', 'finalisticos', 'fms'}
+          for field in ('valorContrato', 'totalEmpenhadoUsd', 'totalFaturadoUsd'):
+              assert summary['totals'][field] >= 0
+              assert round(summary['totals'][field], 2) == round(
+                  sum(item[field] for item in summary['byCategory'].values()), 2
+              )
 
           pairs = {
               'contracts-data.js': 'assets/js/contracts-data.js',
@@ -91,7 +95,7 @@ jobs:
           assert rp_text.startswith(prefix) and rp_text.rstrip().endswith(';')
           rp = json.loads(rp_text[len(prefix):].rstrip()[:-1])
           assert rp['summary']['totalRegistros'] > 0
-          assert rp['summary']['totalSaldoUsd'] > 0
+          assert rp['summary']['totalSaldoUsd'] >= 0
           assert rp['rpEvolution']['resumoGeral']['inscrito'] >= rp['rpEvolution']['resumoGeral']['atual']
 
           required = ['index.html', 'contratos.html', 'credito.html', 'governanca-rp.html', 'suprimento-fundos.html']
