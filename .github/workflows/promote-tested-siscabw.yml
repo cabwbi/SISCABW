@@ -1,0 +1,106 @@
+name: Publicar estado validado do SISCABW
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/promote-tested-siscabw.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-tested-siscabw
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório oficial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copiar arquivos validados do ambiente de teste
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_COMMIT="8b4f110fc777fcc016a8703cb12d1c3bf6495966"
+          SOURCE_BASE="https://raw.githubusercontent.com/cabwbi/teste/${SOURCE_COMMIT}"
+          cat > /tmp/promote-files.txt <<'FILES'
+          action.html
+          automation/data_allowlist.txt
+          automation/download_drive.py
+          automation/generate_data.py
+          automation/validate_data.py
+          consistency.html
+          contratos-administrativos.html
+          contratos-finalisticos.html
+          contratos.html
+          credito.html
+          data-update-footer.js
+          detail.html
+          evolution.html
+          fms.html
+          governanca-cabw-numeros.html
+          governanca-calendario.html
+          governanca-paac.html
+          governanca-pta.html
+          governanca-rp.html
+          governanca.html
+          index.html
+          processos.html
+          suprimento-fundos.html
+          ug.html
+          assets/data/contracts-summary.json
+          assets/data/credit-10062026.json
+          assets/data/credit-11062026.json
+          assets/data/credit-current.json
+          assets/data/data-update-status.json
+          assets/js/contracts-data.js
+          assets/js/credit-data.js
+          assets/js/rp-data.js
+          assets/js/suprimento-data.js
+          contracts-data.js
+          contracts-summary.json
+          credit-10062026.json
+          credit-11062026.json
+          credit-current.json
+          credit-data.js
+          data-update-status.json
+          rp-data.js
+          suprimento-data.js
+          FILES
+
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            mkdir -p "$(dirname "$file")"
+            curl --fail --silent --show-error --location \
+              "${SOURCE_BASE}/${file}" \
+              --output "$file"
+          done < /tmp/promote-files.txt
+
+      - name: Validar integridade do pacote
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 automation/validate_data.py --repo . --report /tmp/siscabw-validation.md
+          cat /tmp/siscabw-validation.md
+
+      - name: Publicar no branch principal
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            git add -- "$file"
+          done < /tmp/promote-files.txt
+          if git diff --cached --quiet; then
+            echo "O repositório oficial já contém o estado validado."
+            exit 0
+          fi
+          git commit -m "Publica atualização do SISCABW em 02-08-2026"
+          git push origin HEAD:main
