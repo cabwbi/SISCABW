@@ -2,9 +2,8 @@ name: Publicar estado validado do SISCABW
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/promote-tested-siscabw.yml
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
@@ -15,6 +14,7 @@ concurrency:
 
 jobs:
   promote:
+    if: github.event_name != 'issues' || github.event.issue.title == 'PUBLICAR SISCABW VALIDADO 2026-08-02'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do repositório oficial
@@ -104,5 +104,3 @@ jobs:
           fi
           git commit -m "Publica atualização do SISCABW em 02-08-2026"
           git push origin HEAD:main
-
-# Reexecução autorizada em 02-08-2026.
