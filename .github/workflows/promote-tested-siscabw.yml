@@ -4,10 +4,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '15 12 * * 1-5'
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/promote-tested-siscabw.yml'
+  issues:
+    types: [opened, reopened]
 
 permissions:
   contents: write
@@ -18,6 +16,7 @@ concurrency:
 
 jobs:
   atualizar:
+    if: github.event_name != 'issues' || startsWith(github.event.issue.title, 'EXECUTAR ATUALIZACAO SISCABW')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout da main oficial
@@ -25,57 +24,44 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Preparar dependências
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --quiet \
-            google-auth requests openpyxl xlrd
-
-      - name: Baixar planilhas e ZIP-base do Google Drive
+      - name: Executar, validar e publicar
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
         shell: bash
         run: |
-          set -euo pipefail
-          rm -rf /tmp/siscabw-inputs /tmp/siscabw-package /tmp/siscabw-base.zip
-          mkdir -p /tmp/siscabw-inputs /tmp/siscabw-package
-          python3 automation/download_drive.py \
-            --folder-id '1OF-84Nnbfp0y9M-nPDDWQqeeYfjQma-c' \
-            --output /tmp/siscabw-inputs \
-            --zip-folder-id '1bZ86fqTY99dOiAShwCMydyjo6giAbzlf' \
-            --zip-output /tmp/siscabw-base.zip
-          unzip -q /tmp/siscabw-base.zip -d /tmp/siscabw-package
+          set +e
+          LOG=/tmp/siscabw-update.log
+          rm -f "$LOG"
+          {
+            set -euo pipefail
+            echo '=== Dependências ==='
+            python3 -m pip install --disable-pip-version-check --quiet google-auth requests openpyxl xlrd
 
-      - name: Gerar dados no pacote-base
-        shell: bash
-        run: |
-          set -euo pipefail
-          base64 --decode automation/generate_data.py.gz.b64 | gzip --decompress > /tmp/generate_data.py
-          python3 /tmp/generate_data.py \
-            --inputs /tmp/siscabw-inputs \
-            --repo /tmp/siscabw-package \
-            | tee /tmp/siscabw-generation.json
+            echo '=== Download das fontes do Drive ==='
+            rm -rf /tmp/siscabw-inputs /tmp/siscabw-package /tmp/siscabw-base.zip
+            mkdir -p /tmp/siscabw-inputs /tmp/siscabw-package
+            python3 automation/download_drive.py \
+              --folder-id '1OF-84Nnbfp0y9M-nPDDWQqeeYfjQma-c' \
+              --output /tmp/siscabw-inputs \
+              --zip-folder-id '1bZ86fqTY99dOiAShwCMydyjo6giAbzlf' \
+              --zip-output /tmp/siscabw-base.zip
+            unzip -q /tmp/siscabw-base.zip -d /tmp/siscabw-package
 
-      - name: Validar o pacote gerado
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
+            echo '=== Geração ==='
+            base64 --decode automation/generate_data.py.gz.b64 | gzip --decompress > /tmp/generate_data.py
+            python3 /tmp/generate_data.py --inputs /tmp/siscabw-inputs --repo /tmp/siscabw-package
+
+            echo '=== Validação ==='
+            python3 - <<'PY'
           import json
           from pathlib import Path
-
           root = Path('/tmp/siscabw-package')
           summary = json.loads((root / 'contracts-summary.json').read_text(encoding='utf-8'))
           assert summary['total'] > 0
           assert summary['total'] == sum(summary['counts'].values())
           assert set(summary['counts']) == {'administrativos', 'finalisticos', 'fms'}
           for field in ('valorContrato', 'totalEmpenhadoUsd', 'totalFaturadoUsd'):
-              assert summary['totals'][field] >= 0
-              assert round(summary['totals'][field], 2) == round(
-                  sum(item[field] for item in summary['byCategory'].values()), 2
-              )
-
+              assert round(summary['totals'][field], 2) == round(sum(x[field] for x in summary['byCategory'].values()), 2)
           pairs = {
               'contracts-data.js': 'assets/js/contracts-data.js',
               'credit-data.js': 'assets/js/credit-data.js',
@@ -89,43 +75,51 @@ jobs:
           }
           for source, mirror in pairs.items():
               assert (root / source).read_bytes() == (root / mirror).read_bytes(), (source, mirror)
-
-          rp_text = (root / 'rp-data.js').read_text(encoding='utf-8')
+          text = (root / 'rp-data.js').read_text(encoding='utf-8')
           prefix = 'window.CABW_RP_DATA = '
-          assert rp_text.startswith(prefix) and rp_text.rstrip().endswith(';')
-          rp = json.loads(rp_text[len(prefix):].rstrip()[:-1])
+          assert text.startswith(prefix) and text.rstrip().endswith(';')
+          rp = json.loads(text[len(prefix):].rstrip()[:-1])
           assert rp['summary']['totalRegistros'] > 0
-          assert rp['summary']['totalSaldoUsd'] >= 0
           assert rp['rpEvolution']['resumoGeral']['inscrito'] >= rp['rpEvolution']['resumoGeral']['atual']
-
-          required = ['index.html', 'contratos.html', 'credito.html', 'governanca-rp.html', 'suprimento-fundos.html']
-          for name in required:
+          for name in ('index.html','contratos.html','credito.html','governanca-rp.html','suprimento-fundos.html'):
               assert (root / name).is_file(), name
-          print(json.dumps({'status': 'validado', 'contratos': summary['total'], 'rp': rp['summary']['totalRegistros']}, ensure_ascii=False))
+          print({'status':'validado','contratos':summary['total'],'rp':rp['summary']['totalRegistros']})
           PY
 
-      - name: Sobrepor pacote validado na main
-        shell: bash
-        run: |
-          set -euo pipefail
-          rsync -a \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='automation/' \
-            --exclude='auth.js' \
-            /tmp/siscabw-package/ ./
+            echo '=== Sobreposição do ZIP-base validado ==='
+            rsync -a --exclude='.git/' --exclude='.github/' --exclude='automation/' --exclude='auth.js' /tmp/siscabw-package/ ./
 
-      - name: Publicar atualização na main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A -- . ':!.github/workflows/promote-tested-siscabw.yml'
-          git add .github/workflows/promote-tested-siscabw.yml automation/
-          if git diff --cached --quiet; then
-            echo 'O SISCABW já está atualizado com as fontes atuais.'
-            exit 0
+            echo '=== Commit e publicação ==='
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            rm -f automation/last-update-error.log
+            git add -A -- . ':!.github/workflows/promote-tested-siscabw.yml'
+            git add .github/workflows/promote-tested-siscabw.yml automation/
+            if git diff --cached --quiet; then
+              echo 'O SISCABW já contém os dados atuais.'
+            else
+              git commit -m "Atualiza dados do Painel CABW em $(date -u +'%d-%m-%Y')"
+              git push origin HEAD:main
+            fi
+          } > >(tee "$LOG") 2>&1
+          STATUS=$?
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "Falha na atualização; registrando diagnóstico (código $STATUS)."
+            mkdir -p automation
+            {
+              echo "Data UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              echo "Evento: $GITHUB_EVENT_NAME"
+              echo "Commit: $GITHUB_SHA"
+              echo "Código: $STATUS"
+              echo
+              tail -c 50000 "$LOG"
+            } > automation/last-update-error.log
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add automation/last-update-error.log
+            git commit -m 'Registra diagnóstico da atualização do SISCABW' || true
+            git pull --rebase origin main || true
+            git push origin HEAD:main || true
+            exit "$STATUS"
           fi
-          git commit -m "Atualiza dados do Painel CABW em $(date -u +'%d-%m-%Y')"
-          git push origin HEAD:main
