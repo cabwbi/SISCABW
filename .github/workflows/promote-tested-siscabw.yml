@@ -2,8 +2,10 @@ name: Publicar estado validado do SISCABW
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/promote-tested-siscabw.yml'
   issues:
     types: [opened, reopened]
 
