@@ -104,3 +104,5 @@ jobs:
           fi
           git commit -m "Publica atualização do SISCABW em 02-08-2026"
           git push origin HEAD:main
+
+# Reexecução autorizada em 02-08-2026.
