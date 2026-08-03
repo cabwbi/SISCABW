@@ -2,6 +2,8 @@ name: Publicar estado validado do SISCABW
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
   issues:
     types: [opened, reopened]
 
