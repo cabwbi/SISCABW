@@ -1,110 +1,127 @@
-name: Publicar estado validado do SISCABW
+name: Atualizar SISCABW diretamente do Google Drive
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '15 12 * * 1-5'
   push:
     branches: [main]
     paths:
       - '.github/workflows/promote-tested-siscabw.yml'
-  issues:
-    types: [opened, reopened]
 
 permissions:
   contents: write
 
 concurrency:
-  group: promote-tested-siscabw
+  group: atualizar-siscabw-direto
   cancel-in-progress: false
 
 jobs:
-  promote:
-    if: github.event_name != 'issues' || github.event.issue.title == 'PUBLICAR SISCABW VALIDADO 2026-08-02'
+  atualizar:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do repositório oficial
+      - name: Checkout da main oficial
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Copiar arquivos validados do ambiente de teste
+      - name: Preparar dependências
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE_COMMIT="8b4f110fc777fcc016a8703cb12d1c3bf6495966"
-          SOURCE_BASE="https://raw.githubusercontent.com/cabwbi/teste/${SOURCE_COMMIT}"
-          cat > /tmp/promote-files.txt <<'FILES'
-          action.html
-          automation/data_allowlist.txt
-          automation/download_drive.py
-          automation/generate_data.py
-          automation/validate_data.py
-          consistency.html
-          contratos-administrativos.html
-          contratos-finalisticos.html
-          contratos.html
-          credito.html
-          data-update-footer.js
-          detail.html
-          evolution.html
-          fms.html
-          governanca-cabw-numeros.html
-          governanca-calendario.html
-          governanca-paac.html
-          governanca-pta.html
-          governanca-rp.html
-          governanca.html
-          index.html
-          processos.html
-          suprimento-fundos.html
-          ug.html
-          assets/data/contracts-summary.json
-          assets/data/credit-10062026.json
-          assets/data/credit-11062026.json
-          assets/data/credit-current.json
-          assets/data/data-update-status.json
-          assets/js/contracts-data.js
-          assets/js/credit-data.js
-          assets/js/rp-data.js
-          assets/js/suprimento-data.js
-          contracts-data.js
-          contracts-summary.json
-          credit-10062026.json
-          credit-11062026.json
-          credit-current.json
-          credit-data.js
-          data-update-status.json
-          rp-data.js
-          suprimento-data.js
-          FILES
+          python3 -m pip install --disable-pip-version-check --quiet \
+            google-auth requests openpyxl xlrd
 
-          while IFS= read -r file; do
-            [ -n "$file" ] || continue
-            mkdir -p "$(dirname "$file")"
-            curl --fail --silent --show-error --location \
-              "${SOURCE_BASE}/${file}" \
-              --output "$file"
-          done < /tmp/promote-files.txt
-
-      - name: Validar integridade do pacote
+      - name: Baixar planilhas e ZIP-base do Google Drive
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 automation/validate_data.py --repo . --report /tmp/siscabw-validation.md
-          cat /tmp/siscabw-validation.md
+          rm -rf /tmp/siscabw-inputs /tmp/siscabw-package /tmp/siscabw-base.zip
+          mkdir -p /tmp/siscabw-inputs /tmp/siscabw-package
+          python3 automation/download_drive.py \
+            --folder-id '1OF-84Nnbfp0y9M-nPDDWQqeeYfjQma-c' \
+            --output /tmp/siscabw-inputs \
+            --zip-folder-id '1bZ86fqTY99dOiAShwCMydyjo6giAbzlf' \
+            --zip-output /tmp/siscabw-base.zip
+          unzip -q /tmp/siscabw-base.zip -d /tmp/siscabw-package
 
-      - name: Publicar no branch principal
+      - name: Gerar dados no pacote-base
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          while IFS= read -r file; do
-            [ -n "$file" ] || continue
-            git add -- "$file"
-          done < /tmp/promote-files.txt
+          base64 --decode automation/generate_data.py.gz.b64 | gzip --decompress > /tmp/generate_data.py
+          python3 /tmp/generate_data.py \
+            --inputs /tmp/siscabw-inputs \
+            --repo /tmp/siscabw-package \
+            | tee /tmp/siscabw-generation.json
+
+      - name: Validar o pacote gerado
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('/tmp/siscabw-package')
+          summary = json.loads((root / 'contracts-summary.json').read_text(encoding='utf-8'))
+          assert summary['total'] == sum(summary['counts'].values())
+          assert summary['counts'] == {'administrativos': 24, 'finalisticos': 53, 'fms': 26}
+          assert summary['total'] == 103
+          assert round(summary['totals']['totalEmpenhadoUsd'], 2) == 262530491.37
+
+          pairs = {
+              'contracts-data.js': 'assets/js/contracts-data.js',
+              'credit-data.js': 'assets/js/credit-data.js',
+              'rp-data.js': 'assets/js/rp-data.js',
+              'suprimento-data.js': 'assets/js/suprimento-data.js',
+              'contracts-summary.json': 'assets/data/contracts-summary.json',
+              'credit-current.json': 'assets/data/credit-current.json',
+              'credit-10062026.json': 'assets/data/credit-10062026.json',
+              'credit-11062026.json': 'assets/data/credit-11062026.json',
+              'data-update-status.json': 'assets/data/data-update-status.json',
+          }
+          for source, mirror in pairs.items():
+              assert (root / source).read_bytes() == (root / mirror).read_bytes(), (source, mirror)
+
+          rp_text = (root / 'rp-data.js').read_text(encoding='utf-8')
+          prefix = 'window.CABW_RP_DATA = '
+          assert rp_text.startswith(prefix) and rp_text.rstrip().endswith(';')
+          rp = json.loads(rp_text[len(prefix):].rstrip()[:-1])
+          assert rp['summary']['totalRegistros'] > 0
+          assert rp['summary']['totalSaldoUsd'] > 0
+          assert rp['rpEvolution']['resumoGeral']['inscrito'] >= rp['rpEvolution']['resumoGeral']['atual']
+
+          required = ['index.html', 'contratos.html', 'credito.html', 'governanca-rp.html', 'suprimento-fundos.html']
+          for name in required:
+              assert (root / name).is_file(), name
+          print(json.dumps({'status': 'validado', 'contratos': summary['total'], 'rp': rp['summary']['totalRegistros']}, ensure_ascii=False))
+          PY
+
+      - name: Sobrepor pacote validado na main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='automation/' \
+            --exclude='auth.js' \
+            /tmp/siscabw-package/ ./
+
+      - name: Publicar atualização na main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- . ':!.github/workflows/promote-tested-siscabw.yml'
+          git add .github/workflows/promote-tested-siscabw.yml automation/
           if git diff --cached --quiet; then
-            echo "O repositório oficial já contém o estado validado."
+            echo 'O SISCABW já está atualizado com as fontes atuais.'
             exit 0
           fi
-          git commit -m "Publica atualização integral do SISCABW em 02-08-2026"
+          git commit -m "Atualiza dados do Painel CABW em $(date -u +'%d-%m-%Y')"
           git push origin HEAD:main
