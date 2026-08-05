@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-08-03 00:36:06",
+  "geradoEm": "2026-08-05 14:25:00",
   "fusoHorarioExibicao": "America/New_York",
   "paineis": {
     "entrada": [
@@ -13,7 +13,7 @@
       },
       {
         "arquivo": "controle_financeiro_contratos.XLS",
-        "atualizadoEm": "2026-08-03T00:36:06.000Z"
+        "atualizadoEm": "2026-08-05T18:25:00.000Z"
       },
       {
         "arquivo": "descricao_OM.XLS",
@@ -43,7 +43,7 @@
     "contratos": [
       {
         "arquivo": "controle_financeiro_contratos.XLS",
-        "atualizadoEm": "2026-08-03T00:36:06.000Z"
+        "atualizadoEm": "2026-08-05T18:25:00.000Z"
       },
       {
         "arquivo": "ordem_de_compras.XLS",
@@ -160,5 +160,14 @@
         "atualizadoEm": "2026-07-31T12:30:17.439Z"
       }
     ]
+  },
+  "metodoContratos": {
+    "fonteAtual": "controle_financeiro_contratos.XLS enviado pelo usuário em 05/08/2026",
+    "registrosNaFonteAtual": 136,
+    "totalPublicado": 136,
+    "administrativos": 28,
+    "finalisticos": 56,
+    "fms": 52,
+    "regra": "Substituição integral pela planilha enviada; FMS por CAGE W2525; administrativos por Grande Comando CW; demais finalísticos."
   }
 }
