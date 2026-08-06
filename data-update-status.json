@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-08-05 14:25:00",
+  "geradoEm": "2026-08-05 19:00:00",
   "fusoHorarioExibicao": "America/New_York",
   "paineis": {
     "entrada": [
@@ -169,5 +169,14 @@
     "finalisticos": 56,
     "fms": 52,
     "regra": "Substituição integral pela planilha enviada; FMS por CAGE W2525; administrativos por Grande Comando CW; demais finalísticos."
+  },
+  "correcoesPacote": {
+    "cardEntradaContratos": {
+      "administrativos": 28,
+      "fms": 52,
+      "finalisticos": 56
+    },
+    "rodapeDatasFontes": true,
+    "buscaParcialFiltros": "Exibe somente categorias contendo o texto digitado; texto vazio exibe todas."
   }
 }

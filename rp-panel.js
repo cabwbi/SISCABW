@@ -35,7 +35,10 @@
         applyStaged(sel,wrap);
       }
     });
-    wrap.querySelector('input[type="search"]').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();wrap.querySelector('[data-act="contains"]').click();}};
+    const searchInput=wrap.querySelector('input[type="search"]');
+    const filterOptions=()=>{const q=norm(searchInput.value); wrap.querySelectorAll('.rp-option').forEach(label=>{const show=!q||norm(label.textContent).includes(q); label.hidden=!show; label.style.setProperty('display',show?'flex':'none','important');});};
+    searchInput.addEventListener('input',filterOptions); searchInput.addEventListener('search',filterOptions);
+    searchInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();wrap.querySelector('[data-act="contains"]').click();}};
     updateMulti(sel);
   }
   function fill(id, vals){const sel=$(id); if(!sel)return; sel.multiple=true; sel.innerHTML=vals.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join(''); Array.from(sel.options).forEach(o=>{o.selected=false; o.defaultSelected=false;}); enhance(sel); updateMulti(sel); sel.onchange=render;}
