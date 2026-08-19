@@ -4,9 +4,10 @@ Este arquivo reúne os 48 documentos `README_*.md` presentes no pacote de refer�
 
 ## Estado do pacote consolidado
 
-- Base: `SISCABW_Pacote_Publicacao_17-08-2026.zip`.
-- Contratos: 135 registros únicos — 27 administrativos, 56 finalísticos e 52 FMS.
-- Os arquivos funcionais do site não foram alterados nesta consolidação documental.
+- Base de referência: `SISCABW_Pacote_Publicacao_17-08-2026_README_Consolidado.zip`.
+- Atualização de dados: 19/08/2026.
+- Contratos: 133 registros únicos — 25 administrativos, 56 finalísticos e 52 FMS.
+- Os arquivos funcionais do site foram preservados; somente dados derivados e indicadores estáticos correspondentes foram atualizados.
 
 ## Documentos incorporados
 
@@ -956,4 +957,3 @@ Publicação: enviar o conteúdo interno do ZIP diretamente para a raiz do repos
 ## Documento original: `README_RELATORIOS_FILTROS.md`
 
 Atualização: área de relatórios nos painéis de Visão Executiva e Contratos; filtros iniciam sem seleção; logo CABW ajustado para não sobrepor menu.
-
