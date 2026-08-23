@@ -1,6 +1,7 @@
 (function(){
   const DATA=window.CABW_RP_DATA||{records:[],nlEvents:[],summary:{}};
-  const records=(DATA.records||[]).filter(r=>Number(r.saldoAtualUsd||0)>=-0.004);
+  const normalizeOm=r=>Object.assign({},r,{ug:r.omRequisitante||r.ug||''});
+  const records=(DATA.records||[]).filter(r=>Number(r.saldoAtualUsd||0)>=-0.004).map(normalizeOm);
   const events=DATA.nlEvents||[];
   const CY=(DATA.summary&&DATA.summary.currentYear)||2026;
   const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -47,7 +48,7 @@
   function eventsFor(rs){const pos=new Set(rs.map(r=>r.po)); return events.filter(e=>pos.has(e.po));}
   function evolutionFiltered(){
     const f=filters();
-    const items=((DATA.rpEvolution&&DATA.rpEvolution.items)||[]).filter(r=>Number(r.saldoAtualUsd||0)>=-0.004);
+    const items=((DATA.rpEvolution&&DATA.rpEvolution.items)||[]).filter(r=>Number(r.saldoAtualUsd||0)>=-0.004).map(normalizeOm);
     const splitVals=v=>String(v||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean);
     return items.filter(r=>
       (!f.ug.length||f.ug.includes(r.ug))&&

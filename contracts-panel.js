@@ -131,9 +131,9 @@ function invoiceDetailLabel(items){
 
 function parseIsoDate(v){if(!v)return null; const d=new Date(String(v).slice(0,10)+'T00:00:00'); return isNaN(d.getTime())?null:d;}
 function activeMonthsInYearForRows(rows, year){
-  const today=new Date(); const y=Number(year);
+  const generatedAt=parseIsoDate(root.meta&&root.meta.geradoEm); const referenceDate=generatedAt||new Date(); const y=Number(year);
   const yearStart=new Date(y,0,1); const naturalYearEnd=new Date(y,11,31);
-  const cutoff=(y===today.getFullYear())? new Date(today.getFullYear(),today.getMonth(),today.getDate()) : naturalYearEnd;
+  const cutoff=(y===referenceDate.getFullYear())? new Date(y,referenceDate.getMonth(),referenceDate.getDate()) : naturalYearEnd;
   const months=new Set();
   (rows||[]).forEach(r=>{
     const start=parseIsoDate(r.dataInicio)||yearStart;
