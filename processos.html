@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" type="text/css" href="css/style.css">
+  <link rel="stylesheet" type="text/css" href="processos-bi.css">
 
 <style id="cabw-inline-style">
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
@@ -2004,7 +2005,7 @@ table.dataTable thead th {
 </style>
   <script src="auth.js?v=auth-cabw-2026"></script>
 </head>
-<body>
+<body class="processos-bi-page" data-process-page="landing">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <a class="navbar-brand" href="index.html">Painel CABW</a>
@@ -2023,11 +2024,46 @@ table.dataTable thead th {
   </div>
 </nav>
 
-<div class="container-fluid mt-4">
+<header class="proc-landing-hero">
+  <p class="proc-eyebrow">Inteligência de aquisições</p>
   <h1>Processos de Contratação</h1>
-  <p>Esta seção está em construção. Em breve você poderá acompanhar o andamento dos processos de contratação, fases, prazos e status.</p>
-</div>
+  <p>Escolha uma área de análise para acompanhar os processos do ComprAer, suas requisições, valores, empresas, prazos e condições de retorno.</p>
+  <span class="proc-source-chip"><i class="bi bi-database-check" aria-hidden="true"></i><span data-generated-at>Carregando data dos dados…</span></span>
+</header>
 
+<main class="proc-module-grid" aria-label="Áreas de Processos de Contratação">
+  <article class="proc-module-card">
+    <div class="proc-module-card__top"><span class="proc-module-card__icon"><i class="bi bi-file-earmark-check" aria-hidden="true"></i></span><span class="proc-module-card__tag">Em desenvolvimento</span></div>
+    <h2>Processos que geram contratos</h2>
+    <p>Processos relacionados com licitações ou contratações diretas, quais geram contratos ou requerem gestões por meio do SILOMS Módulo Aquisição e Contratos.</p>
+    <a class="proc-module-card__button" href="processos-contratos.html"><span>Acessar painel</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+  </article>
+
+  <article class="proc-module-card">
+    <div class="proc-module-card__top"><span class="proc-module-card__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span><span class="proc-module-card__tag">Dados de 2026</span></div>
+    <h2>Requisições de materiais e publicações</h2>
+    <p>Processos do ComprAer para aquisição de materiais e publicações por meio de Ordem de Compras, por meio de editais padronizados aprovados através de parecer jurídico referencial.</p>
+    <div class="proc-module-card__metrics">
+      <div class="proc-module-metric"><span>Requisições processadas em 2026</span><strong data-summary="materialsCount">—</strong></div>
+      <div class="proc-module-metric"><span>Valor total empenhado</span><strong data-summary="materialsValue">—</strong></div>
+    </div>
+    <a class="proc-module-card__button" href="processos-materiais.html"><span>Acessar painel</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+  </article>
+
+  <article class="proc-module-card">
+    <div class="proc-module-card__top"><span class="proc-module-card__icon"><i class="bi bi-tools" aria-hidden="true"></i></span><span class="proc-module-card__tag">Dados de 2026</span></div>
+    <h2>Requisições de Reparo</h2>
+    <p>Processos do ComprAer para contratação de serviços de reparo por meio de Ordem de Compras, por meio de editais padronizados aprovados através de parecer jurídico referencial.</p>
+    <div class="proc-module-card__metrics">
+      <div class="proc-module-metric"><span>Requisições processadas em 2026</span><strong data-summary="repairsCount">—</strong></div>
+      <div class="proc-module-metric"><span>Valor total empenhado</span><strong data-summary="repairsValue">—</strong></div>
+    </div>
+    <a class="proc-module-card__button" href="processos-reparo.html"><span>Acessar painel</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+  </article>
+</main>
+
+<script src="processos-data.js"></script>
+<script src="processos-panel.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="panel-enhancements.js?v=20260805-1900"></script>
