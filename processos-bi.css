@@ -89,13 +89,15 @@
 .proc-action { border: 0; border-radius: 9px; padding: 9px 13px; background: #eaf0f7; color: var(--proc-navy); font-size: .75rem; font-weight: 800; cursor: pointer; }
 .proc-action:hover { background: #dce7f3; }
 .proc-filter-section { overflow: visible; }
-.proc-filter-split { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(430px, 1fr); gap: 18px; align-items: stretch; }
+.proc-filter-split { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(360px, .9fr); gap: 18px; align-items: stretch; }
 .proc-filter-panel { min-width: 0; padding: 18px; border: 1px solid #dce6f1; border-radius: 15px; background: #f9fbfe; }
 .proc-filter-panel--logistics { background: linear-gradient(155deg, #f8fbff 0%, #eef5fc 100%); }
 .proc-filter-panel__heading { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 17px; }
 .proc-filter-panel__icon { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 10px; background: var(--proc-navy); color: var(--proc-gold); font-size: 1rem; }
 .proc-filter-panel__heading h3 { margin: 0; color: var(--proc-navy); font-size: .94rem; font-weight: 800; }
 .proc-filter-panel__heading p { margin: 3px 0 0; color: var(--proc-muted); font-size: .68rem; line-height: 1.4; }
+.proc-filter-panel__badge { display: inline-flex; align-items: center; min-height: 26px; margin-left: auto; padding: 5px 8px; border: 1px solid #d2deeb; border-radius: 999px; background: #fff; color: #6b7d91; font-size: .57rem; font-weight: 800; line-height: 1.15; text-align: center; white-space: nowrap; }
+.proc-filter-panel__badge.is-ready { border-color: rgba(23, 128, 92, .28); background: #e8f7f0; color: #126647; }
 .proc-filter-grid { display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 14px; }
 .proc-filter-panel--analytical .proc-filter-grid { grid-template-columns: repeat(3, minmax(170px, 1fr)); }
 .proc-filter-field { min-width: 0; }
@@ -143,6 +145,7 @@
 .proc-flow-exception > span:not(.proc-flow-exception__icon) { font-size: .61rem; line-height: 1.35; }
 .proc-flow-exception b { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 8px; border-radius: 999px; background: #8c5100; color: #fff; font-size: .68rem; font-variant-numeric: tabular-nums; }
 .proc-flow-selection { margin: 14px 0 0; padding: 8px 10px; border-radius: 9px; background: rgba(0, 55, 124, .07); color: #315271; font-size: .65rem; font-weight: 700; text-align: center; }
+.proc-flow-warning { margin: 10px 0 0; padding: 9px; border-radius: 9px; background: #fff0d3; color: #7a4600; font-size: .68rem; font-weight: 700; text-align: center; }
 
 .proc-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
 .proc-kpi-grid--repair { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -157,6 +160,10 @@
 .proc-kpi--action:hover,
 .proc-kpi--action:focus-visible { border-color: var(--proc-blue); box-shadow: 0 12px 26px rgba(0, 86, 155, .16); transform: translateY(-2px); outline: none; }
 .proc-kpi--action small { color: var(--proc-blue); font-weight: 800; }
+.proc-kpi--dispatch .proc-kpi__heading { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.proc-kpi--dispatch .proc-kpi__icon { flex: 0 0 34px; }
+.proc-kpi--dispatch .proc-kpi__label { min-height: 0; margin-top: 0; flex: 1; color: #52657f; }
+.proc-kpi--dispatch strong { margin-top: 14px; }
 
 .proc-chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .proc-chart-card { min-width: 0; min-height: 410px; padding: 18px; border: 1px solid var(--proc-border); border-radius: 15px; background: #fff; }
@@ -211,15 +218,17 @@
 @media (max-width: 1180px) {
   .proc-module-grid { grid-template-columns: 1fr; max-width: 780px; }
   .proc-module-card { min-height: 0; }
-  .proc-filter-split { grid-template-columns: 1fr; }
   .proc-filter-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
-  .proc-filter-panel--analytical .proc-filter-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
-  .proc-logistics-layout { grid-template-columns: minmax(0, 1fr) 190px; }
+  .proc-filter-panel--analytical .proc-filter-grid { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
+  .proc-filter-panel--logistics .proc-filter-panel__heading { flex-wrap: wrap; }
+  .proc-filter-panel--logistics .proc-filter-panel__badge { margin-left: 47px; }
+  .proc-logistics-layout { grid-template-columns: minmax(0, 1fr) 145px; }
   .proc-kpi-grid,
   .proc-kpi-grid--repair { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
   .processos-bi-page main { width: min(100% - 24px, 1540px); }
+  .proc-filter-split { grid-template-columns: 1fr; }
   .proc-filter-grid,
   .proc-filter-panel--analytical .proc-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .proc-logistics-layout { grid-template-columns: minmax(0, 1fr) 170px; }
@@ -241,6 +250,8 @@
   .proc-kpi-grid,
   .proc-kpi-grid--repair { grid-template-columns: 1fr; }
   .proc-filter-panel { padding: 14px; }
+  .proc-filter-panel__heading { flex-wrap: wrap; }
+  .proc-filter-panel__badge { margin-left: 47px; }
   .proc-logistics-layout { grid-template-columns: 1fr; }
   .proc-flow-exception { min-height: 0; }
   .proc-kpi-pair { grid-template-columns: 1fr; }

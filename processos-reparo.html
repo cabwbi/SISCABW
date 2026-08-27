@@ -3,11 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Painel CABW - Requisições de Reparo</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="processos-bi.css">
+  <link rel="stylesheet" href="processos-bi.css?v=20260827-kpi-filtros-v3">
   <script src="auth.js?v=auth-cabw-2026"></script>
 </head>
 <body class="processos-bi-page" data-process-page="repairs">
@@ -66,7 +69,7 @@
           </div>
         </section>
         <section class="proc-filter-panel proc-filter-panel--logistics" aria-labelledby="logisticsFiltersTitle">
-          <div class="proc-filter-panel__heading"><span class="proc-filter-panel__icon"><i class="bi bi-signpost-split"></i></span><div><h3 id="logisticsFiltersTitle">Filtro do fluxo logístico</h3><p>Selecione uma ou mais etapas. Etapas combinadas ampliam o recorte.</p></div></div>
+          <div class="proc-filter-panel__heading"><span class="proc-filter-panel__icon"><i class="bi bi-signpost-split"></i></span><div><h3 id="logisticsFiltersTitle">Filtro do fluxo logístico</h3><p>Selecione uma ou mais etapas. Etapas combinadas ampliam o recorte.</p></div><span class="proc-filter-panel__badge" id="procLogisticsStatus" aria-live="polite">Carregando fluxo…</span></div>
           <div class="proc-logistics-layout">
             <div class="proc-flow-list" aria-label="Etapas do fluxo logístico">
               <button class="proc-flow-step" type="button" data-logistics-stage="not-committed" aria-pressed="false"><span class="proc-flow-step__index">1</span><span class="proc-flow-step__label">Requisição de reparo não empenhada</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
@@ -79,6 +82,7 @@
             <button class="proc-flow-exception" type="button" data-logistics-stage="exceptions" aria-pressed="false"><span class="proc-flow-exception__icon"><i class="bi bi-exclamation-triangle"></i></span><strong>Ocorrências fora do fluxo</strong><span>Canceladas, suspensas ou recebidas parcialmente</span><b data-logistics-count>0</b></button>
           </div>
           <p class="proc-flow-selection" id="procLogisticsSelection">Todas as etapas do fluxo consideradas</p>
+          <noscript><p class="proc-flow-warning">O JavaScript precisa estar habilitado para utilizar o filtro do fluxo logístico.</p></noscript>
         </section>
       </div>
     </section>
@@ -134,8 +138,8 @@
   </div>
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <script src="processos-data.js"></script>
-  <script src="processos-panel.js"></script>
+  <script src="processos-data.js?v=20260827-kpi-filtros-v3"></script>
+  <script src="processos-panel.js?v=20260827-kpi-filtros-v3"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

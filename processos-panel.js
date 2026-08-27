@@ -70,6 +70,7 @@
   let modalReturnFocus = null;
   let dispatchModalGroup = 'compraer';
   let selectedLogisticsStages = new Set();
+  let activeAnalyticalFilters = [];
 
   function unique(rows, field) {
     const values = Array.from(new Set(rows.map(row => String(row[field] || '').trim()).filter(Boolean)));
@@ -199,6 +200,12 @@
 
   function initLogisticsFilter() {
     if (pageMode !== 'repairs') return;
+    const status = $('#procLogisticsStatus');
+    if (status) {
+      status.textContent = 'Fluxo logístico ativo';
+      status.classList.add('is-ready');
+    }
+    document.body.dataset.logisticsFilterReady = 'true';
     $$('[data-logistics-stage]').forEach(button => {
       button.addEventListener('click', () => {
         const stage = button.dataset.logisticsStage;
@@ -210,15 +217,13 @@
   }
 
   function applyFilters() {
-    const active = FILTERS.map(([field]) => {
+    activeAnalyticalFilters = FILTERS.map(([field]) => {
       const select = $(`select[data-filter="${field}"]`);
       return [field, new Set(selectedValues(select))];
     }).filter(([, values]) => values.size);
-    const matchesActiveFilters = row => active.every(([field, values]) => values.has(String(row[field] || '').trim()));
-    const analyticalRows = sourceRows.filter(matchesActiveFilters);
-    const matchesLogisticsFilter = row => !selectedLogisticsStages.size || selectedLogisticsStages.has(logisticsStageId(row));
-    filteredRows = analyticalRows.filter(matchesLogisticsFilter);
-    filteredOtherRepairRows = otherRepairRows.filter(row => matchesActiveFilters(row) && matchesLogisticsFilter(row));
+    const analyticalRows = sourceRows.filter(matchesCurrentAnalyticalFilters);
+    filteredRows = analyticalRows.filter(matchesCurrentLogisticsFilter);
+    filteredOtherRepairRows = otherRepairRows.filter(row => matchesCurrentAnalyticalFilters(row) && matchesCurrentLogisticsFilter(row));
     renderLogisticsFilter(analyticalRows);
     currentPage = 1;
     renderAll();
@@ -241,6 +246,16 @@
     const status = norm(row.status);
     return row.reparavelExpedidoAoFornecedor === true || (status.startsWith('l-') && status.includes('reparav') && status.includes('fornec'));
   }
+  function matchesCurrentAnalyticalFilters(row) {
+    return activeAnalyticalFilters.every(([field, values]) => values.has(String(row[field] || '').trim()));
+  }
+  function matchesCurrentLogisticsFilter(row) {
+    return !selectedLogisticsStages.size || selectedLogisticsStages.has(logisticsStageId(row));
+  }
+  function dispatchedRowsForCurrentFilters(group) {
+    const rows = group === 'other' ? otherRepairRows : sourceRows;
+    return rows.filter(row => matchesCurrentAnalyticalFilters(row) && matchesCurrentLogisticsFilter(row) && isDispatchedToSupplier(row));
+  }
   function economy(rows) {
     const comparable = rows.filter(row => Number(row.valorReferenciaUsd || 0) > 0);
     const reference = sum(comparable, 'valorReferenciaUsd');
@@ -251,8 +266,12 @@
   }
 
   function kpiCard(label, value, icon, note, action) {
-    const content = `<div class="proc-kpi__top"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span></div><div class="proc-kpi__label">${esc(label)}</div><strong title="${esc(value)}">${esc(value)}</strong><small>${esc(note || 'Conforme filtros aplicados')}</small>`;
-    if (action) return `<button class="proc-kpi proc-kpi--action" type="button" data-kpi-action="${esc(action)}" aria-haspopup="dialog">${content}</button>`;
+    const isDispatch = String(action || '').startsWith('repair-dispatched-');
+    const heading = isDispatch
+      ? `<div class="proc-kpi__heading"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span><div class="proc-kpi__label">${esc(label)}</div></div>`
+      : `<div class="proc-kpi__top"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span></div><div class="proc-kpi__label">${esc(label)}</div>`;
+    const content = `${heading}<strong title="${esc(value)}">${esc(value)}</strong><small>${esc(note || 'Conforme filtros aplicados')}</small>`;
+    if (action) return `<button class="proc-kpi proc-kpi--action${isDispatch ? ' proc-kpi--dispatch' : ''}" type="button" data-kpi-action="${esc(action)}" aria-haspopup="dialog">${content}</button>`;
     return `<article class="proc-kpi">${content}</article>`;
   }
 
@@ -292,9 +311,11 @@
         ['Em processo', number(countReturn(filteredRows, 'Em processo')), 'bi-hourglass-split', 'Condição de retorno ainda em branco'],
         ['Percentual de sucesso', percentage(successRate), 'bi-bullseye', completed ? `${number(repaired)} reparado(s) de ${number(completed)} item(ns) concluído(s)` : 'Sem itens concluídos no recorte'],
       );
+      const dispatchedCompraer = dispatchedRowsForCurrentFilters('compraer');
+      const dispatchedOther = dispatchedRowsForCurrentFilters('other');
       dispatchKpis = [
-        ['Reparáveis Expedidos ao fornecedor - ComprAer', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Com certame e cotação · clique para consultar', 'repair-dispatched-compraer'],
-        ['Reparáveis expedidos ao fornecedor - Outras fontes', number(filteredOtherRepairRows.filter(isDispatchedToSupplier).length), 'bi-tools', 'Sem certame · clique para consultar', 'repair-dispatched-other'],
+        ['Reparáveis Expedidos ao fornecedor - ComprAer', number(dispatchedCompraer.length), 'bi-truck', 'Recalculado pelo recorte atual · clique para consultar', 'repair-dispatched-compraer'],
+        ['Reparáveis expedidos ao fornecedor - Outras fontes', number(dispatchedOther.length), 'bi-tools', 'Recalculado pelo recorte atual · clique para consultar', 'repair-dispatched-other'],
       ];
     }
     const dispatchGroup = dispatchKpis.length
@@ -462,8 +483,7 @@
     const isOtherGroup = dispatchModalGroup === 'other';
     const title = $('#repairDispatchTitle');
     if (title) title.textContent = isOtherGroup ? 'Reparáveis expedidos ao fornecedor - Outras fontes' : 'Reparáveis Expedidos ao fornecedor - ComprAer';
-    const groupRows = isOtherGroup ? filteredOtherRepairRows : filteredRows;
-    const rows = groupRows.filter(isDispatchedToSupplier).sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
+    const rows = dispatchedRowsForCurrentFilters(isOtherGroup ? 'other' : 'compraer').sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
     const validDays = rows.map(row => row.diasDesdeExpedicao).filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
     const colorScale = { min: validDays.length ? Math.min(...validDays) : 0, max: validDays.length ? Math.max(...validDays) : 0 };
     info.textContent = `${number(rows.length)} requisição(ões) no recorte atual · data de referência: ${dateBr(DATA.meta.dataReferenciaPrazos)}`;
