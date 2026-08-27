@@ -17,7 +17,7 @@
   }
 
   function initLanding() {
-    const materials = DATA.summary.materials2026 || {};
+    const materials = DATA.summary.materiais2026 || DATA.summary.materials2026 || {};
     const repairs = DATA.summary.reparos2026 || {};
     const values = {
       materialsCount: number(materials.requisicoes),
@@ -34,6 +34,7 @@
   const FILTERS = [
     ['om', 'OM Requisitante'],
     ['projetoLabel', 'Projeto'],
+    ['anoAbertura', 'Ano'],
     ['faixaValor', 'Faixa de Valor'],
     ['tipoRequisicao', 'Tipo da requisição'],
     ['grandeComando', 'Grande Comando'],
@@ -167,6 +168,14 @@
   function sum(rows, field) { return rows.reduce((total, row) => total + Number(row[field] || 0), 0); }
   function countDistinct(rows, field) { return new Set(rows.map(row => row[field]).filter(Boolean)).size; }
   function countReturn(rows, label) { return sum(rows.filter(row => row.situacaoRetorno === label), 'quantidade'); }
+  function economy(rows) {
+    const comparable = rows.filter(row => Number(row.valorReferenciaUsd || 0) > 0);
+    const reference = sum(comparable, 'valorReferenciaUsd');
+    const total = sum(comparable, 'valorEmpenhadoUsd');
+    const absolute = reference - total;
+    const percent = reference ? absolute / reference * 100 : 0;
+    return { absolute, percent, comparable: comparable.length };
+  }
 
   function kpiCard(label, value, icon, note) {
     return `<article class="proc-kpi"><div class="proc-kpi__top"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span></div><div class="proc-kpi__label">${esc(label)}</div><strong title="${esc(value)}">${esc(value)}</strong><small>${esc(note || 'Conforme filtros aplicados')}</small></article>`;
@@ -180,6 +189,15 @@
       ['Valor total empenhado', money(sum(filteredRows, 'valorEmpenhadoUsd')), 'bi-currency-dollar', 'Soma do valor das requisições'],
       ['Requisitantes atendidos', number(countDistinct(filteredRows, 'om')), 'bi-buildings', 'OMs requisitantes distintas'],
     ];
+    const saving = economy(filteredRows);
+    base.push([
+      'Economia da licitação',
+      money(saving.absolute),
+      'bi-graph-down-arrow',
+      saving.comparable
+        ? `${saving.percent >= 0 ? 'Redução' : 'Acréscimo'} de ${number(Math.abs(saving.percent))}% sobre o valor de referência`
+        : 'Sem valor de referência no recorte',
+    ]);
     if (pageMode === 'materials') {
       base.push(['Itens em atraso', number(sum(filteredRows, 'itensAtrasados')), 'bi-clock-history', 'Quantidade pendente com DPE vencida']);
     } else {
