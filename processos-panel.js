@@ -7,6 +7,7 @@
   const $$ = (selector, scope) => Array.from((scope || document).querySelectorAll(selector));
   const money = value => 'US$ ' + Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const number = value => Number(value || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  const percentage = value => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
   const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const norm = value => String(value || '').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
@@ -215,13 +216,20 @@
     if (pageMode === 'materials') {
       base.push(['Itens em atraso', number(sum(filteredRows, 'itensAtrasados')), 'bi-clock-history', 'Quantidade pendente com DPE vencida']);
     } else {
+      const repaired = countReturn(filteredRows, 'Reparado');
+      const ber = countReturn(filteredRows, 'BER');
+      const bpr = countReturn(filteredRows, 'BPR');
+      const asIs = countReturn(filteredRows, 'AS IS');
+      const completed = repaired + ber + bpr + asIs;
+      const successRate = completed ? repaired / completed * 100 : 0;
       base.push(
         ['Quantidade de itens', number(sum(filteredRows, 'quantidade')), 'bi-box-seam', 'Soma das quantidades requisitadas'],
-        ['BER', number(countReturn(filteredRows, 'BER')), 'bi-exclamation-octagon', 'Itens classificados como BER'],
-        ['BPR', number(countReturn(filteredRows, 'BPR')), 'bi-wrench-adjustable', 'Itens classificados como BPR'],
-        ['AS IS', number(countReturn(filteredRows, 'AS IS')), 'bi-box-arrow-up-right', 'Itens classificados como AS IS'],
-        ['Reparados', number(countReturn(filteredRows, 'Reparado')), 'bi-check2-circle', 'Itens com retorno reparado'],
+        ['BER', number(ber), 'bi-exclamation-octagon', 'Itens classificados como BER'],
+        ['BPR', number(bpr), 'bi-wrench-adjustable', 'Itens classificados como BPR'],
+        ['AS IS', number(asIs), 'bi-box-arrow-up-right', 'Itens classificados como AS IS'],
+        ['Reparados', number(repaired), 'bi-check2-circle', 'Itens com retorno reparado'],
         ['Em processo', number(countReturn(filteredRows, 'Em processo')), 'bi-hourglass-split', 'Condição de retorno ainda em branco'],
+        ['Percentual de sucesso', percentage(successRate), 'bi-bullseye', completed ? `${number(repaired)} reparado(s) de ${number(completed)} item(ns) concluído(s)` : 'Sem itens concluídos no recorte'],
       );
       dispatchKpis = [
         ['Reparáveis Expedidos ao fornecedor - ComprAer', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Com certame e cotação · clique para consultar', 'repair-dispatched-compraer'],
@@ -336,10 +344,14 @@
     return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '—';
   }
 
+  function shortenedText(value, limit) {
+    const full = String(value || 'Não informado').replace(/\s+/g, ' ').trim();
+    return full.length > limit ? `${full.slice(0, limit - 3).trimEnd()}...` : full;
+  }
+
   function dispatchDescriptionCell(row) {
     const full = String(row.descricaoCompleta || row.descricao || 'Não informado').replace(/\s+/g, ' ').trim();
-    const limit = 76;
-    const short = full.length > limit ? `${full.slice(0, limit - 3).trimEnd()}...` : full;
+    const short = shortenedText(full, 76);
     return `<span class="proc-modal__description" title="${esc(full)}">${esc(short)}</span>`;
   }
 
@@ -375,11 +387,11 @@
       <td><strong>${esc(row.requisicao)}</strong></td>
       <td><strong>${esc(isOtherGroup ? (row.contratoOrigem || 'Não localizado') : (row.certame || 'Não informado'))}</strong></td>
       <td>${dispatchDescriptionCell(row)}</td>
+      <td><span class="proc-status">${esc(row.reparoAprovado || 'Não informado')}</span></td>
       <td class="proc-table__money">${esc(money(row.valorEmpenhadoUsd))}</td>
       <td>${esc(row.empresaVencedora)}</td>
       <td>${dispatchDaysCell(row, colorScale)}</td>
       <td class="proc-modal__observation">${esc(row.observacaoRequisicao || 'Não informado')}</td>
-      <td><span class="proc-status">${esc(row.reparoAprovado || 'Não informado')}</span></td>
     </tr>`).join('') : '<tr><td colspan="8" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
   }
 
@@ -410,10 +422,11 @@
   }
 
   function tableRow(row) {
+    const fullDescription = String(row.descricao || 'Não informado').replace(/\s+/g, ' ').trim();
     const base = `
       <td><strong>${esc(row.requisicao)}</strong></td>
       <td>${esc(row.certame)}</td>
-      <td class="proc-table__desc" title="${esc(row.descricaoCompleta || row.descricao)}">${esc(row.descricao)}</td>
+      <td class="proc-table__desc" title="${esc(fullDescription)}">${esc(shortenedText(fullDescription, 120))}</td>
       <td>${esc(number(row.quantidade))}</td>
       <td>${esc(row.empresaFabricante)}</td>
       <td>${esc(row.empresaVencedora)}</td>
@@ -445,6 +458,86 @@
     if (next) next.disabled = currentPage >= pages;
   }
 
+  function reportFiltersHtml() {
+    const blocks = FILTERS.map(([field, label]) => {
+      const select = $(`select[data-filter="${field}"]`);
+      if (!select) return '';
+      const values = selectedValues(select);
+      return `<strong>${esc(label)}:</strong> ${esc(values.length ? values.join(', ') : 'Todas as opções')}`;
+    }).filter(Boolean);
+    return `<p class="r-filters">${blocks.join(' &nbsp; | &nbsp; ')}</p>`;
+  }
+
+  function reportKpisHtml() {
+    const cards = $$('.proc-kpi', $('#procKpis')).map(card => {
+      const label = $('.proc-kpi__label', card)?.textContent || '';
+      const value = $('strong', card)?.textContent || '';
+      return `<article><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`;
+    });
+    return `<section class="r-kpis">${cards.join('')}</section>`;
+  }
+
+  async function reportChartsHtml() {
+    if (!window.Plotly) return '';
+    let html = '';
+    for (const chart of $$('.proc-chart.js-plotly-plot')) {
+      try {
+        const title = $('h3', chart.closest('.proc-chart-card'))?.textContent || chart.id || 'Gráfico';
+        const image = await Plotly.toImage(chart, { format: 'png', width: 1200, height: 560, scale: 1 });
+        html += `<section class="r-section"><h2>${esc(title)}</h2><img class="r-chart" src="${image}" alt="${esc(title)}"></section>`;
+      } catch (error) {
+        // Mantém o relatório disponível mesmo se um gráfico isolado não puder ser convertido.
+      }
+    }
+    return html;
+  }
+
+  function reportTableHtml() {
+    const repairColumns = pageMode === 'repairs'
+      ? '<th>Situação</th><th>Retorno</th><th>Reparo aprovado</th>'
+      : '<th>Situação</th>';
+    const rows = filteredRows.map(row => `<tr>
+      <td>${esc(row.requisicao)}</td>
+      <td>${esc(row.certame || 'Não informado')}</td>
+      <td>${esc(shortenedText(row.descricao, 180))}</td>
+      <td class="num">${esc(number(row.quantidade))}</td>
+      <td>${esc(row.empresaVencedora)}</td>
+      <td>${esc(row.po)}</td>
+      <td class="num">${esc(money(row.valorEmpenhadoUsd))}</td>
+      <td>${esc(row.status)}</td>
+      ${pageMode === 'repairs' ? `<td>${esc(row.situacaoRetorno)}</td><td>${esc(row.reparoAprovado || 'Não informado')}</td>` : ''}
+    </tr>`).join('');
+    const columnCount = pageMode === 'repairs' ? 10 : 8;
+    return `<section class="r-section"><h2>Requisições filtradas</h2><p>${number(filteredRows.length)} requisição(ões)</p><table><thead><tr><th>Requisição</th><th>Certame</th><th>Descrição</th><th>Quantidade</th><th>Empresa vencedora</th><th>Ordem de compra</th><th>Valor</th>${repairColumns}</tr></thead><tbody>${rows || `<tr><td colspan="${columnCount}">Nenhuma requisição no recorte atual.</td></tr>`}</tbody></table></section>`;
+  }
+
+  function reportCss() {
+    return '@page{size:A4 landscape;margin:10mm}body{font-family:Arial,Helvetica,sans-serif;color:#10233f;margin:24px;line-height:1.4}.ministry{text-align:center;font-weight:700;margin-bottom:18px}h1{text-align:center;color:#00265f;margin:10px 0 18px}.intro{font-size:13px;text-align:justify}.r-filters{padding:11px 13px;border-left:5px solid #ffd200;border-radius:8px;background:#eef3fa;font-size:10px}.r-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:18px 0}.r-kpis article{padding:10px;border:1px solid #dbe4f0;border-radius:9px}.r-kpis span{display:block;color:#52657f;font-size:9px;text-transform:uppercase}.r-kpis strong{display:block;margin-top:5px;color:#00265f;font-size:16px}.r-section{margin-top:22px;page-break-inside:avoid}.r-section h2{padding-bottom:5px;border-bottom:2px solid #ffd200;color:#00265f}.r-chart{display:block;width:100%;max-height:500px;object-fit:contain}table{width:100%;border-collapse:collapse;font-size:7.5px;page-break-inside:auto}tr{page-break-inside:avoid}th{background:#003b7a;color:#fff}td,th{padding:4px;border:1px solid #cdd6e4;text-align:left;vertical-align:top}tr:nth-child(even) td{background:#f6f8fb}.num{text-align:right;white-space:nowrap}footer{margin-top:24px;color:#667;text-align:center;font-size:10px}@media print{body{margin:0}.r-kpis{grid-template-columns:repeat(4,1fr)}}';
+  }
+
+  async function generateProcessReport() {
+    const button = $('#procGenerateReport');
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) { window.alert('Permita pop-ups para gerar o relatório em PDF.'); return; }
+    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+    reportWindow.document.write('<!doctype html><html><body style="font-family:Arial;padding:32px;color:#00265f"><p>Preparando relatório...</p></body></html>');
+    reportWindow.document.close();
+    try {
+      const title = pageMode === 'repairs' ? 'Relatório - Requisições de Reparo' : 'Relatório - Requisições de Materiais e Publicações';
+      const charts = await reportChartsHtml();
+      const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${reportCss()}</style></head><body>
+        <header><div class="ministry">Ministério da Defesa<br>Comando da Aeronáutica<br>Comissão Aeronáutica Brasileira em Washington</div><h1>${esc(title)}</h1><p class="intro">Relatório gerencial elaborado com os dados atualmente filtrados no painel. Os indicadores, gráficos e a tabela refletem o recorte vigente no momento da geração.</p>${reportFiltersHtml()}</header>
+        ${reportKpisHtml()}${charts}${reportTableHtml()}<footer>Gerado em ${esc(new Date().toLocaleString('pt-BR'))} · ${esc(dateTime(DATA.meta.geradoEm))}</footer>
+      </body></html>`;
+      reportWindow.document.open();
+      reportWindow.document.write(html);
+      reportWindow.document.close();
+      setTimeout(() => { try { reportWindow.focus(); reportWindow.print(); } catch (error) {} }, 800);
+    } finally {
+      if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+    }
+  }
+
   function renderAll() {
     renderKpis();
     renderCharts();
@@ -463,6 +556,7 @@
     if (generated) generated.textContent = dateTime(DATA.meta.geradoEm);
     populateFilters();
     $('#procResetFilters')?.addEventListener('click', resetFilters);
+    $('#procGenerateReport')?.addEventListener('click', generateProcessReport);
     $('#procPagePrev')?.addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; renderTable(); } });
     $('#procPageNext')?.addEventListener('click', () => { if (currentPage * pageSize < filteredRows.length) { currentPage += 1; renderTable(); } });
     if (pageMode === 'repairs') initDispatchModal();

@@ -28,7 +28,10 @@
   </nav>
 
   <header class="proc-panel-hero">
-    <a class="proc-back" href="processos.html"><i class="bi bi-arrow-left"></i> Voltar para Processos de Contratação</a>
+    <div class="proc-panel-hero__toolbar">
+      <a class="proc-back" href="processos.html"><i class="bi bi-arrow-left"></i> Voltar para Processos de Contratação</a>
+      <button class="proc-report-button" id="procGenerateReport" type="button"><i class="bi bi-file-earmark-pdf"></i> Gerar relatório PDF</button>
+    </div>
     <p class="proc-eyebrow">ComprAer · Serviços de reparo</p>
     <h1>Requisições de Reparo</h1>
     <p class="proc-hero-description">Painel desenvolvido para acompanhamento das requisições de reparo.</p>
@@ -104,7 +107,7 @@
       <div class="proc-age-legend" aria-label="Escala do tempo desde a expedição"><span>Menor tempo</span><i></i><span>Maior tempo</span></div>
       <div class="proc-table-wrap proc-modal__table-wrap">
         <table class="proc-table proc-modal__table">
-          <thead><tr><th>Requisição</th><th>Certame/Contrato</th><th>Descrição</th><th>Valor da requisição</th><th>Empresa vencedora</th><th>Tempo desde a expedição</th><th>Observação da requisição</th><th>Reparo aprovado</th></tr></thead>
+          <thead><tr><th>Requisição</th><th>Certame/Contrato</th><th>Descrição</th><th>Reparo aprovado</th><th>Valor da requisição</th><th>Empresa vencedora</th><th>Tempo desde a expedição</th><th>Observação da requisição</th></tr></thead>
           <tbody id="repairDispatchBody"></tbody>
         </table>
       </div>
