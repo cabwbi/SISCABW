@@ -197,6 +197,7 @@
   function renderKpis() {
     const container = $('#procKpis');
     if (!container) return;
+    let dispatchKpis = [];
     const base = [
       ['Quantidade de requisições', number(filteredRows.length), 'bi-file-earmark-text', 'Registros no escopo selecionado'],
       ['Valor total empenhado', money(sum(filteredRows, 'valorEmpenhadoUsd')), 'bi-currency-dollar', 'Soma do valor das requisições'],
@@ -216,16 +217,21 @@
     } else {
       base.push(
         ['Quantidade de itens', number(sum(filteredRows, 'quantidade')), 'bi-box-seam', 'Soma das quantidades requisitadas'],
-        ['Requisições de Reparo ComprAer', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Com certame e cotação · clique para consultar', 'repair-dispatched-compraer'],
-        ['Outros Reparos', number(filteredOtherRepairRows.filter(isDispatchedToSupplier).length), 'bi-tools', 'Sem certame · clique para consultar', 'repair-dispatched-other'],
         ['BER', number(countReturn(filteredRows, 'BER')), 'bi-exclamation-octagon', 'Itens classificados como BER'],
         ['BPR', number(countReturn(filteredRows, 'BPR')), 'bi-wrench-adjustable', 'Itens classificados como BPR'],
         ['AS IS', number(countReturn(filteredRows, 'AS IS')), 'bi-box-arrow-up-right', 'Itens classificados como AS IS'],
         ['Reparados', number(countReturn(filteredRows, 'Reparado')), 'bi-check2-circle', 'Itens com retorno reparado'],
         ['Em processo', number(countReturn(filteredRows, 'Em processo')), 'bi-hourglass-split', 'Condição de retorno ainda em branco'],
       );
+      dispatchKpis = [
+        ['Reparáveis Expedidos ao fornecedor - ComprAer', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Com certame e cotação · clique para consultar', 'repair-dispatched-compraer'],
+        ['Reparáveis expedidos ao fornecedor - Outras fontes', number(filteredOtherRepairRows.filter(isDispatchedToSupplier).length), 'bi-tools', 'Sem certame · clique para consultar', 'repair-dispatched-other'],
+      ];
     }
-    container.innerHTML = base.map(item => kpiCard(...item)).join('');
+    const dispatchGroup = dispatchKpis.length
+      ? `<section class="proc-kpi-pair" aria-label="Indicadores analisados em conjunto">${dispatchKpis.map(item => kpiCard(...item)).join('')}</section>`
+      : '';
+    container.innerHTML = base.map(item => kpiCard(...item)).join('') + dispatchGroup;
     $$('[data-kpi-action^="repair-dispatched-"]', container).forEach(button => button.addEventListener('click', openDispatchModal));
   }
 
@@ -272,21 +278,42 @@
     const knownStatuses = new Set(statuses.filter(status => status !== 'Outros'));
     const colors = ['#b4232f', '#ef8b27', '#758399', '#17805c', '#1769aa', '#6f7783'];
     const companyTotals = new Map(companies.map(company => [company, filteredRows.filter(row => row.empresaVencedora === company).length]));
+    const sumUniquePurchaseOrders = rows => {
+      const orders = new Map();
+      rows.forEach(row => {
+        const po = String(row.po || '').trim();
+        if (po && po !== 'Não informado') orders.set(po, Number(row.valorOrdemCompraUsd || 0));
+      });
+      return Array.from(orders.values()).reduce((total, value) => total + value, 0);
+    };
     const traces = statuses.map((status, index) => {
-      const counts = companies.map(company => filteredRows.filter(row => row.empresaVencedora === company && (status === 'Outros' ? !knownStatuses.has(row.situacaoRetorno) : row.situacaoRetorno === status)).length);
+      const groups = companies.map(company => filteredRows.filter(row => row.empresaVencedora === company && (status === 'Outros' ? !knownStatuses.has(row.situacaoRetorno) : row.situacaoRetorno === status)));
+      const counts = groups.map(rows => rows.length);
       return {
         type: 'bar', orientation: 'h', name: status, y: companies, x: counts,
-        customdata: counts.map((count, companyIndex) => companyTotals.get(companies[companyIndex]) ? count / companyTotals.get(companies[companyIndex]) * 100 : 0),
+        customdata: counts.map((count, companyIndex) => [
+          companyTotals.get(companies[companyIndex]) ? count / companyTotals.get(companies[companyIndex]) * 100 : 0,
+          money(sumUniquePurchaseOrders(groups[companyIndex])),
+        ]),
         marker: { color: colors[index] },
-        hovertemplate: `<b>%{y}</b><br>${status}: %{x} requisição(ões)<br>%{customdata:.1f}%<extra></extra>`,
+        hovertemplate: `<b>%{y}</b><br>${status}: %{x} requisição(ões)<br>%{customdata[0]:.1f}%<br>Valor das OCs: %{customdata[1]}<extra></extra>`,
+      };
+    });
+    const annotations = companies.map(company => {
+      const total = companyTotals.get(company) || 0;
+      return {
+        x: 101, y: company, xref: 'x', yref: 'y', showarrow: false, xanchor: 'left',
+        text: `<b>${number(total)} ${total === 1 ? 'requisição' : 'requisições'}</b>`,
+        font: { size: 10, color: '#244160' },
       };
     });
     Plotly.react(element, traces, {
       barmode: 'stack', barnorm: 'percent',
-      margin: { l: 210, r: 26, t: 24, b: 50 },
-      xaxis: { title: 'Percentual dentro da empresa', ticksuffix: '%', range: [0, 100], gridcolor: '#e6edf5' },
+      margin: { l: 210, r: 116, t: 24, b: 50 },
+      xaxis: { title: 'Percentual dentro da empresa', ticksuffix: '%', range: [0, 118], tickvals: [0, 25, 50, 75, 100], gridcolor: '#e6edf5' },
       yaxis: { automargin: true, tickfont: { size: 10 } },
       legend: { orientation: 'h', y: 1.13, x: 0 },
+      annotations,
       paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#fff',
       font: { family: 'Montserrat, Arial, sans-serif', color: '#244160' },
     }, { displayModeBar: false, responsive: true });
@@ -331,7 +358,7 @@
     if (!body || !info) return;
     const isOtherGroup = dispatchModalGroup === 'other';
     const title = $('#repairDispatchTitle');
-    if (title) title.textContent = isOtherGroup ? 'Outros Reparos' : 'Requisições de Reparo ComprAer';
+    if (title) title.textContent = isOtherGroup ? 'Reparáveis expedidos ao fornecedor - Outras fontes' : 'Reparáveis Expedidos ao fornecedor - ComprAer';
     const groupRows = isOtherGroup ? filteredOtherRepairRows : filteredRows;
     const rows = groupRows.filter(isDispatchedToSupplier).sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
     const validDays = rows.map(row => row.diasDesdeExpedicao).filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
@@ -339,12 +366,13 @@
     info.textContent = `${number(rows.length)} requisição(ões) no recorte atual · data de referência: ${dateBr(DATA.meta.dataReferenciaPrazos)}`;
     body.innerHTML = rows.length ? rows.map(row => `<tr>
       <td><strong>${esc(row.requisicao)}</strong></td>
+      <td><strong>${esc(isOtherGroup ? (row.contratoOrigem || 'Não localizado') : (row.certame || 'Não informado'))}</strong></td>
       <td class="proc-table__money">${esc(money(row.valorEmpenhadoUsd))}</td>
       <td>${esc(row.empresaVencedora)}</td>
       <td>${dispatchDaysCell(row, colorScale)}</td>
       <td class="proc-modal__observation">${esc(row.observacaoRequisicao || 'Não informado')}</td>
       <td><span class="proc-status">${esc(row.reparoAprovado || 'Não informado')}</span></td>
-    </tr>`).join('') : '<tr><td colspan="6" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="7" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
   }
 
   function openDispatchModal(event) {
