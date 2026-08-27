@@ -82,13 +82,34 @@
       <div class="proc-section-heading"><div><h2 id="tableTitle">Requisições filtradas</h2><p>Detalhamento das requisições, retorno dos materiais e ordens de compra associadas</p></div></div>
       <div class="proc-table-wrap">
         <table class="proc-table">
-          <thead><tr><th>Requisição</th><th>Certame</th><th>Descrição</th><th>Quantidade</th><th>Fabricante</th><th>Empresa vencedora</th><th>Ordem de compra</th><th>Valor empenhado</th><th>Saldo da PO</th><th>Situação</th><th>DPE</th><th>Retorno</th><th>Situação do reparável</th></tr></thead>
+          <thead><tr><th>Requisição</th><th>Certame</th><th>Descrição</th><th>Quantidade</th><th>Fabricante</th><th>Empresa vencedora</th><th>Ordem de compra</th><th>Valor empenhado</th><th>Saldo da PO</th><th>Situação</th><th>DPE</th><th>Retorno</th><th>Situação do reparável</th><th>Tempo desde a expedição</th></tr></thead>
           <tbody id="procTableBody"></tbody>
         </table>
       </div>
       <div class="proc-table-toolbar"><span class="proc-table-info" id="procTableInfo"></span><div class="proc-pagination"><button id="procPagePrev" type="button" aria-label="Página anterior">‹</button><span id="procPageCurrent">1 / 1</span><button id="procPageNext" type="button" aria-label="Próxima página">›</button></div></div>
     </section>
   </main>
+
+  <div class="proc-modal" id="repairDispatchModal" hidden>
+    <button class="proc-modal__backdrop" type="button" data-modal-close aria-label="Fechar detalhes"></button>
+    <section class="proc-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="repairDispatchTitle" aria-describedby="repairDispatchInfo">
+      <header class="proc-modal__header">
+        <div>
+          <p class="proc-modal__eyebrow">Acompanhamento de reparáveis</p>
+          <h2 id="repairDispatchTitle">Reparáveis expedidos ao fornecedor</h2>
+          <p id="repairDispatchInfo">Carregando requisições…</p>
+        </div>
+        <button class="proc-modal__close" id="repairDispatchClose" type="button" data-modal-close aria-label="Fechar janela"><i class="bi bi-x-lg"></i></button>
+      </header>
+      <div class="proc-age-legend" aria-label="Escala do tempo desde a expedição"><span>Menor tempo</span><i></i><span>Maior tempo</span></div>
+      <div class="proc-table-wrap proc-modal__table-wrap">
+        <table class="proc-table proc-modal__table">
+          <thead><tr><th>Requisição</th><th>Valor da requisição</th><th>Empresa vencedora</th><th>Tempo desde a expedição</th><th>Observação da requisição</th><th>Reparo aprovado</th></tr></thead>
+          <tbody id="repairDispatchBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="processos-data.js"></script>

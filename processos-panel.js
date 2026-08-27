@@ -54,6 +54,7 @@
   let filteredRows = [];
   let currentPage = 1;
   const pageSize = 25;
+  let modalReturnFocus = null;
 
   function unique(rows, field) {
     const values = Array.from(new Set(rows.map(row => String(row[field] || '').trim()).filter(Boolean)));
@@ -168,6 +169,9 @@
   function sum(rows, field) { return rows.reduce((total, row) => total + Number(row[field] || 0), 0); }
   function countDistinct(rows, field) { return new Set(rows.map(row => row[field]).filter(Boolean)).size; }
   function countReturn(rows, label) { return sum(rows.filter(row => row.situacaoRetorno === label), 'quantidade'); }
+  function isDispatchedToSupplier(row) {
+    return row.reparavelExpedidoAoFornecedor === true || norm(row.situacaoReparavel).includes('expedido ao fornecedor');
+  }
   function economy(rows) {
     const comparable = rows.filter(row => Number(row.valorReferenciaUsd || 0) > 0);
     const reference = sum(comparable, 'valorReferenciaUsd');
@@ -177,8 +181,10 @@
     return { absolute, percent, comparable: comparable.length };
   }
 
-  function kpiCard(label, value, icon, note) {
-    return `<article class="proc-kpi"><div class="proc-kpi__top"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span></div><div class="proc-kpi__label">${esc(label)}</div><strong title="${esc(value)}">${esc(value)}</strong><small>${esc(note || 'Conforme filtros aplicados')}</small></article>`;
+  function kpiCard(label, value, icon, note, action) {
+    const content = `<div class="proc-kpi__top"><span class="proc-kpi__icon"><i class="bi ${esc(icon)}"></i></span></div><div class="proc-kpi__label">${esc(label)}</div><strong title="${esc(value)}">${esc(value)}</strong><small>${esc(note || 'Conforme filtros aplicados')}</small>`;
+    if (action) return `<button class="proc-kpi proc-kpi--action" type="button" data-kpi-action="${esc(action)}" aria-haspopup="dialog">${content}</button>`;
+    return `<article class="proc-kpi">${content}</article>`;
   }
 
   function renderKpis() {
@@ -203,6 +209,7 @@
     } else {
       base.push(
         ['Quantidade de itens', number(sum(filteredRows, 'quantidade')), 'bi-box-seam', 'Soma das quantidades requisitadas'],
+        ['Reparável expedido ao fornecedor', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Clique para consultar as requisições', 'repair-dispatched'],
         ['BER', number(countReturn(filteredRows, 'BER')), 'bi-exclamation-octagon', 'Itens classificados como BER'],
         ['BPR', number(countReturn(filteredRows, 'BPR')), 'bi-wrench-adjustable', 'Itens classificados como BPR'],
         ['AS IS', number(countReturn(filteredRows, 'AS IS')), 'bi-box-arrow-up-right', 'Itens classificados como AS IS'],
@@ -211,6 +218,7 @@
       );
     }
     container.innerHTML = base.map(item => kpiCard(...item)).join('');
+    $('[data-kpi-action="repair-dispatched"]', container)?.addEventListener('click', openDispatchModal);
   }
 
   function topBuckets(rows, key, valueField, limit) {
@@ -293,6 +301,65 @@
     return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '—';
   }
 
+  function dispatchDaysCell(row, colorScale) {
+    if (!isDispatchedToSupplier(row)) return '—';
+    const rawDays = row.diasDesdeExpedicao;
+    const days = rawDays === null || rawDays === undefined || rawDays === '' ? NaN : Number(rawDays);
+    if (!Number.isFinite(days)) return '<span class="proc-age proc-age--missing">Data não informada</span>';
+    let style = '';
+    if (colorScale) {
+      const { min, max } = colorScale;
+      const ratio = max === min ? .5 : Math.max(0, Math.min(1, (days - min) / (max - min)));
+      const hue = Math.round(118 * (1 - ratio));
+      style = ` style="--proc-age-hue:${hue}"`;
+    }
+    const date = dateBr(row.dataExpedicaoReparavel);
+    return `<span class="proc-age${colorScale ? ' proc-age--scale' : ''}"${style}><strong>${esc(number(days))} dias</strong>${colorScale ? `<small>Desde ${esc(date)}</small>` : ''}</span>`;
+  }
+
+  function renderDispatchModal() {
+    const body = $('#repairDispatchBody');
+    const info = $('#repairDispatchInfo');
+    if (!body || !info) return;
+    const rows = filteredRows.filter(isDispatchedToSupplier).sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
+    const validDays = rows.map(row => row.diasDesdeExpedicao).filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
+    const colorScale = { min: validDays.length ? Math.min(...validDays) : 0, max: validDays.length ? Math.max(...validDays) : 0 };
+    info.textContent = `${number(rows.length)} requisição(ões) no recorte atual · data de referência: ${dateBr(DATA.meta.dataReferenciaPrazos)}`;
+    body.innerHTML = rows.length ? rows.map(row => `<tr>
+      <td><strong>${esc(row.requisicao)}</strong></td>
+      <td class="proc-table__money">${esc(money(row.valorEmpenhadoUsd))}</td>
+      <td>${esc(row.empresaVencedora)}</td>
+      <td>${dispatchDaysCell(row, colorScale)}</td>
+      <td class="proc-modal__observation">${esc(row.observacaoRequisicao || 'Não informado')}</td>
+      <td><span class="proc-status">${esc(row.reparoAprovado || 'Não informado')}</span></td>
+    </tr>`).join('') : '<tr><td colspan="6" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
+  }
+
+  function openDispatchModal(event) {
+    const modal = $('#repairDispatchModal');
+    if (!modal) return;
+    modalReturnFocus = event?.currentTarget || document.activeElement;
+    renderDispatchModal();
+    modal.hidden = false;
+    document.body.classList.add('proc-modal-open');
+    $('#repairDispatchClose')?.focus();
+  }
+
+  function closeDispatchModal() {
+    const modal = $('#repairDispatchModal');
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    document.body.classList.remove('proc-modal-open');
+    modalReturnFocus?.focus?.();
+  }
+
+  function initDispatchModal() {
+    const modal = $('#repairDispatchModal');
+    if (!modal) return;
+    $$('[data-modal-close]', modal).forEach(element => element.addEventListener('click', closeDispatchModal));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDispatchModal(); });
+  }
+
   function tableRow(row) {
     const base = `
       <td><strong>${esc(row.requisicao)}</strong></td>
@@ -306,7 +373,7 @@
       <td class="proc-table__money">${esc(money(row.saldoPoUsd))}</td>
       <td><span class="proc-status${row.atrasada ? ' proc-status--late' : ''}">${esc(row.status)}</span></td>
       <td>${esc(dateBr(row.dpe))}</td>`;
-    if (pageMode === 'repairs') return `<tr>${base}<td><span class="proc-status">${esc(row.situacaoRetorno)}</span></td><td>${esc(row.situacaoReparavel)}</td></tr>`;
+    if (pageMode === 'repairs') return `<tr>${base}<td><span class="proc-status">${esc(row.situacaoRetorno)}</span></td><td>${esc(row.situacaoReparavel)}</td><td>${dispatchDaysCell(row)}</td></tr>`;
     return `<tr>${base}</tr>`;
   }
 
@@ -317,7 +384,7 @@
     currentPage = Math.min(currentPage, pages);
     const start = (currentPage - 1) * pageSize;
     const rows = filteredRows.slice(start, start + pageSize);
-    const columns = pageMode === 'repairs' ? 13 : 11;
+    const columns = pageMode === 'repairs' ? 14 : 11;
     body.innerHTML = rows.length ? rows.map(tableRow).join('') : `<tr><td colspan="${columns}" class="proc-empty">Nenhuma requisição corresponde aos filtros selecionados.</td></tr>`;
     const info = $('#procTableInfo');
     if (info) info.textContent = filteredRows.length ? `Exibindo ${start + 1}–${Math.min(start + pageSize, filteredRows.length)} de ${number(filteredRows.length)} requisições` : 'Nenhuma requisição encontrada';
@@ -346,6 +413,7 @@
     $('#procResetFilters')?.addEventListener('click', resetFilters);
     $('#procPagePrev')?.addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; renderTable(); } });
     $('#procPageNext')?.addEventListener('click', () => { if (currentPage * pageSize < filteredRows.length) { currentPage += 1; renderTable(); } });
+    if (pageMode === 'repairs') initDispatchModal();
     renderAll();
   }
 
