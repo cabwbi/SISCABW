@@ -281,11 +281,33 @@
   function drawReturnByCompany() {
     const element = document.getElementById('chartRetornoEmpresa');
     if (!element || !window.Plotly) return;
-    const companies = topBuckets(filteredRows, 'empresaVencedora', null, 11).filter(item => item.label !== 'Outros').reverse().map(item => item.label);
+    const companyGroups = new Map();
+    filteredRows.forEach(row => {
+      const code = String(row.empresaVencedoraCodigo || '').trim();
+      const rawLabel = String(row.empresaVencedora || '').trim();
+      if ((!code && !rawLabel) || rawLabel === 'Não informado') return;
+      const key = code || rawLabel;
+      if (!companyGroups.has(key)) companyGroups.set(key, { key, label: rawLabel || code, rows: [] });
+      const group = companyGroups.get(key);
+      group.rows.push(row);
+      if (rawLabel.length > group.label.length) group.label = rawLabel;
+    });
+    const companyList = Array.from(companyGroups.values())
+      .sort((a, b) => b.rows.length - a.rows.length || a.label.localeCompare(b.label, 'pt-BR', { numeric: true }))
+      .reverse();
+    const companies = companyList.map(group => group.label);
+    if (!companies.length) {
+      Plotly.purge(element);
+      element.style.height = '425px';
+      element.innerHTML = '<p class="proc-empty">Nenhuma empresa contratada no recorte atual.</p>';
+      return;
+    }
+    const chartHeight = Math.max(500, companies.length * 30 + 150);
+    element.style.height = `${chartHeight}px`;
     const statuses = ['BER', 'BPR', 'AS IS', 'Reparado', 'Em processo', 'Outros'];
     const knownStatuses = new Set(statuses.filter(status => status !== 'Outros'));
     const colors = ['#b4232f', '#ef8b27', '#758399', '#17805c', '#1769aa', '#6f7783'];
-    const companyTotals = new Map(companies.map(company => [company, filteredRows.filter(row => row.empresaVencedora === company).length]));
+    const companyTotals = new Map(companyList.map(group => [group.label, group.rows.length]));
     const sumUniquePurchaseOrders = rows => {
       const orders = new Map();
       rows.forEach(row => {
@@ -295,7 +317,7 @@
       return Array.from(orders.values()).reduce((total, value) => total + value, 0);
     };
     const traces = statuses.map((status, index) => {
-      const groups = companies.map(company => filteredRows.filter(row => row.empresaVencedora === company && (status === 'Outros' ? !knownStatuses.has(row.situacaoRetorno) : row.situacaoRetorno === status)));
+      const groups = companyList.map(group => group.rows.filter(row => status === 'Outros' ? !knownStatuses.has(row.situacaoRetorno) : row.situacaoRetorno === status));
       const counts = groups.map(rows => rows.length);
       return {
         type: 'bar', orientation: 'h', name: status, y: companies, x: counts,
@@ -317,6 +339,7 @@
     });
     Plotly.react(element, traces, {
       barmode: 'stack', barnorm: 'percent',
+      height: chartHeight,
       margin: { l: 210, r: 116, t: 24, b: 50 },
       xaxis: { title: 'Percentual dentro da empresa', ticksuffix: '%', range: [0, 118], tickvals: [0, 25, 50, 75, 100], gridcolor: '#e6edf5' },
       yaxis: { automargin: true, tickfont: { size: 10 } },

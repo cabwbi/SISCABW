@@ -75,6 +75,26 @@ function updateHomeContractCard(summary){
     else if(label.includes('final'))value.textContent=counts.finalisticos;
   });
 }
+function updateHomeProcessCard(summary){
+  if(pageName()!=='index.html')return;
+  const card=Array.from(document.querySelectorAll('.home-card')).find(function(el){return norm(el.querySelector('h2')&&el.querySelector('h2').textContent)==='processos de contratacao';});
+  if(!card)return;
+  const fallback={materiais2026:{requisicoes:307,valorEmpenhadoUsd:4919366.3},reparos2026:{requisicoes:16,valorEmpenhadoUsd:54440}};
+  const data=summary||fallback;
+  const values={
+    'materials-count':data.materiais2026&&data.materiais2026.requisicoes,
+    'materials-value':data.materiais2026&&data.materiais2026.valorEmpenhadoUsd,
+    'repairs-count':data.reparos2026&&data.reparos2026.requisicoes,
+    'repairs-value':data.reparos2026&&data.reparos2026.valorEmpenhadoUsd,
+  };
+  card.querySelectorAll('[data-process-metric]').forEach(function(element){
+    const key=element.dataset.processMetric;
+    const value=Number(values[key]||0);
+    element.textContent=key.endsWith('-value')
+      ?new Intl.NumberFormat('pt-BR',{style:'currency',currency:'USD'}).format(value)
+      :new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0}).format(value);
+  });
+}
 function installStyle(){
   if(document.getElementById('cabw-panel-enhancements-css'))return;
   const style=document.createElement('style');style.id='cabw-panel-enhancements-css';style.textContent='.cabw-source-dates{margin:28px 8px 4px;padding-top:10px;color:#a3acb9!important;font-size:11px!important;font-weight:400!important;line-height:1.45;text-align:right;letter-spacing:.005em}.cabw-source-dates::before{content:"";display:block;width:72px;height:1px;background:#e4e8ee;margin:0 0 8px auto}@media(max-width:768px){.cabw-source-dates{text-align:left;margin-left:0;margin-right:0}.cabw-source-dates::before{margin-left:0;margin-right:auto}}';document.head.appendChild(style);
@@ -84,7 +104,7 @@ document.addEventListener('DOMContentLoaded',function(){
   installStyle();scanFilterInputs(document);
   const observer=new MutationObserver(function(mutations){mutations.forEach(function(m){m.addedNodes.forEach(function(node){if(node.nodeType===1){if(node.matches&&node.matches('.cabw-multi-search,.rp-search-line input[type="search"],.sf-multi-search'))attachFilterInput(node);scanFilterInputs(node);}});});});
   observer.observe(document.body,{childList:true,subtree:true});
-  loadJson('data-update-status.json',FALLBACK_STATUS).then(renderSourceDates);
+  loadJson('data-update-status.json',FALLBACK_STATUS).then(function(status){renderSourceDates(status);updateHomeProcessCard(status&&status.processosResumo);});
   if(pageName()==='index.html')loadJson('contracts-summary.json',{counts:{administrativos:28,fms:52,finalisticos:56}}).then(updateHomeContractCard);
 });
 })();
