@@ -336,6 +336,13 @@
     return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : '—';
   }
 
+  function dispatchDescriptionCell(row) {
+    const full = String(row.descricaoCompleta || row.descricao || 'Não informado').replace(/\s+/g, ' ').trim();
+    const limit = 76;
+    const short = full.length > limit ? `${full.slice(0, limit - 3).trimEnd()}...` : full;
+    return `<span class="proc-modal__description" title="${esc(full)}">${esc(short)}</span>`;
+  }
+
   function dispatchDaysCell(row, colorScale) {
     if (!isDispatchedToSupplier(row)) return '—';
     const rawDays = row.diasDesdeExpedicao;
@@ -367,12 +374,13 @@
     body.innerHTML = rows.length ? rows.map(row => `<tr>
       <td><strong>${esc(row.requisicao)}</strong></td>
       <td><strong>${esc(isOtherGroup ? (row.contratoOrigem || 'Não localizado') : (row.certame || 'Não informado'))}</strong></td>
+      <td>${dispatchDescriptionCell(row)}</td>
       <td class="proc-table__money">${esc(money(row.valorEmpenhadoUsd))}</td>
       <td>${esc(row.empresaVencedora)}</td>
       <td>${dispatchDaysCell(row, colorScale)}</td>
       <td class="proc-modal__observation">${esc(row.observacaoRequisicao || 'Não informado')}</td>
       <td><span class="proc-status">${esc(row.reparoAprovado || 'Não informado')}</span></td>
-    </tr>`).join('') : '<tr><td colspan="7" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="8" class="proc-empty">Nenhuma requisição nessa situação corresponde aos filtros aplicados.</td></tr>';
   }
 
   function openDispatchModal(event) {
