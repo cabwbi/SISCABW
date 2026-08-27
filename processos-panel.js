@@ -51,6 +51,15 @@
     ['situacaoReparavel', 'Situação do reparável'],
   ];
   const RANGE_ORDER = ['Até US$ 10 mil', 'US$ 10 mil a US$ 50 mil', 'US$ 50 mil a US$ 250 mil', 'US$ 250 mil a US$ 1 milhão', 'Acima de US$ 1 milhão'];
+  const LOGISTICS_STAGES = [
+    ['not-committed', 'Requisição de reparo não empenhada'],
+    ['committed-transit', 'Reparável no Brasil ou em trânsito para o Exterior'],
+    ['dispatched-repairer', 'Reparável expedido ao reparador'],
+    ['received-cab', 'Reparável recebido no Depósito da CAB'],
+    ['shipped-brazil', 'Reparável embarcado para o Brasil'],
+    ['received-requester', 'Reparável recebido no requisitante'],
+    ['exceptions', 'Canceladas, suspensas ou recebidas parcialmente'],
+  ];
   let sourceRows = [];
   let filterSourceRows = [];
   let otherRepairRows = [];
@@ -60,6 +69,7 @@
   const pageSize = 25;
   let modalReturnFocus = null;
   let dispatchModalGroup = 'compraer';
+  let selectedLogisticsStages = new Set();
 
   function unique(rows, field) {
     const values = Array.from(new Set(rows.map(row => String(row[field] || '').trim()).filter(Boolean)));
@@ -152,19 +162,70 @@
     document.addEventListener('click', () => $$('.proc-multi.open').forEach(wrapper => wrapper.classList.remove('open')));
   }
 
+  function logisticsStageId(row) {
+    const status = norm(row && row.status);
+    if (!status) return '';
+    if (status.includes('cancel') || status.includes('suspens') || status.includes('recebido parcial')) return 'exceptions';
+    if (status.includes('mapa aprovado')) return 'not-committed';
+    if (status.includes('empenho gerado') || status.includes('empenho aprovado')) return 'committed-transit';
+    if (status.includes('reparav') && status.includes('exp') && (status.includes('fornec') || status.includes('reparador'))) return 'dispatched-repairer';
+    if ((status.startsWith('d-') && status.includes('recebido')) || (status.includes('recebido') && (status.includes('comissao') || status.includes('deposito da cab')))) return 'received-cab';
+    if (status.includes('embarcado')) return 'shipped-brazil';
+    if (status.includes('encerrado') || status.includes('recebido no solicitante') || status.includes('recebido no requisitante') || status.includes('volume no solicitante')) return 'received-requester';
+    return '';
+  }
+
+  function renderLogisticsFilter(analyticalRows) {
+    if (pageMode !== 'repairs') return;
+    const counts = new Map(LOGISTICS_STAGES.map(([id]) => [id, 0]));
+    analyticalRows.forEach(row => {
+      const stage = logisticsStageId(row);
+      if (stage) counts.set(stage, (counts.get(stage) || 0) + 1);
+    });
+    $$('[data-logistics-stage]').forEach(button => {
+      const stage = button.dataset.logisticsStage;
+      const active = selectedLogisticsStages.has(stage);
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      const badge = $('[data-logistics-count]', button);
+      if (badge) badge.textContent = number(counts.get(stage) || 0);
+    });
+    const selection = $('#procLogisticsSelection');
+    if (selection) {
+      const labels = LOGISTICS_STAGES.filter(([id]) => selectedLogisticsStages.has(id)).map(([, label]) => label);
+      selection.textContent = labels.length ? `${number(labels.length)} opção(ões) selecionada(s): ${labels.join(' · ')}` : 'Todas as etapas do fluxo consideradas';
+    }
+  }
+
+  function initLogisticsFilter() {
+    if (pageMode !== 'repairs') return;
+    $$('[data-logistics-stage]').forEach(button => {
+      button.addEventListener('click', () => {
+        const stage = button.dataset.logisticsStage;
+        if (selectedLogisticsStages.has(stage)) selectedLogisticsStages.delete(stage);
+        else selectedLogisticsStages.add(stage);
+        applyFilters();
+      });
+    });
+  }
+
   function applyFilters() {
     const active = FILTERS.map(([field]) => {
       const select = $(`select[data-filter="${field}"]`);
       return [field, new Set(selectedValues(select))];
     }).filter(([, values]) => values.size);
     const matchesActiveFilters = row => active.every(([field, values]) => values.has(String(row[field] || '').trim()));
-    filteredRows = sourceRows.filter(matchesActiveFilters);
-    filteredOtherRepairRows = otherRepairRows.filter(matchesActiveFilters);
+    const analyticalRows = sourceRows.filter(matchesActiveFilters);
+    const matchesLogisticsFilter = row => !selectedLogisticsStages.size || selectedLogisticsStages.has(logisticsStageId(row));
+    filteredRows = analyticalRows.filter(matchesLogisticsFilter);
+    filteredOtherRepairRows = otherRepairRows.filter(row => matchesActiveFilters(row) && matchesLogisticsFilter(row));
+    renderLogisticsFilter(analyticalRows);
     currentPage = 1;
     renderAll();
   }
 
   function resetFilters() {
+    selectedLogisticsStages.clear();
     $$('select[data-filter]').forEach(select => {
       Array.from(select.options).forEach(option => { option.selected = false; });
       const wrapper = select.nextElementSibling;
@@ -488,6 +549,10 @@
       const values = selectedValues(select);
       return `<strong>${esc(label)}:</strong> ${esc(values.length ? values.join(', ') : 'Todas as opções')}`;
     }).filter(Boolean);
+    if (pageMode === 'repairs') {
+      const flowLabels = LOGISTICS_STAGES.filter(([id]) => selectedLogisticsStages.has(id)).map(([, label]) => label);
+      blocks.push(`<strong>Fluxo logístico:</strong> ${esc(flowLabels.length ? flowLabels.join(', ') : 'Todas as etapas')}`);
+    }
     return `<p class="r-filters">${blocks.join(' &nbsp; | &nbsp; ')}</p>`;
   }
 
@@ -578,12 +643,13 @@
     const generated = $('#procGeneratedAt');
     if (generated) generated.textContent = dateTime(DATA.meta.geradoEm);
     populateFilters();
+    initLogisticsFilter();
     $('#procResetFilters')?.addEventListener('click', resetFilters);
     $('#procGenerateReport')?.addEventListener('click', generateProcessReport);
     $('#procPagePrev')?.addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; renderTable(); } });
     $('#procPageNext')?.addEventListener('click', () => { if (currentPage * pageSize < filteredRows.length) { currentPage += 1; renderTable(); } });
     if (pageMode === 'repairs') initDispatchModal();
-    renderAll();
+    applyFilters();
   }
 
   document.addEventListener('DOMContentLoaded', () => {

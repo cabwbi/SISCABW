@@ -39,27 +39,47 @@
   </header>
 
   <main class="proc-dashboard">
-    <section class="proc-section" aria-labelledby="filtersTitle">
+    <section class="proc-section proc-filter-section" aria-labelledby="filtersTitle">
       <div class="proc-section-heading">
-        <div><h2 id="filtersTitle">Filtros de análise</h2><p>Selecione uma ou mais opções em cada dimensão. Filtros vazios consideram todo o escopo.</p></div>
+        <div><h2 id="filtersTitle">Filtros de análise</h2><p>Combine dimensões analíticas e etapas do fluxo logístico. Filtros vazios consideram todo o escopo.</p></div>
         <div class="proc-filter-actions"><button class="proc-action" id="procResetFilters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpar filtros</button></div>
       </div>
-      <div class="proc-filter-grid">
-        <label class="proc-filter-field"><span>OM Requisitante</span><select multiple data-filter="om"></select></label>
-        <label class="proc-filter-field"><span>Projeto</span><select multiple data-filter="projetoLabel"></select></label>
-        <label class="proc-filter-field"><span>Ano</span><select multiple data-filter="anoAbertura"></select></label>
-        <label class="proc-filter-field"><span>Faixa de Valor</span><select multiple data-filter="faixaValor"></select></label>
-        <label class="proc-filter-field"><span>Grande Comando</span><select multiple data-filter="grandeComando"></select></label>
-        <label class="proc-filter-field"><span>Empresa vencedora</span><select multiple data-filter="empresaVencedora"></select></label>
-        <label class="proc-filter-field"><span>Empresa fabricante</span><select multiple data-filter="empresaFabricante"></select></label>
-        <label class="proc-filter-field"><span>Descrição do item</span><select multiple data-filter="descricao"></select></label>
-        <label class="proc-filter-field"><span>Part Number</span><select multiple data-filter="partNumber"></select></label>
-        <label class="proc-filter-field"><span>Número da requisição</span><select multiple data-filter="requisicao"></select></label>
-        <label class="proc-filter-field"><span>Número do certame SILOMS</span><select multiple data-filter="certame"></select></label>
-        <label class="proc-filter-field"><span>Situação da requisição</span><select multiple data-filter="status"></select></label>
-        <label class="proc-filter-field"><span>Número da ordem de compra</span><select multiple data-filter="po"></select></label>
-        <label class="proc-filter-field"><span>Situação de retorno do item</span><select multiple data-filter="situacaoRetorno"></select></label>
-        <label class="proc-filter-field"><span>Situação do reparável</span><select multiple data-filter="situacaoReparavel"></select></label>
+      <div class="proc-filter-split">
+        <section class="proc-filter-panel proc-filter-panel--analytical" aria-labelledby="analyticalFiltersTitle">
+          <div class="proc-filter-panel__heading"><span class="proc-filter-panel__icon"><i class="bi bi-sliders"></i></span><div><h3 id="analyticalFiltersTitle">Filtro analítico</h3><p>Selecione uma ou mais opções em cada dimensão.</p></div></div>
+          <div class="proc-filter-grid">
+            <label class="proc-filter-field"><span>OM Requisitante</span><select multiple data-filter="om"></select></label>
+            <label class="proc-filter-field"><span>Projeto</span><select multiple data-filter="projetoLabel"></select></label>
+            <label class="proc-filter-field"><span>Ano</span><select multiple data-filter="anoAbertura"></select></label>
+            <label class="proc-filter-field"><span>Faixa de Valor</span><select multiple data-filter="faixaValor"></select></label>
+            <label class="proc-filter-field"><span>Grande Comando</span><select multiple data-filter="grandeComando"></select></label>
+            <label class="proc-filter-field"><span>Empresa vencedora</span><select multiple data-filter="empresaVencedora"></select></label>
+            <label class="proc-filter-field"><span>Empresa fabricante</span><select multiple data-filter="empresaFabricante"></select></label>
+            <label class="proc-filter-field"><span>Descrição do item</span><select multiple data-filter="descricao"></select></label>
+            <label class="proc-filter-field"><span>Part Number</span><select multiple data-filter="partNumber"></select></label>
+            <label class="proc-filter-field"><span>Número da requisição</span><select multiple data-filter="requisicao"></select></label>
+            <label class="proc-filter-field"><span>Número do certame SILOMS</span><select multiple data-filter="certame"></select></label>
+            <label class="proc-filter-field"><span>Situação da requisição</span><select multiple data-filter="status"></select></label>
+            <label class="proc-filter-field"><span>Número da ordem de compra</span><select multiple data-filter="po"></select></label>
+            <label class="proc-filter-field"><span>Situação de retorno do item</span><select multiple data-filter="situacaoRetorno"></select></label>
+            <label class="proc-filter-field"><span>Situação do reparável</span><select multiple data-filter="situacaoReparavel"></select></label>
+          </div>
+        </section>
+        <section class="proc-filter-panel proc-filter-panel--logistics" aria-labelledby="logisticsFiltersTitle">
+          <div class="proc-filter-panel__heading"><span class="proc-filter-panel__icon"><i class="bi bi-signpost-split"></i></span><div><h3 id="logisticsFiltersTitle">Filtro do fluxo logístico</h3><p>Selecione uma ou mais etapas. Etapas combinadas ampliam o recorte.</p></div></div>
+          <div class="proc-logistics-layout">
+            <div class="proc-flow-list" aria-label="Etapas do fluxo logístico">
+              <button class="proc-flow-step" type="button" data-logistics-stage="not-committed" aria-pressed="false"><span class="proc-flow-step__index">1</span><span class="proc-flow-step__label">Requisição de reparo não empenhada</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+              <button class="proc-flow-step" type="button" data-logistics-stage="committed-transit" aria-pressed="false"><span class="proc-flow-step__index">2</span><span class="proc-flow-step__label">Reparável no Brasil ou em trânsito para o Exterior</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+              <button class="proc-flow-step" type="button" data-logistics-stage="dispatched-repairer" aria-pressed="false"><span class="proc-flow-step__index">3</span><span class="proc-flow-step__label">Reparável expedido ao reparador</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+              <button class="proc-flow-step" type="button" data-logistics-stage="received-cab" aria-pressed="false"><span class="proc-flow-step__index">4</span><span class="proc-flow-step__label">Reparável recebido no Depósito da CAB</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+              <button class="proc-flow-step" type="button" data-logistics-stage="shipped-brazil" aria-pressed="false"><span class="proc-flow-step__index">5</span><span class="proc-flow-step__label">Reparável embarcado para o Brasil</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+              <button class="proc-flow-step" type="button" data-logistics-stage="received-requester" aria-pressed="false"><span class="proc-flow-step__index">6</span><span class="proc-flow-step__label">Reparável recebido no requisitante</span><span class="proc-flow-step__count" data-logistics-count>0</span></button>
+            </div>
+            <button class="proc-flow-exception" type="button" data-logistics-stage="exceptions" aria-pressed="false"><span class="proc-flow-exception__icon"><i class="bi bi-exclamation-triangle"></i></span><strong>Ocorrências fora do fluxo</strong><span>Canceladas, suspensas ou recebidas parcialmente</span><b data-logistics-count>0</b></button>
+          </div>
+          <p class="proc-flow-selection" id="procLogisticsSelection">Todas as etapas do fluxo consideradas</p>
+        </section>
       </div>
     </section>
 
