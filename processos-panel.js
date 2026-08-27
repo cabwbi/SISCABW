@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const DATA = window.CABW_PROCESSOS_DATA || { meta: {}, summary: {}, materials: [], repairs: [] };
+  const DATA = window.CABW_PROCESSOS_DATA || { meta: {}, summary: {}, materials: [], repairs: [], otherRepairs: [] };
   const pageMode = document.body && document.body.dataset.processPage;
   const $ = (selector, scope) => (scope || document).querySelector(selector);
   const $$ = (selector, scope) => Array.from((scope || document).querySelectorAll(selector));
@@ -51,10 +51,14 @@
   ];
   const RANGE_ORDER = ['Até US$ 10 mil', 'US$ 10 mil a US$ 50 mil', 'US$ 50 mil a US$ 250 mil', 'US$ 250 mil a US$ 1 milhão', 'Acima de US$ 1 milhão'];
   let sourceRows = [];
+  let filterSourceRows = [];
+  let otherRepairRows = [];
   let filteredRows = [];
+  let filteredOtherRepairRows = [];
   let currentPage = 1;
   const pageSize = 25;
   let modalReturnFocus = null;
+  let dispatchModalGroup = 'compraer';
 
   function unique(rows, field) {
     const values = Array.from(new Set(rows.map(row => String(row[field] || '').trim()).filter(Boolean)));
@@ -135,7 +139,7 @@
       const select = $(`select[data-filter="${field}"]`);
       if (!select) return;
       select.multiple = true;
-      unique(sourceRows, field).forEach(value => {
+      unique(filterSourceRows, field).forEach(value => {
         const option = document.createElement('option');
         option.value = value;
         option.textContent = value;
@@ -152,7 +156,9 @@
       const select = $(`select[data-filter="${field}"]`);
       return [field, new Set(selectedValues(select))];
     }).filter(([, values]) => values.size);
-    filteredRows = sourceRows.filter(row => active.every(([field, values]) => values.has(String(row[field] || '').trim())));
+    const matchesActiveFilters = row => active.every(([field, values]) => values.has(String(row[field] || '').trim()));
+    filteredRows = sourceRows.filter(matchesActiveFilters);
+    filteredOtherRepairRows = otherRepairRows.filter(matchesActiveFilters);
     currentPage = 1;
     renderAll();
   }
@@ -170,7 +176,8 @@
   function countDistinct(rows, field) { return new Set(rows.map(row => row[field]).filter(Boolean)).size; }
   function countReturn(rows, label) { return sum(rows.filter(row => row.situacaoRetorno === label), 'quantidade'); }
   function isDispatchedToSupplier(row) {
-    return row.reparavelExpedidoAoFornecedor === true || norm(row.situacaoReparavel).includes('expedido ao fornecedor');
+    const status = norm(row.status);
+    return row.reparavelExpedidoAoFornecedor === true || (status.startsWith('l-') && status.includes('reparav') && status.includes('fornec'));
   }
   function economy(rows) {
     const comparable = rows.filter(row => Number(row.valorReferenciaUsd || 0) > 0);
@@ -209,7 +216,8 @@
     } else {
       base.push(
         ['Quantidade de itens', number(sum(filteredRows, 'quantidade')), 'bi-box-seam', 'Soma das quantidades requisitadas'],
-        ['Reparável expedido ao fornecedor', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Clique para consultar as requisições', 'repair-dispatched'],
+        ['Requisições de Reparo ComprAer', number(filteredRows.filter(isDispatchedToSupplier).length), 'bi-truck', 'Com certame e cotação · clique para consultar', 'repair-dispatched-compraer'],
+        ['Outros Reparos', number(filteredOtherRepairRows.filter(isDispatchedToSupplier).length), 'bi-tools', 'Sem certame · clique para consultar', 'repair-dispatched-other'],
         ['BER', number(countReturn(filteredRows, 'BER')), 'bi-exclamation-octagon', 'Itens classificados como BER'],
         ['BPR', number(countReturn(filteredRows, 'BPR')), 'bi-wrench-adjustable', 'Itens classificados como BPR'],
         ['AS IS', number(countReturn(filteredRows, 'AS IS')), 'bi-box-arrow-up-right', 'Itens classificados como AS IS'],
@@ -218,7 +226,7 @@
       );
     }
     container.innerHTML = base.map(item => kpiCard(...item)).join('');
-    $('[data-kpi-action="repair-dispatched"]', container)?.addEventListener('click', openDispatchModal);
+    $$('[data-kpi-action^="repair-dispatched-"]', container).forEach(button => button.addEventListener('click', openDispatchModal));
   }
 
   function topBuckets(rows, key, valueField, limit) {
@@ -321,7 +329,11 @@
     const body = $('#repairDispatchBody');
     const info = $('#repairDispatchInfo');
     if (!body || !info) return;
-    const rows = filteredRows.filter(isDispatchedToSupplier).sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
+    const isOtherGroup = dispatchModalGroup === 'other';
+    const title = $('#repairDispatchTitle');
+    if (title) title.textContent = isOtherGroup ? 'Outros Reparos' : 'Requisições de Reparo ComprAer';
+    const groupRows = isOtherGroup ? filteredOtherRepairRows : filteredRows;
+    const rows = groupRows.filter(isDispatchedToSupplier).sort((a, b) => Number(b.diasDesdeExpedicao ?? -1) - Number(a.diasDesdeExpedicao ?? -1));
     const validDays = rows.map(row => row.diasDesdeExpedicao).filter(value => value !== null && value !== undefined && value !== '').map(Number).filter(Number.isFinite);
     const colorScale = { min: validDays.length ? Math.min(...validDays) : 0, max: validDays.length ? Math.max(...validDays) : 0 };
     info.textContent = `${number(rows.length)} requisição(ões) no recorte atual · data de referência: ${dateBr(DATA.meta.dataReferenciaPrazos)}`;
@@ -339,6 +351,7 @@
     const modal = $('#repairDispatchModal');
     if (!modal) return;
     modalReturnFocus = event?.currentTarget || document.activeElement;
+    dispatchModalGroup = event?.currentTarget?.dataset.kpiAction === 'repair-dispatched-other' ? 'other' : 'compraer';
     renderDispatchModal();
     modal.hidden = false;
     document.body.classList.add('proc-modal-open');
@@ -406,7 +419,10 @@
 
   function initDashboard() {
     sourceRows = pageMode === 'repairs' ? (DATA.repairs || []) : (DATA.materials || []);
+    otherRepairRows = pageMode === 'repairs' ? (DATA.otherRepairs || []) : [];
     filteredRows = sourceRows.slice();
+    filteredOtherRepairRows = otherRepairRows.slice();
+    filterSourceRows = pageMode === 'repairs' ? sourceRows.concat(otherRepairRows) : sourceRows;
     const generated = $('#procGeneratedAt');
     if (generated) generated.textContent = dateTime(DATA.meta.geradoEm);
     populateFilters();
