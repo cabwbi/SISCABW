@@ -8,6 +8,7 @@
 - Os gráficos de crédito e requisições usam as mesmas categorias, a mesma ordem de barras e a mesma escala monetária, evidenciando visualmente sobra ou insuficiência de crédito.
 - A geometria dos dois gráficos é fixa e compartilhada: legenda não altera margens, e cada combinação `OM + natureza` ocupa exatamente a mesma linha nos dois lados.
 - As categorias do eixo utilizam chaves canônicas `código da OM | natureza`, evitando que rótulos abreviados fundam naturezas diferentes; o texto visível preserva sempre código, sigla e ND.
+- A lista de empenhos imediatos identifica todos os dígitos aplicáveis, a parcela de cada dígito e o valor total potencialmente consumido por requisição; o total do card e o relatório executivo consolidam o consumo do cenário e por dígito.
 - O relatório foi condensado em formato executivo e as propostas de realocação identificam os dígitos de origem e destino, além de PI, projeto e valor.
 - Mecanismo executado integralmente no navegador: cada saldo de dígito é tratado como recurso finito e não pode ser utilizado duas vezes.
 - Ordem de compatibilização dos mapas aprovados: correspondência direta por OM + ação + natureza + projeto; realocação entre projetos dentro da mesma ação e PI; realocação entre Planos Internos dentro da mesma ação. OM, ação e natureza são preservadas em todas as etapas.
