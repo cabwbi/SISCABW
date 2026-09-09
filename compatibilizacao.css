@@ -53,9 +53,9 @@
 .compat-filter-status{color:#56677f;font-size:.76rem;font-weight:700;text-align:right}
 .compat-report{position:sticky;top:18px;padding:22px;background:linear-gradient(160deg,#00265f,#003f82);color:#fff;border-color:transparent}
 .compat-report__icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#ffd200;color:#00265f;font-size:1.45rem}
-.compat-report h2{margin:14px 0 6px;color:#fff;font-size:1.18rem;font-weight:800}
-.compat-report p{margin:0 0 17px;color:rgba(255,255,255,.84);font-size:.8rem;line-height:1.5}
-.compat-report .compat-field>span{color:#dbe8fb}
+body.compat-page .compat-report>h2{margin:14px 0 6px;color:#fff;font-size:1.18rem;font-weight:800}
+body.compat-page .compat-report>p{margin:0 0 17px;color:#fff;font-size:.8rem;line-height:1.5}
+body.compat-page .compat-report .compat-field>span{color:#fff}
 .compat-report .compat-field+.compat-field{margin-top:12px}
 .compat-report__button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:18px;padding:12px;border:0;border-radius:11px;background:#ffd200;color:#00265f;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.15)}
 .compat-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:24px}

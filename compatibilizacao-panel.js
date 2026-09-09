@@ -98,7 +98,7 @@ function compactCategory(row,key){
   const fullLabel=String(row.label||omCode);const acronym=(fullLabel.split(/\s+-\s+/)[0]||omCode).trim();
   return `${omCode} · ${acronym} · ND ${row.natureza||'N/I'}`;
 }
-function chartLayout(title,height,maxValue,categoryKeys,categoryLabels){return {
+function chartLayout(title,height,maxValue,categoryKeys,categoryLabels,annotations){return {
   height,autosize:true,
   margin:{l:210,r:24,t:76,b:55,pad:0,autoexpand:false},
   paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
@@ -106,7 +106,7 @@ function chartLayout(title,height,maxValue,categoryKeys,categoryLabels){return {
   xaxis:{title,domain:[0,1],gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s',range:[0,maxValue],rangemode:'tozero',fixedrange:true,automargin:false},
   yaxis:{domain:[0,1],categoryorder:'array',categoryarray:(categoryKeys||[]).slice(),tickmode:'array',tickvals:(categoryKeys||[]).slice(),ticktext:(categoryLabels||[]).slice(),automargin:false,fixedrange:true},
   legend:{orientation:'h',x:0,xanchor:'left',y:1.025,yanchor:'bottom',font:{size:10}},
-  barmode:'stack',hovermode:'closest',hoverlabel:{namelength:-1,align:'left',bgcolor:'#fff',bordercolor:'#cad7e6',font:{family:'Montserrat,Arial,sans-serif',size:11,color:'#16345e'}}
+  annotations:annotations||[],barmode:'stack',hovermode:'closest',hoverlabel:{namelength:-1,align:'left',bgcolor:'#fff',bordercolor:'#cad7e6',font:{family:'Montserrat,Arial,sans-serif',size:11,color:'#16345e'}}
 };}
 function chartSeries(analysis){
   const creditRows=analysis.creditByOmNatureza||[];const demandRows=analysis.demandByOmNaturezaStatus||[];
@@ -128,11 +128,13 @@ function chartSeries(analysis){
 async function drawCharts(analysis,creditTarget,requestTarget,exportMode,forceComparable){
   if(!window.Plotly)return;
   const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedKeys=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
-  const toggle=$('#compareCompatScale');const comparable=typeof forceComparable==='boolean'?forceComparable:Boolean(toggle&&toggle.checked);const creditMax=comparable?series.sharedMax:series.creditMax;const demandMax=comparable?series.sharedMax:series.demandMax;
+  const toggle=$('#compareCompatScale');const comparable=typeof forceComparable==='boolean'?forceComparable:(toggle?toggle.checked:true);const creditMax=comparable?series.sharedMax:series.creditMax;const demandMax=comparable?series.sharedMax:series.demandMax;
   const creditValues=reversedKeys.map(key=>Number(series.creditMap.get(key)?.valor||0));
   await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedKeys,x:creditValues,customdata:reversedLabels,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br><b>Saldo:</b> %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,creditMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
   const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedKeys,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedLabels,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br><b>${statusLabel(prefix)}:</b> %{x:$,.2f}<extra></extra>`}));
-  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,demandMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  const demandTotals=reversedKeys.map(key=>engine.STATUS_ORDER.reduce((sum,prefix)=>sum+Number((series.demandMap.get(key)?.values||{})[prefix]||0),0));
+  const totalAnnotations=reversedKeys.map((key,index)=>{const value=demandTotals[index];if(!value)return null;const inside=value>demandMax*.23;return {x:value,y:key,text:`Total ${money(value)}`,showarrow:false,xanchor:inside?'right':'left',xshift:inside?-4:4,yanchor:'middle',bgcolor:'rgba(255,255,255,.9)',bordercolor:'#d6e0ec',borderwidth:1,borderpad:2,font:{family:'Montserrat,Arial,sans-serif',size:9,color:'#16345e'}};}).filter(Boolean);
+  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,demandMax,reversedKeys,reversedLabels,totalAnnotations),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
 }
 
 function transferText(row){
@@ -195,39 +197,39 @@ function reportAnalysis(){
   cf.om=mergeSelection(cf.om,reportOms);cf.acao=mergeSelection(cf.acao,reportActions);rf.om=mergeSelection(rf.om,reportOms);
   return {analysis:engine.analyze(data,cf,rf),reportOms,reportActions};
 }
-function reportStyles(){return `<style>body{font-family:Arial,sans-serif;color:#102d56;margin:24px}h1{margin:0;color:#00265f;font-size:23px}h2{margin:20px 0 8px;padding-bottom:5px;border-bottom:2px solid #ffd200;color:#00265f;font-size:16px}.meta{color:#607089;margin-top:5px;font-size:11px}.note{padding:9px 11px;background:#eef4fb;border-left:4px solid #003676;font-size:11px;line-height:1.4}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.card{padding:9px;border:1px solid #d9e2ef;border-radius:8px;background:#f8fbff}.card span{display:block;color:#5c687b;font-size:9px;font-weight:bold;text-transform:uppercase}.card strong{display:block;margin-top:4px;color:#00265f;font-size:15px}.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.charts img{width:100%;border:1px solid #dfe7f1;border-radius:7px}table{width:100%;border-collapse:collapse;font-size:9.5px}th,td{padding:5px;border:1px solid #dce4ef;vertical-align:top}th{background:#003676;color:#fff;text-align:left}.action{font-weight:bold;color:#003676}.muted{color:#65738a;font-size:10px}.print{position:sticky;top:0;margin-bottom:10px;padding:7px 0;background:#fff}.print button{padding:8px 12px;border:0;border-radius:7px;background:#003676;color:#fff;font-weight:bold}@media print{body{margin:10mm}.print{display:none}.charts,.cards,table{break-inside:avoid}h2{break-after:avoid}}</style>`;}
-function actionSummaryRows(plans){
-  return ['imediato','projeto','pi'].map(stage=>{const rows=plans.filter(row=>row.stage===stage);return {stage,label:rows[0]?.stageLabel||({imediato:'Empenho imediato',projeto:'Realocação entre projetos',pi:'Realocação entre Planos Internos'})[stage],qtd:rows.length,valor:rows.reduce((sum,row)=>sum+Number(row.valorUsd||0),0)};});
-}
-function transferReportRows(plans){
+function reportStyles(){return `<style>@page{size:A4 landscape;margin:9mm}body{font-family:Arial,sans-serif;color:#102d56;margin:24px}h1{margin:0;color:#00265f;font-size:23px}.meta{color:#607089;margin-top:5px;font-size:11px}.note{padding:9px 11px;background:#eef4fb;border-left:4px solid #003676;font-size:11px;line-height:1.4}.area{margin-top:18px;border:1px solid #dce4ef;border-radius:9px;overflow:hidden}.area-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:#f3f7fc;border-bottom:2px solid #ffd200}.area-head h2{margin:0;color:#00265f;font-size:16px}.area-summary{display:flex;gap:14px;color:#52627a;font-size:10px;white-space:nowrap}.area-summary strong{color:#003676;font-size:13px}table{width:100%;border-collapse:collapse;font-size:8.8px}th,td{padding:5px;border:1px solid #dce4ef;vertical-align:top}th{background:#003676;color:#fff;text-align:left}.action{font-weight:bold;color:#003676}.reqs{max-width:260px;line-height:1.35;overflow-wrap:anywhere}.muted{color:#65738a;font-size:9.5px}.print{position:sticky;top:0;margin-bottom:10px;padding:7px 0;background:#fff}.print button{padding:8px 12px;border:0;border-radius:7px;background:#003676;color:#fff;font-weight:bold}@media print{body{margin:0}.print{display:none}.area{break-before:auto}thead{display:table-header-group}tr{break-inside:avoid}}</style>`;}
+function immediateReportRows(plans){
   const map=new Map();
-  plans.filter(row=>row.stage==='projeto'||row.stage==='pi').forEach(row=>(row.transfers||[]).forEach(item=>{
-    const destinos=(item.destinoDigitos||[]).join(', ')||'Definir destino';const destinoPi=(item.destinoPis||[]).join(', ')||row.destinoPi||'Definir PI';
-    const key=[row.stage,row.omCodigo,row.natureza,item.origemDigito,destinos,item.origemPi,destinoPi,row.projeto].join('|');
-    if(!map.has(key))map.set(key,{stageLabel:row.stageLabel,om:row.om,natureza:row.natureza,origem:item.origemDigito,destino:destinos,origemPi:item.origemPi,destinoPi,projeto:row.projetoLabel||row.projeto,requisicoes:new Set(),valor:0});
+  (plans||[]).filter(row=>row.stage==='imediato').forEach(row=>(row.sources||[]).forEach(source=>{
+    const key=[source.digito,row.omCodigo,row.natureza,source.acao,source.planoInterno,row.projeto].join('|');
+    if(!map.has(key))map.set(key,{digito:source.digito,om:row.om,omCodigo:row.omCodigo,natureza:row.natureza,acao:source.acao,pi:source.planoInterno,projeto:row.projetoLabel||row.projeto,requisicoes:new Set(),valor:0});
+    const target=map.get(key);target.requisicoes.add(row.requisicao);target.valor+=Number(source.valor||0);
+  }));
+  return Array.from(map.values()).sort((a,b)=>b.valor-a.valor||String(a.digito).localeCompare(String(b.digito)));
+}
+function adjustmentReportRows(plans){
+  const map=new Map();
+  (plans||[]).filter(row=>row.stage==='projeto'||row.stage==='pi').forEach(row=>(row.transfers||[]).forEach(item=>{
+    const origemProjetos=unique(item.origemProjetos||[]),destinoDigitos=unique(item.destinoDigitos||[]),destinoPis=unique(item.destinoPis||[]);const projetoDestino=row.projetoLabel||item.destinoProjeto||row.projeto;
+    const tipo=row.stage==='projeto'?'Entre projetos (mesmo PI)':'Entre projetos com ajuste de PI';
+    const key=[row.stage,row.omCodigo,row.natureza,item.origemAcao,item.origemDigito,destinoDigitos.join(','),origemProjetos.join(','),item.origemPi,destinoPis.join(','),row.projeto].join('|');
+    if(!map.has(key))map.set(key,{tipo,om:row.om,omCodigo:row.omCodigo,natureza:row.natureza,acao:item.origemAcao,origemDigito:item.origemDigito,destinoDigitos,origemProjetos,projetoDestino,origemPi:item.origemPi,destinoPis,requisicoes:new Set(),valor:0});
     const target=map.get(key);target.requisicoes.add(row.requisicao);target.valor+=Number(item.valor||0);
   }));
-  return Array.from(map.values()).sort((a,b)=>a.stageLabel.localeCompare(b.stageLabel)||b.valor-a.valor);
+  return Array.from(map.values()).sort((a,b)=>a.tipo.localeCompare(b.tipo,'pt-BR')||b.valor-a.valor);
 }
-async function makeReportImages(analysis){
-  const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;width:2300px;background:#fff';const divs=Array.from({length:2},()=>document.createElement('div'));divs.forEach(div=>{div.style.width='1050px';host.appendChild(div);});document.body.appendChild(host);
-  try{
-    await drawCharts(analysis,divs[0],divs[1],true);
-    return await Promise.all(divs.map(div=>Plotly.toImage(div,{format:'png',width:1050,height:620,scale:1.25})));
-  }finally{divs.forEach(div=>{try{Plotly.purge(div);}catch(e){}});host.remove();}
-}
-async function generateReport(){
+function reportMetrics(rows){const requisicoes=new Set();let valor=0;(rows||[]).forEach(row=>{(row.requisicoes||[]).forEach(req=>requisicoes.add(req));valor+=Number(row.valor||0);});return {qtd:requisicoes.size,valor,requisicoes};}
+function reportRequestList(row){return Array.from(row.requisicoes||[]).sort((a,b)=>String(a).localeCompare(String(b))).join(', ');}
+function generateReport(){
   if(filtersDirty){alert('Há seleções ainda não consultadas. Clique em Consultar antes de gerar o relatório.');return;}
   const popup=window.open('','_blank');if(!popup){alert('Autorize pop-ups para gerar o relatório.');return;}
-  popup.document.write('<p style="font-family:Arial;padding:30px">Gerando relatório de insights…</p>');
+  popup.document.write('<p style="font-family:Arial;padding:30px">Gerando relatório para emprego do crédito…</p>');
   try{
-    const bundle=reportAnalysis(),analysis=bundle.analysis,summary=analysis.summary,images=await makeReportImages(analysis),actions=actionSummaryRows(analysis.allocation.plans),immediateDigits=immediateDigitRows(analysis.allocation.plans),transfers=transferReportRows(analysis.allocation.plans);
+    const bundle=reportAnalysis(),plans=bundle.analysis.allocation.plans,immediate=immediateReportRows(plans),adjustments=adjustmentReportRows(plans),immediateMetrics=reportMetrics(immediate),adjustmentMetrics=reportMetrics(adjustments);
     const omText=bundle.reportOms.length?bundle.reportOms.map(code=>(data.lookups.om||{})[code]||code).join('; '):'Todas as OM dos filtros analíticos';const actionText=bundle.reportActions.length?bundle.reportActions.join(', '):'Todas as ações dos filtros analíticos';
-    const actionBody=actions.map(row=>`<tr><td class="action">${esc(row.label)}</td><td>${integer(row.qtd)}</td><td>${money(row.valor)}</td></tr>`).join('');
-    const immediateBody=immediateDigits.length?immediateDigits.map(row=>`<tr><td class="action">${esc(row.digito)}</td><td>${esc(Array.from(row.oms).join('; '))}<br>ND ${esc(Array.from(row.naturezas).join(', '))}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="4">Nenhum empenho imediato nos filtros selecionados.</td></tr>';
-    const transferBody=transfers.length?transfers.map(row=>`<tr><td class="action">${esc(row.stageLabel)}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.origem)} → ${esc(row.destino)}</td><td>${esc(row.origemPi||'N/I')} → ${esc(row.destinoPi)}</td><td>${esc(row.projeto)}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="7">Nenhuma realocação necessária nos filtros selecionados.</td></tr>';
-    const scaleText=$('#compareCompatScale')?.checked?'escala monetária comparável':'escalas monetárias ajustadas a cada conjunto';
-    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório executivo para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório executivo para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os cenários devem ser confirmados quanto à autorização orçamentária antes de qualquer movimentação.</p><div class="cards"><div class="card"><span>Crédito disponível</span><strong>${money(summary.creditoDisponivel)}</strong></div><div class="card"><span>Demanda compatível</span><strong>${money(summary.demandaCompativel)}</strong></div><div class="card"><span>Empenho potencial</span><strong>${money(summary.potencialEmpenho)}</strong></div><div class="card"><span>Requisições cobertas</span><strong>${integer(summary.requisicoesCobertas)}</strong></div><div class="card"><span>Saldo após potencial</span><strong>${money(summary.saldoAposPotencial)}</strong></div></div><h2>Crédito × demanda por OM e natureza de despesa</h2><div class="charts"><img src="${images[0]}"><img src="${images[1]}"></div><p class="muted">Mesmas categorias e ordem; ${esc(scaleText)}.</p><h2>Resumo das ações</h2><table><thead><tr><th>Ação</th><th>Requisições</th><th>Valor</th></tr></thead><tbody>${actionBody}</tbody></table><h2>Empenho imediato por dígito</h2><table><thead><tr><th>Dígito aplicável</th><th>OM / ND</th><th>Requisições</th><th>Valor total potencialmente consumido</th></tr></thead><tbody>${immediateBody}</tbody></table><h2>Realocações recomendadas</h2><table><thead><tr><th>Ação</th><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Projeto destino</th><th>Req.</th><th>Valor</th></tr></thead><tbody>${transferBody}</tbody></table><p class="muted">As linhas consolidam requisições com a mesma rota orçamentária. Valores correspondem à parcela proveniente de cada dígito de origem.</p></body></html>`;
+    const immediateBody=immediate.length?immediate.map(row=>`<tr><td class="action">${esc(row.digito||'N/I')}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.acao||'N/I')}<br>PI ${esc(row.pi||'N/I')}</td><td>${esc(row.projeto||'N/I')}</td><td class="reqs">${esc(reportRequestList(row))}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="7">Nenhum potencial empenho imediato nos filtros selecionados.</td></tr>';
+    const adjustmentBody=adjustments.length?adjustments.map(row=>`<tr><td class="action">${esc(row.tipo)}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.origemProjetos.join(', ')||'N/I')} → ${esc(row.projetoDestino||'N/I')}</td><td>${esc(row.origemDigito||'N/I')} → ${esc(row.destinoDigitos.join(', ')||'Definir destino')}</td><td>${esc(row.acao||'N/I')}<br>PI ${esc(row.origemPi||'N/I')} → ${esc(row.destinoPis.join(', ')||'Definir PI')}</td><td class="reqs">${esc(reportRequestList(row))}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="8">Nenhum ajuste entre projetos necessário nos filtros selecionados.</td></tr>';
+    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os valores representam parcelas efetivamente atribuídas a cada dígito. Os dígitos de destino são candidatos e devem ser confirmados antes da movimentação.</p><section class="area"><div class="area-head"><h2>Potenciais empenhos imediatos</h2><div class="area-summary"><span><strong>${integer(immediateMetrics.qtd)}</strong> requisições</span><span><strong>${money(immediateMetrics.valor)}</strong> potencial</span></div></div><table><thead><tr><th>Dígito aplicável</th><th>OM / ND</th><th>Ação / PI</th><th>Projeto</th><th>Requisições</th><th>Qtd.</th><th>Valor potencialmente consumido</th></tr></thead><tbody>${immediateBody}</tbody></table></section><section class="area"><div class="area-head"><h2>Ajustes entre projetos para empenhar</h2><div class="area-summary"><span><strong>${integer(adjustmentMetrics.qtd)}</strong> requisições</span><span><strong>${money(adjustmentMetrics.valor)}</strong> a ajustar</span></div></div><table><thead><tr><th>Tipo de ajuste</th><th>OM / ND</th><th>Projeto origem → destino</th><th>Dígito origem → destino sugerido</th><th>Ação / PI origem → destino</th><th>Requisições</th><th>Qtd.</th><th>Valor a movimentar</th></tr></thead><tbody>${adjustmentBody}</tbody></table></section><p class="muted">As duas áreas abrangem todas as requisições integralmente financiáveis no cenário filtrado, sem duplicar o valor potencial.</p></body></html>`;
     popup.document.open();popup.document.write(html);popup.document.close();
   }catch(error){console.error(error);popup.document.body.innerHTML='<p style="font-family:Arial;padding:30px;color:#8b1a1a">Não foi possível gerar o relatório. Recarregue o painel e tente novamente.</p>';}
 }
@@ -240,12 +242,12 @@ function init(){
   initFilters();renderTerms();
   $('#addReqTerm').addEventListener('click',addTerm);$('#filterReqText').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addTerm();}});$('#filterReqText').addEventListener('input',markFiltersDirty);
   $('#applyCompatFilters').addEventListener('click',applyFilters);$('#resetCompatFilters').addEventListener('click',resetFilters);$('#generateCompatReport').addEventListener('click',generateReport);
-  $('#compareCompatScale').addEventListener('change',()=>{if(currentAnalysis)drawCharts(currentAnalysis,$('#chartCompatCredit'),$('#chartCompatRequests'),false);});
+  const scaleToggle=$('#compareCompatScale');scaleToggle.checked=true;scaleToggle.addEventListener('change',()=>{if(currentAnalysis)drawCharts(currentAnalysis,$('#chartCompatCredit'),$('#chartCompatRequests'),false);});
   $('#compatGeneratedAt').textContent='Dados atualizados em '+(data.meta.geradoEm||'data não informada');
   $('#compatSource').textContent=`Fontes: ${data.meta.fonteCreditos||'digitos.xlsx'} e ${data.meta.fonteRequisicoes||'requisicoes.xlsx'} · Atualização: ${data.meta.geradoEm||'não informada'}.`;
   render();
   Object.assign(window.CABW_COMPAT_PANEL_TEST,{getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis,applyFilters});
 }
-window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,immediateDigitRows,mergeSelection,harmonizeFilters};
+window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,immediateDigitRows,immediateReportRows,adjustmentReportRows,reportMetrics,generateReport,mergeSelection,harmonizeFilters};
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(error){console.error('CABW compatibility error',error);const status=$('#compatFilterStatus');if(status)status.textContent='Não foi possível inicializar a análise.';}});
 })();

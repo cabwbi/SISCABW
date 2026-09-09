@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-5">
+  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-6">
 </head>
 <body class="compat-page">
 <nav class="navbar navbar-expand-lg navbar-dark cabw-navbar" aria-label="Navegação principal">
@@ -62,8 +62,8 @@
 
     <aside class="compat-card compat-report" aria-labelledby="reportTitle">
       <span class="compat-report__icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
-      <h2 id="reportTitle">Relatório de insights para emprego do crédito</h2>
-      <p>Selecione simultaneamente OM requisitante e ação orçamentária para obter um resumo executivo do crédito, demanda e rotas de realocação.</p>
+      <h2 id="reportTitle">Relatório para emprego do crédito</h2>
+      <p>Gere duas listas objetivas: potenciais empenhos imediatos e ajustes entre projetos, sempre com as requisições e os dígitos envolvidos.</p>
       <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="reportOm"></select></label>
       <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="reportAcao"></select></label>
       <button class="compat-report__button" id="generateCompatReport" type="button"><i class="bi bi-printer"></i> Gerar relatório</button>
@@ -78,10 +78,10 @@
     <article class="compat-kpi"><span>Saldo após potencial</span><strong id="kpiCompatRemaining">US$ 0,00</strong><small>Crédito disponível menos o empenho potencial calculado.</small></article>
   </section>
 
-  <div class="compat-section-heading"><div><h2>Crédito e requisições por OM e natureza de despesa</h2><p>Cada linha representa a mesma combinação de OM requisitante e natureza nos dois gráficos.</p></div><div class="compat-method"><span>Por padrão, cada escala se ajusta ao respectivo conjunto para manter as barras legíveis. As categorias e a ordem continuam idênticas.</span><label class="compat-scale-toggle"><input id="compareCompatScale" type="checkbox"><span>Usar escala comparável nos dois gráficos</span></label></div></div>
+  <div class="compat-section-heading"><div><h2>Crédito e requisições por OM e natureza de despesa</h2><p>Cada linha representa a mesma combinação de OM requisitante e natureza nos dois gráficos.</p></div><div class="compat-method"><span>A escala monetária é idêntica e recalculada após cada consulta, garantindo que barras com valores próximos tenham proporções coerentes.</span><label class="compat-scale-toggle"><input id="compareCompatScale" type="checkbox" checked><span>Manter escala monetária idêntica (recomendado)</span></label></div></div>
   <section class="compat-aligned">
     <article class="compat-chart-card"><h3>Saldo dos dígitos por OM e natureza</h3><p>Soma dos saldos filtrados em cada combinação, do maior para o menor.</p><div class="compat-chart" id="chartCompatCredit"></div></article>
-    <article class="compat-chart-card"><h3>Requisições por OM, natureza e situação</h3><p>Soma dos valores, empilhada por situação, nas mesmas categorias e com escala dinâmica.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
+    <article class="compat-chart-card"><h3>Requisições por OM, natureza e situação</h3><p>Soma dos valores, empilhada por situação, nas mesmas categorias e escala do crédito.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
   </section>
 
   <div class="compat-section-heading"><div><h2>Planos de ação para maximização do empenho</h2><p>Os valores respeitam o saldo finito de cada dígito e não são contados em mais de uma ação.</p></div></div>
@@ -97,7 +97,7 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="compatibilizacao-data.js?v=20260909-3"></script>
 <script src="compatibilizacao-engine.js?v=20260909-3"></script>
-<script src="compatibilizacao-panel.js?v=20260909-5"></script>
+<script src="compatibilizacao-panel.js?v=20260909-6"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

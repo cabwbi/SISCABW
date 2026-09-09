@@ -7,12 +7,13 @@
 - Filtros multisseleção para créditos e requisições, comparação gráfica alinhada por `OM requisitante + natureza de despesa` e relatório de insights filtrável simultaneamente por OM requisitante e ação orçamentária.
 - OM, natureza de despesa e projeto são filtros compartilhados entre os dois conjuntos: uma seleção feita na área de requisições restringe também créditos, KPIs, gráficos e planos de ação, e vice-versa.
 - Os filtros permitem pesquisar desde o primeiro caractere, marcar várias opções sem recalcular a cada clique, selecionar apenas as opções visíveis e aplicar tudo pelo botão `Consultar`; `Limpar seleções` restaura a visão integral.
-- Os gráficos de crédito e requisições usam as mesmas categorias e a mesma ordem de barras. Por padrão, cada escala monetária se ajusta dinamicamente ao respectivo conjunto para manter as barras legíveis; o usuário pode ativar a escala comparável entre os dois lados.
+- Os gráficos de crédito e requisições usam as mesmas categorias, ordem de barras e escala monetária compartilhada. O máximo comum é recalculado após cada consulta, impedindo que valores próximos aparentem proporções incompatíveis; a ampliação independente permanece disponível como opção secundária.
 - A geometria dos dois gráficos é fixa e compartilhada: legenda não altera margens, e cada combinação `OM + natureza` ocupa exatamente a mesma linha nos dois lados.
 - As categorias do eixo utilizam chaves canônicas `código da OM | natureza`, evitando que rótulos abreviados fundam naturezas diferentes; o texto visível preserva sempre código, sigla e ND.
 - As tooltips dos gráficos usam rótulos compactos para não encobrir a área analítica.
 - A lista de empenhos imediatos identifica todos os dígitos aplicáveis, a parcela de cada dígito e o valor total potencialmente consumido por requisição; o total do card e o relatório executivo consolidam o consumo do cenário e por dígito.
-- O relatório foi condensado em formato executivo e as propostas de realocação identificam os dígitos de origem e destino, além de PI, projeto e valor.
+- O texto do card lateral de relatório foi protegido contra regras globais de estilo e permanece branco sobre o fundo azul.
+- O relatório foi reduzido a duas áreas: `Potenciais empenhos imediatos` e `Ajustes entre projetos para empenhar`. Ambas mostram as requisições, os dígitos envolvidos, OM, natureza, projeto, PI e valores; ajustes de PI são classificados dentro da segunda área para que nenhum cenário financiável seja omitido.
 - Mecanismo executado integralmente no navegador: cada saldo de dígito é tratado como recurso finito e não pode ser utilizado duas vezes.
 - Ordem de compatibilização dos mapas aprovados: correspondência direta por OM + ação + natureza + projeto; realocação entre projetos dentro da mesma ação e PI; realocação entre Planos Internos dentro da mesma ação. OM, ação e natureza são preservadas em todas as etapas.
 - Quando um dígito atende mais de uma OM, o saldo é rateado igualmente entre elas para impedir duplicidade nos totais.
