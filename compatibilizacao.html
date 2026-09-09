@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-4">
+  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-5">
 </head>
 <body class="compat-page">
 <nav class="navbar navbar-expand-lg navbar-dark cabw-navbar" aria-label="Navegação principal">
@@ -35,7 +35,7 @@
   <section class="compat-workbench" aria-label="Filtros e relatórios">
     <div class="compat-filter-stack">
       <section class="compat-panel" aria-labelledby="creditFiltersTitle">
-        <div class="compat-panel__heading"><i class="bi bi-wallet2"></i><div><h2 id="creditFiltersTitle">Filtros de créditos</h2><p>Selecione uma ou mais opções da planilha de dígitos. Somente saldos positivos compõem o crédito disponível.</p></div></div>
+        <div class="compat-panel__heading"><i class="bi bi-wallet2"></i><div><h2 id="creditFiltersTitle">Filtros de créditos</h2><p>Marque uma ou mais opções da planilha de dígitos e, ao concluir, clique em Consultar. Somente saldos positivos compõem o crédito disponível.</p></div></div>
         <div class="compat-filter-grid">
           <label class="compat-field"><span>OM detentora do crédito</span><select class="compat-native" multiple id="filterCreditOm"></select></label>
           <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="filterCreditAcao"></select></label>
@@ -48,15 +48,15 @@
       </section>
 
       <section class="compat-panel" aria-labelledby="requestFiltersTitle">
-        <div class="compat-panel__heading"><i class="bi bi-card-checklist"></i><div><h2 id="requestFiltersTitle">Filtros de requisições</h2><p>Refine simultaneamente as requisições em avaliação, cotação, mapa e mapa aprovado.</p></div></div>
+        <div class="compat-panel__heading"><i class="bi bi-card-checklist"></i><div><h2 id="requestFiltersTitle">Filtros de requisições</h2><p>Marque várias opções antes da consulta. OM, natureza e projeto selecionados aqui também restringem o crédito exibido.</p></div></div>
         <div class="compat-filter-grid compat-filter-grid--requests">
           <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="filterReqOm"></select></label>
           <label class="compat-field"><span>Projeto</span><select class="compat-native" multiple id="filterReqProjeto"></select></label>
           <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterReqNatureza"></select></label>
           <label class="compat-field"><span>Prioridade</span><select class="compat-native" multiple id="filterReqPrioridade"></select></label>
-          <label class="compat-field"><span>Nomenclatura / descrição</span><div class="compat-term"><input id="filterReqText" type="search" placeholder="Digite e pressione Enter"><button id="addReqTerm" type="button" title="Adicionar termo"><i class="bi bi-plus-lg"></i></button></div><div class="compat-term__chips" id="reqTermChips"></div></label>
+          <label class="compat-field"><span>Nomenclatura / descrição</span><div class="compat-term"><input id="filterReqText" type="search" placeholder="Filtre desde o 1º caractere"><button id="addReqTerm" type="button" title="Adicionar outro termo"><i class="bi bi-plus-lg"></i></button></div><div class="compat-term__chips" id="reqTermChips"></div></label>
         </div>
-        <div class="compat-filters-footer"><button class="compat-reset" id="resetCompatFilters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpar todos os filtros</button><span class="compat-filter-status" id="compatFilterStatus">Preparando análise…</span></div>
+        <div class="compat-filters-footer"><div class="compat-query-actions"><button class="compat-consult" id="applyCompatFilters" type="button"><i class="bi bi-search"></i> Consultar</button><button class="compat-reset" id="resetCompatFilters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpar seleções</button></div><span class="compat-filter-status" id="compatFilterStatus" aria-live="polite">Preparando análise…</span></div>
       </section>
     </div>
 
@@ -78,10 +78,10 @@
     <article class="compat-kpi"><span>Saldo após potencial</span><strong id="kpiCompatRemaining">US$ 0,00</strong><small>Crédito disponível menos o empenho potencial calculado.</small></article>
   </section>
 
-  <div class="compat-section-heading"><div><h2>Crédito e requisições por OM e natureza de despesa</h2><p>Cada linha representa a mesma combinação de OM requisitante e natureza nos dois gráficos.</p></div><div class="compat-method">As categorias, a ordem das barras e a escala monetária são idênticas nos dois lados. Assim, a diferença visual entre saldo e demanda evidencia diretamente sobra ou falta de crédito.</div></div>
+  <div class="compat-section-heading"><div><h2>Crédito e requisições por OM e natureza de despesa</h2><p>Cada linha representa a mesma combinação de OM requisitante e natureza nos dois gráficos.</p></div><div class="compat-method"><span>Por padrão, cada escala se ajusta ao respectivo conjunto para manter as barras legíveis. As categorias e a ordem continuam idênticas.</span><label class="compat-scale-toggle"><input id="compareCompatScale" type="checkbox"><span>Usar escala comparável nos dois gráficos</span></label></div></div>
   <section class="compat-aligned">
     <article class="compat-chart-card"><h3>Saldo dos dígitos por OM e natureza</h3><p>Soma dos saldos filtrados em cada combinação, do maior para o menor.</p><div class="compat-chart" id="chartCompatCredit"></div></article>
-    <article class="compat-chart-card"><h3>Requisições por OM, natureza e situação</h3><p>Soma dos valores, empilhada por situação, nas mesmas categorias e escala do crédito.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
+    <article class="compat-chart-card"><h3>Requisições por OM, natureza e situação</h3><p>Soma dos valores, empilhada por situação, nas mesmas categorias e com escala dinâmica.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
   </section>
 
   <div class="compat-section-heading"><div><h2>Planos de ação para maximização do empenho</h2><p>Os valores respeitam o saldo finito de cada dígito e não são contados em mais de uma ação.</p></div></div>
@@ -97,7 +97,7 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="compatibilizacao-data.js?v=20260909-3"></script>
 <script src="compatibilizacao-engine.js?v=20260909-3"></script>
-<script src="compatibilizacao-panel.js?v=20260909-4"></script>
+<script src="compatibilizacao-panel.js?v=20260909-5"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

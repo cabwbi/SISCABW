@@ -5,9 +5,12 @@
 - Novo card ao lado de `Crédito Disponível`, com cálculo automático do valor estimado de empenho potencial.
 - Novo painel `compatibilizacao.html`, alimentado por `digitos.xlsx` e `requisicoes.xlsx`.
 - Filtros multisseleção para créditos e requisições, comparação gráfica alinhada por `OM requisitante + natureza de despesa` e relatório de insights filtrável simultaneamente por OM requisitante e ação orçamentária.
-- Os gráficos de crédito e requisições usam as mesmas categorias, a mesma ordem de barras e a mesma escala monetária, evidenciando visualmente sobra ou insuficiência de crédito.
+- OM, natureza de despesa e projeto são filtros compartilhados entre os dois conjuntos: uma seleção feita na área de requisições restringe também créditos, KPIs, gráficos e planos de ação, e vice-versa.
+- Os filtros permitem pesquisar desde o primeiro caractere, marcar várias opções sem recalcular a cada clique, selecionar apenas as opções visíveis e aplicar tudo pelo botão `Consultar`; `Limpar seleções` restaura a visão integral.
+- Os gráficos de crédito e requisições usam as mesmas categorias e a mesma ordem de barras. Por padrão, cada escala monetária se ajusta dinamicamente ao respectivo conjunto para manter as barras legíveis; o usuário pode ativar a escala comparável entre os dois lados.
 - A geometria dos dois gráficos é fixa e compartilhada: legenda não altera margens, e cada combinação `OM + natureza` ocupa exatamente a mesma linha nos dois lados.
 - As categorias do eixo utilizam chaves canônicas `código da OM | natureza`, evitando que rótulos abreviados fundam naturezas diferentes; o texto visível preserva sempre código, sigla e ND.
+- As tooltips dos gráficos usam rótulos compactos para não encobrir a área analítica.
 - A lista de empenhos imediatos identifica todos os dígitos aplicáveis, a parcela de cada dígito e o valor total potencialmente consumido por requisição; o total do card e o relatório executivo consolidam o consumo do cenário e por dígito.
 - O relatório foi condensado em formato executivo e as propostas de realocação identificam os dígitos de origem e destino, além de PI, projeto e valor.
 - Mecanismo executado integralmente no navegador: cada saldo de dígito é tratado como recurso finito e não pode ser utilizado duas vezes.

@@ -8,9 +8,11 @@ const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&a
 const money=value=>'US$ '+Number(value||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const integer=value=>Number(value||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
 const unique=values=>Array.from(new Set((values||[]).map(value=>String(value==null?'':value).trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+const normalized=value=>String(value==null?'':value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const selections=select=>select?Array.from(select.selectedOptions).map(option=>option.value).filter(Boolean):[];
 let requestTerms=[];
 let currentAnalysis=null;
+let filtersDirty=false;
 
 function options(values,labels){
   const labelMap=labels||{};
@@ -26,17 +28,17 @@ function buildMulti(select,placeholder){
   wrapper.dataset.placeholder=placeholder||'Todas as opções';
   select.insertAdjacentElement('afterend',wrapper);
   const menuItems=Array.from(select.options).map(option=>`<label class="compat-ms__option"><input type="checkbox" value="${esc(option.value)}"><span>${esc(option.textContent)}</span></label>`).join('');
-  wrapper.innerHTML=`<button class="compat-ms__button" type="button" aria-haspopup="listbox" aria-expanded="false">${esc(wrapper.dataset.placeholder)}</button><div class="compat-ms__menu"><div class="compat-ms__search"><input type="search" placeholder="Pesquisar nesta lista"><div class="compat-ms__actions"><button type="button" data-action="all">Todas</button><button type="button" data-action="clear">Limpar</button></div></div>${menuItems||'<div class="compat-empty">Sem opções.</div>'}</div>`;
+  wrapper.innerHTML=`<button class="compat-ms__button" type="button" aria-haspopup="listbox" aria-expanded="false">${esc(wrapper.dataset.placeholder)}</button><div class="compat-ms__menu"><div class="compat-ms__search"><input type="search" placeholder="Filtrar opções a partir de 1 caractere"><div class="compat-ms__actions"><button type="button" data-action="all">Marcar visíveis</button><button type="button" data-action="clear">Limpar seleção</button></div></div>${menuItems||'<div class="compat-empty">Sem opções.</div>'}<div class="compat-ms__no-results" hidden>Nenhuma opção encontrada.</div></div>`;
   const button=wrapper.querySelector('.compat-ms__button');const menu=wrapper.querySelector('.compat-ms__menu');const search=wrapper.querySelector('input[type="search"]');
   function update(){
     const chosen=Array.from(select.selectedOptions).map(option=>option.textContent.trim());
     button.textContent=!chosen.length?wrapper.dataset.placeholder:(chosen.length<=2?chosen.join(', '):`${chosen.length} selecionadas`);
-    button.title=chosen.join(', ');
+    button.removeAttribute('title');button.setAttribute('aria-label',!chosen.length?wrapper.dataset.placeholder:`${chosen.length} opção${chosen.length===1?'':'ões'} selecionada${chosen.length===1?'':'s'}`);
     wrapper.querySelectorAll('.compat-ms__option input').forEach(input=>{const option=Array.from(select.options).find(item=>item.value===input.value);input.checked=Boolean(option&&option.selected);});
   }
   button.addEventListener('click',event=>{
     event.preventDefault();event.stopPropagation();
-    $$('.compat-ms.open').forEach(item=>{if(item!==wrapper)item.classList.remove('open');});
+    $$('.compat-ms.open').forEach(item=>{if(item!==wrapper){item.classList.remove('open');item.querySelector('.compat-ms__button')?.setAttribute('aria-expanded','false');}});
     wrapper.classList.toggle('open');button.setAttribute('aria-expanded',wrapper.classList.contains('open')?'true':'false');
     if(wrapper.classList.contains('open'))setTimeout(()=>{wrapper.classList.toggle('align-right',menu.getBoundingClientRect().right>window.innerWidth-12);search&&search.focus();},0);
   });
@@ -45,11 +47,13 @@ function buildMulti(select,placeholder){
     update();select.dispatchEvent(new Event('change',{bubbles:true}));
   }));
   search&&search.addEventListener('input',()=>{
-    const query=search.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-    wrapper.querySelectorAll('.compat-ms__option').forEach(label=>{const value=label.textContent.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();label.style.display=!query||value.includes(query)?'flex':'none';});
+    const query=normalized(search.value),compactQuery=query.replace(/[^a-z0-9]/g,'');let visible=0;
+    wrapper.querySelectorAll('.compat-ms__option').forEach(label=>{const value=normalized(label.textContent),compactValue=value.replace(/[^a-z0-9]/g,'');const show=!query||value.includes(query)||(compactQuery&&compactValue.includes(compactQuery));label.hidden=!show;label.style.display=show?'flex':'none';if(show)visible+=1;});
+    const noResults=wrapper.querySelector('.compat-ms__no-results');if(noResults)noResults.hidden=visible>0;
   });
-  wrapper.querySelector('[data-action="all"]')?.addEventListener('click',event=>{event.preventDefault();Array.from(select.options).forEach(option=>option.selected=true);update();select.dispatchEvent(new Event('change',{bubbles:true}));});
+  wrapper.querySelector('[data-action="all"]')?.addEventListener('click',event=>{event.preventDefault();wrapper.querySelectorAll('.compat-ms__option').forEach(label=>{if(label.hidden||label.style.display==='none')return;const input=label.querySelector('input');const option=Array.from(select.options).find(item=>item.value===input.value);if(option)option.selected=true;});update();select.dispatchEvent(new Event('change',{bubbles:true}));});
   wrapper.querySelector('[data-action="clear"]')?.addEventListener('click',event=>{event.preventDefault();Array.from(select.options).forEach(option=>option.selected=false);update();select.dispatchEvent(new Event('change',{bubbles:true}));});
+  wrapper.addEventListener('keydown',event=>{if(event.key==='Escape'){wrapper.classList.remove('open');button.setAttribute('aria-expanded','false');button.focus();}});
   select._compatUpdate=update;update();
 }
 function updateAllMultis(){$$('.compat-native').forEach(select=>select._compatUpdate&&select._compatUpdate());}
@@ -69,18 +73,24 @@ function initFilters(){
   fillSelect('#filterReqPrioridade',options(requests.map(row=>row.prioridade).map(value=>value==='0'?'0':value),{'0':'0 - Não definida','1':'1 - Prioridade máxima','2':'2','3':'3','4':'4','5':'5'}),'Todas as prioridades');
   fillSelect('#reportOm',options(requests.map(row=>row.omCodigo),omLabels),'Todas as OM');
   fillSelect('#reportAcao',options(credits.map(row=>row.acao)),'Todas as ações');
-  $$('.compat-filter-stack .compat-native').forEach(select=>select.addEventListener('change',render));
-  document.addEventListener('click',event=>{if(!event.target.closest('.compat-ms'))$$('.compat-ms.open').forEach(item=>item.classList.remove('open'));});
+  $$('.compat-filter-stack .compat-native').forEach(select=>select.addEventListener('change',markFiltersDirty));
+  document.addEventListener('click',event=>{if(!event.target.closest('.compat-ms'))$$('.compat-ms.open').forEach(item=>{item.classList.remove('open');item.querySelector('.compat-ms__button')?.setAttribute('aria-expanded','false');});});
 }
 function creditFilters(){return {om:selections($('#filterCreditOm')),acao:selections($('#filterCreditAcao')),planoInterno:selections($('#filterCreditPi')),natureza:selections($('#filterCreditNatureza')),projeto:selections($('#filterCreditProjeto')),fonte:selections($('#filterCreditFonte')),objetivo:selections($('#filterCreditObjetivo'))};}
-function requestFilters(){return {om:selections($('#filterReqOm')),projeto:selections($('#filterReqProjeto')),natureza:selections($('#filterReqNatureza')),prioridade:selections($('#filterReqPrioridade')),termos:requestTerms.slice()};}
+function requestFilters(){const typed=String($('#filterReqText')?.value||'').trim();return {om:selections($('#filterReqOm')),projeto:selections($('#filterReqProjeto')),natureza:selections($('#filterReqNatureza')),prioridade:selections($('#filterReqPrioridade')),termos:unique([...requestTerms,...(typed?[typed]:[])])};}
+
+function markFiltersDirty(){
+  filtersDirty=true;
+  $('#applyCompatFilters')?.classList.add('is-dirty');
+  const status=$('#compatFilterStatus');if(status)status.textContent='Seleções alteradas. Clique em Consultar para atualizar a análise.';
+}
 
 function renderTerms(){
   const target=$('#reqTermChips');if(!target)return;
   target.innerHTML=requestTerms.map((term,index)=>`<span class="compat-term__chip" title="${esc(term)}">${esc(term.length>30?term.slice(0,30)+'…':term)}<button type="button" data-remove-term="${index}" aria-label="Remover ${esc(term)}">×</button></span>`).join('');
-  target.querySelectorAll('[data-remove-term]').forEach(button=>button.addEventListener('click',()=>{requestTerms.splice(Number(button.dataset.removeTerm),1);renderTerms();render();}));
+  target.querySelectorAll('[data-remove-term]').forEach(button=>button.addEventListener('click',()=>{requestTerms.splice(Number(button.dataset.removeTerm),1);renderTerms();markFiltersDirty();}));
 }
-function addTerm(){const input=$('#filterReqText');const term=String(input.value||'').trim();if(term&&!requestTerms.includes(term))requestTerms.push(term);input.value='';renderTerms();render();}
+function addTerm(){const input=$('#filterReqText');const term=String(input.value||'').trim();if(term&&!requestTerms.includes(term))requestTerms.push(term);input.value='';renderTerms();markFiltersDirty();}
 
 function statusLabel(prefix){return {'M-':'Mapa aprovado','G-':'Mapa gerado','C-':'Em cotação','P-':'Pronto para cotação','I-':'Inserida para avaliação'}[prefix]||prefix;}
 function compactCategory(row,key){
@@ -96,7 +106,7 @@ function chartLayout(title,height,maxValue,categoryKeys,categoryLabels){return {
   xaxis:{title,domain:[0,1],gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s',range:[0,maxValue],rangemode:'tozero',fixedrange:true,automargin:false},
   yaxis:{domain:[0,1],categoryorder:'array',categoryarray:(categoryKeys||[]).slice(),tickmode:'array',tickvals:(categoryKeys||[]).slice(),ticktext:(categoryLabels||[]).slice(),automargin:false,fixedrange:true},
   legend:{orientation:'h',x:0,xanchor:'left',y:1.025,yanchor:'bottom',font:{size:10}},
-  barmode:'stack',hoverlabel:{namelength:-1}
+  barmode:'stack',hovermode:'closest',hoverlabel:{namelength:-1,align:'left',bgcolor:'#fff',bordercolor:'#cad7e6',font:{family:'Montserrat,Arial,sans-serif',size:11,color:'#16345e'}}
 };}
 function chartSeries(analysis){
   const creditRows=analysis.creditByOmNatureza||[];const demandRows=analysis.demandByOmNaturezaStatus||[];
@@ -111,16 +121,18 @@ function chartSeries(analysis){
   const labels=rows.map((row,index)=>compactCategory(row,order[index]));
   const creditValues=order.map(key=>Number(creditMap.get(key)?.valor||0));
   const demandTotals=order.map(key=>engine.STATUS_ORDER.reduce((sum,prefix)=>sum+Number((demandMap.get(key)?.values||{})[prefix]||0),0));
-  const greatest=Math.max(0,...creditValues,...demandTotals);const sharedMax=greatest>0?greatest*1.08:1;
-  return {order,labels,full,creditMap,demandMap,creditValues,demandTotals,sharedMax};
+  const creditPeak=Math.max(0,...creditValues),demandPeak=Math.max(0,...demandTotals);
+  const creditMax=creditPeak>0?creditPeak*1.08:1,demandMax=demandPeak>0?demandPeak*1.08:1,sharedMax=Math.max(creditMax,demandMax);
+  return {order,labels,full,creditMap,demandMap,creditValues,demandTotals,creditMax,demandMax,sharedMax};
 }
-async function drawCharts(analysis,creditTarget,requestTarget,exportMode){
+async function drawCharts(analysis,creditTarget,requestTarget,exportMode,forceComparable){
   if(!window.Plotly)return;
-  const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedFull=series.full.slice().reverse();const reversedKeys=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
+  const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedKeys=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
+  const toggle=$('#compareCompatScale');const comparable=typeof forceComparable==='boolean'?forceComparable:Boolean(toggle&&toggle.checked);const creditMax=comparable?series.sharedMax:series.creditMax;const demandMax=comparable?series.sharedMax:series.demandMax;
   const creditValues=reversedKeys.map(key=>Number(series.creditMap.get(key)?.valor||0));
-  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedKeys,x:creditValues,customdata:reversedFull,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br>Saldo dos dígitos: %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,series.sharedMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
-  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedKeys,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedFull,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
-  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,series.sharedMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedKeys,x:creditValues,customdata:reversedLabels,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br><b>Saldo:</b> %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,creditMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedKeys,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedLabels,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br><b>${statusLabel(prefix)}:</b> %{x:$,.2f}<extra></extra>`}));
+  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,demandMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
 }
 
 function transferText(row){
@@ -155,14 +167,16 @@ function renderPlans(analysis){
 }
 function render(){
   if(!engine){$('#compatFilterStatus').textContent='Mecanismo de compatibilidade indisponível.';return;}
-  currentAnalysis=engine.analyze(data,creditFilters(),requestFilters());
+  const aligned=harmonizeFilters(creditFilters(),requestFilters());
+  currentAnalysis=engine.analyze(data,aligned.credit,aligned.request);
   const summary=currentAnalysis.summary;
   $('#kpiCompatCredit').textContent=money(summary.creditoDisponivel);
   $('#kpiCompatDemand').textContent=money(summary.demandaCompativel);
   $('#kpiCompatPotential').textContent=money(summary.potencialEmpenho);
   $('#kpiCompatCount').textContent=integer(summary.requisicoesCobertas);
   $('#kpiCompatRemaining').textContent=money(summary.saldoAposPotencial);
-  $('#compatFilterStatus').textContent=`${integer(currentAnalysis.credits.length)} dígitos · ${integer(currentAnalysis.requests.length)} requisições selecionadas · ${integer(currentAnalysis.compatible.length)} compatíveis`;
+  filtersDirty=false;$('#applyCompatFilters')?.classList.remove('is-dirty');
+  $('#compatFilterStatus').textContent=`${integer(currentAnalysis.credits.length)} dígitos · ${integer(currentAnalysis.requests.length)} requisições selecionadas · ${integer(currentAnalysis.compatible.length)} compatíveis · OM, ND e projeto sincronizados`;
   drawCharts(currentAnalysis,$('#chartCompatCredit'),$('#chartCompatRequests'),false);
   renderPlans(currentAnalysis);
 }
@@ -171,8 +185,13 @@ function mergeSelection(base,additional){
   if(!base.length)return additional.slice();if(!additional.length)return base.slice();
   const extra=new Set(additional);const intersection=base.filter(value=>extra.has(value));return intersection.length?intersection:['__SEM_CORRESPONDENCIA__'];
 }
+function harmonizeFilters(credit,request){
+  const cf={...(credit||{})},rf={...(request||{})};
+  ['om','natureza','projeto'].forEach(key=>{const shared=mergeSelection((cf[key]||[]).slice(),(rf[key]||[]).slice());cf[key]=shared.slice();rf[key]=shared.slice();});
+  return {credit:cf,request:rf};
+}
 function reportAnalysis(){
-  const cf=creditFilters(),rf=requestFilters();const reportOms=selections($('#reportOm')),reportActions=selections($('#reportAcao'));
+  const aligned=harmonizeFilters(creditFilters(),requestFilters()),cf=aligned.credit,rf=aligned.request;const reportOms=selections($('#reportOm')),reportActions=selections($('#reportAcao'));
   cf.om=mergeSelection(cf.om,reportOms);cf.acao=mergeSelection(cf.acao,reportActions);rf.om=mergeSelection(rf.om,reportOms);
   return {analysis:engine.analyze(data,cf,rf),reportOms,reportActions};
 }
@@ -198,6 +217,7 @@ async function makeReportImages(analysis){
   }finally{divs.forEach(div=>{try{Plotly.purge(div);}catch(e){}});host.remove();}
 }
 async function generateReport(){
+  if(filtersDirty){alert('Há seleções ainda não consultadas. Clique em Consultar antes de gerar o relatório.');return;}
   const popup=window.open('','_blank');if(!popup){alert('Autorize pop-ups para gerar o relatório.');return;}
   popup.document.write('<p style="font-family:Arial;padding:30px">Gerando relatório de insights…</p>');
   try{
@@ -206,23 +226,26 @@ async function generateReport(){
     const actionBody=actions.map(row=>`<tr><td class="action">${esc(row.label)}</td><td>${integer(row.qtd)}</td><td>${money(row.valor)}</td></tr>`).join('');
     const immediateBody=immediateDigits.length?immediateDigits.map(row=>`<tr><td class="action">${esc(row.digito)}</td><td>${esc(Array.from(row.oms).join('; '))}<br>ND ${esc(Array.from(row.naturezas).join(', '))}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="4">Nenhum empenho imediato nos filtros selecionados.</td></tr>';
     const transferBody=transfers.length?transfers.map(row=>`<tr><td class="action">${esc(row.stageLabel)}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.origem)} → ${esc(row.destino)}</td><td>${esc(row.origemPi||'N/I')} → ${esc(row.destinoPi)}</td><td>${esc(row.projeto)}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="7">Nenhuma realocação necessária nos filtros selecionados.</td></tr>';
-    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório executivo para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório executivo para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os cenários devem ser confirmados quanto à autorização orçamentária antes de qualquer movimentação.</p><div class="cards"><div class="card"><span>Crédito disponível</span><strong>${money(summary.creditoDisponivel)}</strong></div><div class="card"><span>Demanda compatível</span><strong>${money(summary.demandaCompativel)}</strong></div><div class="card"><span>Empenho potencial</span><strong>${money(summary.potencialEmpenho)}</strong></div><div class="card"><span>Requisições cobertas</span><strong>${integer(summary.requisicoesCobertas)}</strong></div><div class="card"><span>Saldo após potencial</span><strong>${money(summary.saldoAposPotencial)}</strong></div></div><h2>Crédito × demanda por OM e natureza de despesa</h2><div class="charts"><img src="${images[0]}"><img src="${images[1]}"></div><p class="muted">Os gráficos usam as mesmas categorias, ordem e escala monetária.</p><h2>Resumo das ações</h2><table><thead><tr><th>Ação</th><th>Requisições</th><th>Valor</th></tr></thead><tbody>${actionBody}</tbody></table><h2>Empenho imediato por dígito</h2><table><thead><tr><th>Dígito aplicável</th><th>OM / ND</th><th>Requisições</th><th>Valor total potencialmente consumido</th></tr></thead><tbody>${immediateBody}</tbody></table><h2>Realocações recomendadas</h2><table><thead><tr><th>Ação</th><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Projeto destino</th><th>Req.</th><th>Valor</th></tr></thead><tbody>${transferBody}</tbody></table><p class="muted">As linhas consolidam requisições com a mesma rota orçamentária. Valores correspondem à parcela proveniente de cada dígito de origem.</p></body></html>`;
+    const scaleText=$('#compareCompatScale')?.checked?'escala monetária comparável':'escalas monetárias ajustadas a cada conjunto';
+    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório executivo para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório executivo para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os cenários devem ser confirmados quanto à autorização orçamentária antes de qualquer movimentação.</p><div class="cards"><div class="card"><span>Crédito disponível</span><strong>${money(summary.creditoDisponivel)}</strong></div><div class="card"><span>Demanda compatível</span><strong>${money(summary.demandaCompativel)}</strong></div><div class="card"><span>Empenho potencial</span><strong>${money(summary.potencialEmpenho)}</strong></div><div class="card"><span>Requisições cobertas</span><strong>${integer(summary.requisicoesCobertas)}</strong></div><div class="card"><span>Saldo após potencial</span><strong>${money(summary.saldoAposPotencial)}</strong></div></div><h2>Crédito × demanda por OM e natureza de despesa</h2><div class="charts"><img src="${images[0]}"><img src="${images[1]}"></div><p class="muted">Mesmas categorias e ordem; ${esc(scaleText)}.</p><h2>Resumo das ações</h2><table><thead><tr><th>Ação</th><th>Requisições</th><th>Valor</th></tr></thead><tbody>${actionBody}</tbody></table><h2>Empenho imediato por dígito</h2><table><thead><tr><th>Dígito aplicável</th><th>OM / ND</th><th>Requisições</th><th>Valor total potencialmente consumido</th></tr></thead><tbody>${immediateBody}</tbody></table><h2>Realocações recomendadas</h2><table><thead><tr><th>Ação</th><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Projeto destino</th><th>Req.</th><th>Valor</th></tr></thead><tbody>${transferBody}</tbody></table><p class="muted">As linhas consolidam requisições com a mesma rota orçamentária. Valores correspondem à parcela proveniente de cada dígito de origem.</p></body></html>`;
     popup.document.open();popup.document.write(html);popup.document.close();
   }catch(error){console.error(error);popup.document.body.innerHTML='<p style="font-family:Arial;padding:30px;color:#8b1a1a">Não foi possível gerar o relatório. Recarregue o painel e tente novamente.</p>';}
 }
 
 function resetFilters(){
-  $$('.compat-native').forEach(select=>Array.from(select.options).forEach(option=>option.selected=false));requestTerms=[];$('#filterReqText').value='';renderTerms();updateAllMultis();render();
+  $$('.compat-native').forEach(select=>Array.from(select.options).forEach(option=>option.selected=false));$$('.compat-ms__search input').forEach(input=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));});requestTerms=[];$('#filterReqText').value='';renderTerms();updateAllMultis();render();
 }
+function applyFilters(){$$('.compat-ms.open').forEach(item=>{item.classList.remove('open');item.querySelector('.compat-ms__button')?.setAttribute('aria-expanded','false');});render();}
 function init(){
   initFilters();renderTerms();
-  $('#addReqTerm').addEventListener('click',addTerm);$('#filterReqText').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addTerm();}});
-  $('#resetCompatFilters').addEventListener('click',resetFilters);$('#generateCompatReport').addEventListener('click',generateReport);
+  $('#addReqTerm').addEventListener('click',addTerm);$('#filterReqText').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();addTerm();}});$('#filterReqText').addEventListener('input',markFiltersDirty);
+  $('#applyCompatFilters').addEventListener('click',applyFilters);$('#resetCompatFilters').addEventListener('click',resetFilters);$('#generateCompatReport').addEventListener('click',generateReport);
+  $('#compareCompatScale').addEventListener('change',()=>{if(currentAnalysis)drawCharts(currentAnalysis,$('#chartCompatCredit'),$('#chartCompatRequests'),false);});
   $('#compatGeneratedAt').textContent='Dados atualizados em '+(data.meta.geradoEm||'data não informada');
   $('#compatSource').textContent=`Fontes: ${data.meta.fonteCreditos||'digitos.xlsx'} e ${data.meta.fonteRequisicoes||'requisicoes.xlsx'} · Atualização: ${data.meta.geradoEm||'não informada'}.`;
   render();
-  Object.assign(window.CABW_COMPAT_PANEL_TEST,{getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis});
+  Object.assign(window.CABW_COMPAT_PANEL_TEST,{getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis,applyFilters});
 }
-window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,immediateDigitRows};
+window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,immediateDigitRows,mergeSelection,harmonizeFilters};
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(error){console.error('CABW compatibility error',error);const status=$('#compatFilterStatus');if(status)status.textContent='Não foi possível inicializar a análise.';}});
 })();
