@@ -83,8 +83,21 @@ function renderTerms(){
 function addTerm(){const input=$('#filterReqText');const term=String(input.value||'').trim();if(term&&!requestTerms.includes(term))requestTerms.push(term);input.value='';renderTerms();render();}
 
 function statusLabel(prefix){return {'M-':'Mapa aprovado','G-':'Mapa gerado','C-':'Em cotação','P-':'Pronto para cotação','I-':'Inserida para avaliação'}[prefix]||prefix;}
-function shortCategory(value){const text=String(value||'');return text.length>39?text.slice(0,39)+'…':text;}
-function chartLayout(title,height,maxValue){return {height,margin:{l:210,r:24,t:24,b:55},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Montserrat,Arial,sans-serif',color:'#16345e',size:11},xaxis:{title,gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s',range:[0,maxValue],rangemode:'tozero',fixedrange:true},yaxis:{automargin:true,fixedrange:true},legend:{orientation:'h',x:0,y:1.12,font:{size:10}},barmode:'stack',hoverlabel:{namelength:-1}};}
+function compactCategory(row,key){
+  const omCode=String(row.omCodigo||String(key||'').split('|')[0]||'N/I');
+  const fullLabel=String(row.label||omCode);const acronym=(fullLabel.split(/\s+-\s+/)[0]||omCode).trim();
+  return `${omCode} · ${acronym} · ND ${row.natureza||'N/I'}`;
+}
+function chartLayout(title,height,maxValue,categoryKeys,categoryLabels){return {
+  height,autosize:true,
+  margin:{l:210,r:24,t:76,b:55,pad:0,autoexpand:false},
+  paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+  font:{family:'Montserrat,Arial,sans-serif',color:'#16345e',size:11},
+  xaxis:{title,domain:[0,1],gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s',range:[0,maxValue],rangemode:'tozero',fixedrange:true,automargin:false},
+  yaxis:{domain:[0,1],categoryorder:'array',categoryarray:(categoryKeys||[]).slice(),tickmode:'array',tickvals:(categoryKeys||[]).slice(),ticktext:(categoryLabels||[]).slice(),automargin:false,fixedrange:true},
+  legend:{orientation:'h',x:0,xanchor:'left',y:1.025,yanchor:'bottom',font:{size:10}},
+  barmode:'stack',hoverlabel:{namelength:-1}
+};}
 function chartSeries(analysis){
   const creditRows=analysis.creditByOmNatureza||[];const demandRows=analysis.demandByOmNaturezaStatus||[];
   const creditMap=new Map(creditRows.map(row=>[row.key,row]));const demandMap=new Map(demandRows.map(row=>[row.key,row]));
@@ -93,8 +106,9 @@ function chartSeries(analysis){
     const av=Number(creditMap.get(a)?.valor||0),bv=Number(creditMap.get(b)?.valor||0);
     return bv-av||a.localeCompare(b,'pt-BR');
   });
-  const full=order.map(key=>{const row=creditMap.get(key)||demandMap.get(key)||{};return `${row.label||row.omCodigo||key} · ND ${row.natureza||'N/I'}`;});
-  const labels=full.map(shortCategory);
+  const rows=order.map(key=>creditMap.get(key)||demandMap.get(key)||{});
+  const full=rows.map((row,index)=>`${row.label||row.omCodigo||order[index]} · ND ${row.natureza||'N/I'}`);
+  const labels=rows.map((row,index)=>compactCategory(row,order[index]));
   const creditValues=order.map(key=>Number(creditMap.get(key)?.valor||0));
   const demandTotals=order.map(key=>engine.STATUS_ORDER.reduce((sum,prefix)=>sum+Number((demandMap.get(key)?.values||{})[prefix]||0),0));
   const greatest=Math.max(0,...creditValues,...demandTotals);const sharedMax=greatest>0?greatest*1.08:1;
@@ -104,9 +118,9 @@ async function drawCharts(analysis,creditTarget,requestTarget,exportMode){
   if(!window.Plotly)return;
   const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedFull=series.full.slice().reverse();const reversedKeys=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
   const creditValues=reversedKeys.map(key=>Number(series.creditMap.get(key)?.valor||0));
-  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedLabels,x:creditValues,customdata:reversedFull,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br>Saldo dos dígitos: %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,series.sharedMax),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
-  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedLabels,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedFull,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
-  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,series.sharedMax),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedKeys,x:creditValues,customdata:reversedFull,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br>Saldo dos dígitos: %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,series.sharedMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedKeys,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedFull,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
+  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,series.sharedMax,reversedKeys,reversedLabels),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
 }
 
 function transferText(row){
@@ -193,7 +207,8 @@ function init(){
   $('#compatGeneratedAt').textContent='Dados atualizados em '+(data.meta.geradoEm||'data não informada');
   $('#compatSource').textContent=`Fontes: ${data.meta.fonteCreditos||'digitos.xlsx'} e ${data.meta.fonteRequisicoes||'requisicoes.xlsx'} · Atualização: ${data.meta.geradoEm||'não informada'}.`;
   render();
-  window.CABW_COMPAT_PANEL_TEST={getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis};
+  Object.assign(window.CABW_COMPAT_PANEL_TEST,{getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis});
 }
+window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts};
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(error){console.error('CABW compatibility error',error);const status=$('#compatFilterStatus');if(status)status.textContent='Não foi possível inicializar a análise.';}});
 })();
