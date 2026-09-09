@@ -4,7 +4,9 @@
 
 - Novo card ao lado de `Crédito Disponível`, com cálculo automático do valor estimado de empenho potencial.
 - Novo painel `compatibilizacao.html`, alimentado por `digitos.xlsx` e `requisicoes.xlsx`.
-- Filtros multisseleção para créditos e requisições, comparação gráfica alinhada por OM e relatório de insights filtrável simultaneamente por OM requisitante e ação orçamentária.
+- Filtros multisseleção para créditos e requisições, comparação gráfica alinhada por `OM requisitante + natureza de despesa` e relatório de insights filtrável simultaneamente por OM requisitante e ação orçamentária.
+- Os gráficos de crédito e requisições usam as mesmas categorias, a mesma ordem de barras e a mesma escala monetária, evidenciando visualmente sobra ou insuficiência de crédito.
+- O relatório foi condensado em formato executivo e as propostas de realocação identificam os dígitos de origem e destino, além de PI, projeto e valor.
 - Mecanismo executado integralmente no navegador: cada saldo de dígito é tratado como recurso finito e não pode ser utilizado duas vezes.
 - Ordem de compatibilização dos mapas aprovados: correspondência direta por OM + ação + natureza + projeto; realocação entre projetos dentro da mesma ação e PI; realocação entre Planos Internos dentro da mesma ação. OM, ação e natureza são preservadas em todas as etapas.
 - Quando um dígito atende mais de uma OM, o saldo é rateado igualmente entre elas para impedir duplicidade nos totais.

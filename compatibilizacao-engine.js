@@ -109,6 +109,30 @@ function takeFromPools(candidates,amount){
   return {left,sources};
 }
 
+function destinationCredits(catalog,req,source,stage){
+  return (catalog||[]).filter(credit=>{
+    if(!containsAny(credit.omCodigos,[req.omCodigo])||str(credit.natureza)!==str(req.natureza)||!containsAny(credit.projetos,[req.projeto]))return false;
+    if(str(credit.acao)!==str(source.acao))return false;
+    return stage!=='projeto'||str(credit.planoInterno)===str(source.planoInterno);
+  }).sort((a,b)=>str(a.digito).localeCompare(str(b.digito)));
+}
+
+function planTransfers(catalog,req,sources,stage){
+  return (sources||[]).map(source=>{
+    const destinations=destinationCredits(catalog,req,source,stage);
+    return {
+      origemDigito:str(source.digito),
+      destinoDigitos:unique(destinations.map(credit=>credit.digito)),
+      valor:number(source.valor),
+      origemAcao:str(source.acao),
+      origemPi:str(source.planoInterno),
+      origemProjetos:unique(source.projetos),
+      destinoPis:unique(destinations.map(credit=>credit.planoInterno)),
+      destinoProjeto:str(req.projeto)
+    };
+  });
+}
+
 function allocateMapApproved(credits,requests,catalog){
   const pools=buildPools(credits);
   const approved=(requests||[]).filter(row=>statusPrefix(row.status)==='M-').slice().sort((a,b)=>(
@@ -143,11 +167,14 @@ function allocateMapApproved(credits,requests,catalog){
       containsAny(credit.omCodigos,[req.omCodigo])&&str(credit.natureza)===str(req.natureza)&&containsAny(credit.projetos,[req.projeto])
       &&sourceActions.has(str(credit.acao))
     )).map(credit=>credit.planoInterno)).join(', ')||'Definir PI de destino';
+    const transfers=planTransfers(catalog,req,result.sources,stage.key);
     plans.push({
       stage:stage.key,stageLabel:stage.label,requisicao:req.requisicao,omCodigo:req.omCodigo,om:req.om,
       natureza:req.natureza,projeto:req.projeto,projetoLabel:req.projetoLabel,prioridade:req.prioridade,
       status:req.status,valorUsd:value,destinoPi:destinationPi,descricao:req.descricao||req.nomenclatura,
-      sources:result.sources
+      sources:result.sources,transfers,
+      origemDigitos:unique(transfers.map(item=>item.origemDigito)),
+      destinoDigitos:unique(transfers.flatMap(item=>item.destinoDigitos))
     });
   });
   const potential=plans.reduce((sum,row)=>sum+number(row.valorUsd),0);
@@ -190,6 +217,28 @@ function demandByOmStatus(rows,omLabels){
   return Array.from(map.values());
 }
 
+function omNaturezaKey(omCodigo,natureza){return str(omCodigo)+'|'+str(natureza);}
+
+function creditByOmNatureza(credits,omLabels){
+  const labels=omLabels||{};const map=new Map();
+  buildPools(credits).forEach(pool=>{
+    const key=omNaturezaKey(pool.om,pool.natureza);
+    if(!map.has(key))map.set(key,{key,omCodigo:pool.om,natureza:pool.natureza,label:labels[pool.om]||pool.om,valor:0});
+    map.get(key).valor+=pool.original;
+  });
+  return Array.from(map.values()).sort((a,b)=>b.valor-a.valor||a.label.localeCompare(b.label)||a.natureza.localeCompare(b.natureza));
+}
+
+function demandByOmNaturezaStatus(rows,omLabels){
+  const labels=omLabels||{};const map=new Map();
+  (rows||[]).forEach(row=>{
+    const om=str(row.omCodigo),natureza=str(row.natureza),key=omNaturezaKey(om,natureza);
+    if(!map.has(key))map.set(key,{key,omCodigo:om,natureza,label:row.om||labels[om]||om,values:{}});
+    const prefix=statusPrefix(row.status);map.get(key).values[prefix]=(map.get(key).values[prefix]||0)+number(row.valorUsd);
+  });
+  return Array.from(map.values());
+}
+
 function analyze(data,creditFilters,requestFilters){
   const credits=filterCredits(data.creditos||[],creditFilters).filter(row=>number(row.saldo)>0);
   const requests=filterRequisitions(data.requisicoes||[],requestFilters);
@@ -199,6 +248,8 @@ function analyze(data,creditFilters,requestFilters){
     credits,requests,compatible,allocation,
     creditByOm:creditByOm(credits,(data.lookups||{}).om||{}),
     demandByOmStatus:demandByOmStatus(compatible,(data.lookups||{}).om||{}),
+    creditByOmNatureza:creditByOmNatureza(credits,(data.lookups||{}).om||{}),
+    demandByOmNaturezaStatus:demandByOmNaturezaStatus(compatible,(data.lookups||{}).om||{}),
     summary:{
       ...allocation.summary,
       demandaCompativel:compatible.reduce((sum,row)=>sum+number(row.valorUsd),0),
@@ -210,6 +261,7 @@ function analyze(data,creditFilters,requestFilters){
 
 root.CABW_COMPAT_ENGINE={
   STATUS_ORDER,STATUS_COLORS,statusPrefix,filterCredits,filterRequisitions,buildPools,
-  allocateMapApproved,compatibleRequests,creditByOm,demandByOmStatus,analyze
+  allocateMapApproved,compatibleRequests,creditByOm,demandByOmStatus,
+  omNaturezaKey,creditByOmNatureza,demandByOmNaturezaStatus,destinationCredits,planTransfers,analyze
 };
 })(typeof window!=='undefined'?window:globalThis);

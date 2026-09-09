@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-1">
+  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-2">
 </head>
 <body class="compat-page">
 <nav class="navbar navbar-expand-lg navbar-dark cabw-navbar" aria-label="Navegação principal">
@@ -63,7 +63,7 @@
     <aside class="compat-card compat-report" aria-labelledby="reportTitle">
       <span class="compat-report__icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
       <h2 id="reportTitle">Relatório de insights para emprego do crédito</h2>
-      <p>Selecione simultaneamente OM requisitante e ação orçamentária. O relatório reunirá tabelas, gráficos e planos objetivos de emprego ou realocação.</p>
+      <p>Selecione simultaneamente OM requisitante e ação orçamentária para obter um resumo executivo do crédito, demanda e rotas de realocação.</p>
       <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="reportOm"></select></label>
       <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="reportAcao"></select></label>
       <button class="compat-report__button" id="generateCompatReport" type="button"><i class="bi bi-printer"></i> Gerar relatório</button>
@@ -78,26 +78,26 @@
     <article class="compat-kpi"><span>Saldo após potencial</span><strong id="kpiCompatRemaining">US$ 0,00</strong><small>Crédito disponível menos o empenho potencial calculado.</small></article>
   </section>
 
-  <div class="compat-section-heading"><div><h2>Crédito e requisições compatíveis por OM</h2><p>Os gráficos usam a mesma ordem de OM para permitir comparação direta.</p></div><div class="compat-method">Dígitos compartilhados são rateados igualmente entre as OM indicadas, preservando o saldo total. A requisição entra no gráfico quando existe crédito da mesma OM e natureza suficiente para o seu valor individual.</div></div>
+  <div class="compat-section-heading"><div><h2>Crédito e requisições por OM e natureza de despesa</h2><p>Cada linha representa a mesma combinação de OM requisitante e natureza nos dois gráficos.</p></div><div class="compat-method">As categorias, a ordem das barras e a escala monetária são idênticas nos dois lados. Assim, a diferença visual entre saldo e demanda evidencia diretamente sobra ou falta de crédito.</div></div>
   <section class="compat-aligned">
-    <article class="compat-chart-card"><h3>Crédito disponível da OM</h3><p>Saldos filtrados, do maior para o menor valor.</p><div class="compat-chart" id="chartCompatCredit"></div></article>
-    <article class="compat-chart-card"><h3>Requisições compatíveis por situação</h3><p>Barras empilhadas com os valores das requisições por etapa anterior ao empenho.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
+    <article class="compat-chart-card"><h3>Saldo dos dígitos por OM e natureza</h3><p>Soma dos saldos filtrados em cada combinação, do maior para o menor.</p><div class="compat-chart" id="chartCompatCredit"></div></article>
+    <article class="compat-chart-card"><h3>Requisições por OM, natureza e situação</h3><p>Soma dos valores, empilhada por situação, nas mesmas categorias e escala do crédito.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
   </section>
 
   <div class="compat-section-heading"><div><h2>Planos de ação para maximização do empenho</h2><p>Os valores respeitam o saldo finito de cada dígito e não são contados em mais de uma ação.</p></div></div>
   <section class="compat-plan-grid">
     <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">A</span><h3>Empenho imediato</h3></div><div class="compat-plan__total" id="totalImmediate">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>Requisição</th><th>OM</th><th>ND</th><th>Projeto</th><th>Valor</th></tr></thead><tbody id="tableImmediate"></tbody></table></div></article>
-    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">B</span><h3>Realocação entre projetos</h3></div><div class="compat-plan__total" id="totalProjectMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Origem → destino</th><th>PI</th><th>Valor</th></tr></thead><tbody id="tableProjectMove"></tbody></table></div></article>
-    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">C</span><h3>Realocação entre Planos Internos</h3></div><div class="compat-plan__total" id="totalPiMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>PI origem → destino</th><th>Projeto</th><th>Valor</th></tr></thead><tbody id="tablePiMove"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">B</span><h3>Realocação entre projetos</h3></div><div class="compat-plan__total" id="totalProjectMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>Projeto origem → destino</th><th>Valor</th></tr></thead><tbody id="tableProjectMove"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">C</span><h3>Realocação entre Planos Internos</h3></div><div class="compat-plan__total" id="totalPiMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Valor</th></tr></thead><tbody id="tablePiMove"></tbody></table></div></article>
   </section>
   <p class="compat-source" id="compatSource">Fontes: digitos.xlsx e requisicoes.xlsx.</p>
 </main>
 
 <script src="auth.js?v=auth-cabw-2026"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<script src="compatibilizacao-data.js?v=20260909-1"></script>
-<script src="compatibilizacao-engine.js?v=20260909-1"></script>
-<script src="compatibilizacao-panel.js?v=20260909-1"></script>
+<script src="compatibilizacao-data.js?v=20260909-2"></script>
+<script src="compatibilizacao-engine.js?v=20260909-2"></script>
+<script src="compatibilizacao-panel.js?v=20260909-2"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

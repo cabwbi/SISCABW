@@ -83,21 +83,35 @@ function renderTerms(){
 function addTerm(){const input=$('#filterReqText');const term=String(input.value||'').trim();if(term&&!requestTerms.includes(term))requestTerms.push(term);input.value='';renderTerms();render();}
 
 function statusLabel(prefix){return {'M-':'Mapa aprovado','G-':'Mapa gerado','C-':'Em cotação','P-':'Pronto para cotação','I-':'Inserida para avaliação'}[prefix]||prefix;}
-function shortOm(value){const text=String(value||'');return text.length>32?text.slice(0,32)+'…':text;}
-function chartLayout(title,height){return {height,margin:{l:168,r:24,t:24,b:55},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Montserrat,Arial,sans-serif',color:'#16345e',size:11},xaxis:{title,gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s'},yaxis:{automargin:true,fixedrange:true},legend:{orientation:'h',x:0,y:1.12,font:{size:10}},barmode:'stack',hoverlabel:{namelength:-1}};}
+function shortCategory(value){const text=String(value||'');return text.length>39?text.slice(0,39)+'…':text;}
+function chartLayout(title,height,maxValue){return {height,margin:{l:210,r:24,t:24,b:55},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'Montserrat,Arial,sans-serif',color:'#16345e',size:11},xaxis:{title,gridcolor:'#e7edf5',zeroline:false,tickprefix:'US$ ',tickformat:',.2s',range:[0,maxValue],rangemode:'tozero',fixedrange:true},yaxis:{automargin:true,fixedrange:true},legend:{orientation:'h',x:0,y:1.12,font:{size:10}},barmode:'stack',hoverlabel:{namelength:-1}};}
 function chartSeries(analysis){
-  const demandMap=new Map(analysis.demandByOmStatus.map(row=>[row.omCodigo,row]));
-  const order=analysis.creditByOm.map(row=>row.omCodigo);const labels=order.map(code=>shortOm((analysis.creditByOm.find(row=>row.omCodigo===code)||demandMap.get(code)||{}).label||code));
-  const full=order.map(code=>(analysis.creditByOm.find(row=>row.omCodigo===code)||demandMap.get(code)||{}).label||code);
-  return {order,labels,full,demandMap};
+  const creditRows=analysis.creditByOmNatureza||[];const demandRows=analysis.demandByOmNaturezaStatus||[];
+  const creditMap=new Map(creditRows.map(row=>[row.key,row]));const demandMap=new Map(demandRows.map(row=>[row.key,row]));
+  const keys=unique([...creditRows.map(row=>row.key),...demandRows.map(row=>row.key)]);
+  const order=keys.sort((a,b)=>{
+    const av=Number(creditMap.get(a)?.valor||0),bv=Number(creditMap.get(b)?.valor||0);
+    return bv-av||a.localeCompare(b,'pt-BR');
+  });
+  const full=order.map(key=>{const row=creditMap.get(key)||demandMap.get(key)||{};return `${row.label||row.omCodigo||key} · ND ${row.natureza||'N/I'}`;});
+  const labels=full.map(shortCategory);
+  const creditValues=order.map(key=>Number(creditMap.get(key)?.valor||0));
+  const demandTotals=order.map(key=>engine.STATUS_ORDER.reduce((sum,prefix)=>sum+Number((demandMap.get(key)?.values||{})[prefix]||0),0));
+  const greatest=Math.max(0,...creditValues,...demandTotals);const sharedMax=greatest>0?greatest*1.08:1;
+  return {order,labels,full,creditMap,demandMap,creditValues,demandTotals,sharedMax};
 }
 async function drawCharts(analysis,creditTarget,requestTarget,exportMode){
   if(!window.Plotly)return;
-  const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedFull=series.full.slice().reverse();const reversedCodes=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
-  const creditValues=reversedCodes.map(code=>{const row=analysis.creditByOm.find(item=>item.omCodigo===code);return row?row.valor:0;});
-  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedLabels,x:creditValues,customdata:reversedFull,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br>Crédito disponível: %{x:$,.2f}<extra></extra>'}],chartLayout('Crédito disponível',height),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
-  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedLabels,x:reversedCodes.map(code=>Number((series.demandMap.get(code)?.values||{})[prefix]||0)),customdata:reversedFull,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
-  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  const series=chartSeries(analysis);const reversedLabels=series.labels.slice().reverse();const reversedFull=series.full.slice().reverse();const reversedKeys=series.order.slice().reverse();const height=Math.max(exportMode?520:430,series.order.length*27+120);
+  const creditValues=reversedKeys.map(key=>Number(series.creditMap.get(key)?.valor||0));
+  await Plotly.newPlot(creditTarget,[{type:'bar',orientation:'h',showlegend:false,y:reversedLabels,x:creditValues,customdata:reversedFull,marker:{color:'#003676'},text:creditValues.map(money),textposition:'auto',hovertemplate:'%{customdata}<br>Saldo dos dígitos: %{x:$,.2f}<extra></extra>'}],chartLayout('Saldo dos dígitos',height,series.sharedMax),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversedLabels,x:reversedKeys.map(key=>Number((series.demandMap.get(key)?.values||{})[prefix]||0)),customdata:reversedFull,marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{customdata}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
+  await Plotly.newPlot(requestTarget,traces,chartLayout('Valor das requisições',height,series.sharedMax),{displayModeBar:false,responsive:!exportMode,staticPlot:Boolean(exportMode)});
+}
+
+function transferText(row){
+  const transfers=(row.transfers||[]).map(item=>`${item.origemDigito||'N/I'} → ${(item.destinoDigitos||[]).join(', ')||'definir destino'}`);
+  return unique(transfers).join('; ')||'Definir dígitos de origem e destino';
 }
 
 function planRows(plans,stage){return plans.filter(row=>row.stage===stage).sort((a,b)=>b.valorUsd-a.valorUsd);}
@@ -109,8 +123,8 @@ function renderPlans(analysis){
   $('#totalProjectMove').textContent=money(project.reduce((sum,row)=>sum+row.valorUsd,0));
   $('#totalPiMove').textContent=money(pi.reduce((sum,row)=>sum+row.valorUsd,0));
   $('#tableImmediate').innerHTML=immediate.length?immediate.slice(0,200).map(row=>`<tr title="${esc(row.descricao)}"><td>${esc(row.requisicao)}</td><td>${esc(row.om)}</td><td>${esc(row.natureza)}</td><td>${esc(row.projetoLabel||row.projeto)}</td><td>${money(row.valorUsd)}</td></tr>`).join(''):emptyRow(5,'Nenhuma requisição integralmente coberta sem realocação.');
-  $('#tableProjectMove').innerHTML=project.length?project.slice(0,200).map(row=>{const origins=unique(row.sources.flatMap(source=>source.projetos||[]).filter(code=>code!==row.projeto)).join(', ')||'Projeto compartilhado';const sourcePi=unique(row.sources.map(source=>source.planoInterno)).join(', ');return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(origins)} → ${esc(row.projeto)}</td><td>${esc(sourcePi||row.destinoPi)}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(4,'Nenhuma realocação entre projetos necessária.');
-  $('#tablePiMove').innerHTML=pi.length?pi.slice(0,200).map(row=>{const sourcePi=unique(row.sources.map(source=>source.planoInterno)).join(', ')||'Não informado';return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(sourcePi)} → ${esc(row.destinoPi)}</td><td>${esc(row.projetoLabel||row.projeto)}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(4,'Nenhuma realocação entre Planos Internos necessária.');
+  $('#tableProjectMove').innerHTML=project.length?project.slice(0,200).map(row=>{const origins=unique(row.sources.flatMap(source=>source.projetos||[]).filter(code=>code!==row.projeto)).join(', ')||'Projeto compartilhado';return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(transferText(row))}</td><td>${esc(origins)} → ${esc(row.projeto)}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(4,'Nenhuma realocação entre projetos necessária.');
+  $('#tablePiMove').innerHTML=pi.length?pi.slice(0,200).map(row=>{const sourcePi=unique(row.sources.map(source=>source.planoInterno)).join(', ')||'Não informado';return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(transferText(row))}</td><td>${esc(sourcePi)} → ${esc(row.destinoPi)}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(4,'Nenhuma realocação entre Planos Internos necessária.');
 }
 function render(){
   if(!engine){$('#compatFilterStatus').textContent='Mecanismo de compatibilidade indisponível.';return;}
@@ -135,60 +149,36 @@ function reportAnalysis(){
   cf.om=mergeSelection(cf.om,reportOms);cf.acao=mergeSelection(cf.acao,reportActions);rf.om=mergeSelection(rf.om,reportOms);
   return {analysis:engine.analyze(data,cf,rf),reportOms,reportActions};
 }
-function reportStyles(){return `<style>body{font-family:Arial,sans-serif;color:#102d56;margin:28px}h1{margin:0;color:#00265f;font-size:26px}h2{margin:25px 0 8px;padding-bottom:6px;border-bottom:2px solid #ffd200;color:#00265f;font-size:17px}.meta{color:#607089;margin-top:6px}.note{padding:10px 12px;background:#eef4fb;border-left:4px solid #003676;font-size:12px;line-height:1.45}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.card{padding:10px;border:1px solid #d9e2ef;border-radius:9px;background:#f8fbff}.card span{display:block;color:#5c687b;font-size:10px;font-weight:bold;text-transform:uppercase}.card strong{display:block;margin-top:5px;color:#00265f;font-size:16px}.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}.charts img{width:100%;border:1px solid #dfe7f1;border-radius:8px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{padding:6px;border:1px solid #dce4ef;vertical-align:top}th{background:#003676;color:#fff;text-align:left}.action{font-weight:bold;color:#003676}.print{position:sticky;top:0;margin-bottom:12px;padding:8px 0;background:#fff}.print button{padding:9px 13px;border:0;border-radius:7px;background:#003676;color:#fff;font-weight:bold}@media print{body{margin:13mm}.print{display:none}.charts,.cards{break-inside:avoid}h2{break-after:avoid}}</style>`;}
-function creditReportRows(analysis){
-  const byDigit=new Map(analysis.credits.map(row=>[row.digito,row]));const rows=[];
-  engine.buildPools(analysis.credits).forEach(pool=>{const credit=byDigit.get(pool.digito)||{};rows.push({om:(data.lookups.om||{})[pool.om]||pool.om,acao:pool.acao,natureza:pool.natureza,pi:pool.planoInterno,projetos:(credit.projetosLabels||credit.projetos||[]).join(', ')||'Não informado',saldo:pool.original});});
-  return rows.sort((a,b)=>b.saldo-a.saldo);
+function reportStyles(){return `<style>body{font-family:Arial,sans-serif;color:#102d56;margin:24px}h1{margin:0;color:#00265f;font-size:23px}h2{margin:20px 0 8px;padding-bottom:5px;border-bottom:2px solid #ffd200;color:#00265f;font-size:16px}.meta{color:#607089;margin-top:5px;font-size:11px}.note{padding:9px 11px;background:#eef4fb;border-left:4px solid #003676;font-size:11px;line-height:1.4}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.card{padding:9px;border:1px solid #d9e2ef;border-radius:8px;background:#f8fbff}.card span{display:block;color:#5c687b;font-size:9px;font-weight:bold;text-transform:uppercase}.card strong{display:block;margin-top:4px;color:#00265f;font-size:15px}.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.charts img{width:100%;border:1px solid #dfe7f1;border-radius:7px}table{width:100%;border-collapse:collapse;font-size:9.5px}th,td{padding:5px;border:1px solid #dce4ef;vertical-align:top}th{background:#003676;color:#fff;text-align:left}.action{font-weight:bold;color:#003676}.muted{color:#65738a;font-size:10px}.print{position:sticky;top:0;margin-bottom:10px;padding:7px 0;background:#fff}.print button{padding:8px 12px;border:0;border-radius:7px;background:#003676;color:#fff;font-weight:bold}@media print{body{margin:10mm}.print{display:none}.charts,.cards,table{break-inside:avoid}h2{break-after:avoid}}</style>`;}
+function actionSummaryRows(plans){
+  return ['imediato','projeto','pi'].map(stage=>{const rows=plans.filter(row=>row.stage===stage);return {stage,label:rows[0]?.stageLabel||({imediato:'Empenho imediato',projeto:'Realocação entre projetos',pi:'Realocação entre Planos Internos'})[stage],qtd:rows.length,valor:rows.reduce((sum,row)=>sum+Number(row.valorUsd||0),0)};});
 }
-function requestReportRows(analysis){
-  const map=new Map();analysis.compatible.forEach(row=>{const key=row.natureza+'|'+row.status;if(!map.has(key))map.set(key,{natureza:row.natureza,status:row.status,qtd:0,valor:0});const item=map.get(key);item.qtd++;item.valor+=Number(row.valorUsd||0);});
-  return Array.from(map.values()).sort((a,b)=>a.natureza.localeCompare(b.natureza)||a.status.localeCompare(b.status));
-}
-function planReportTable(plans){
-  return plans.length?plans.map(row=>`<tr><td class="action">${esc(row.stageLabel)}</td><td>${esc(row.requisicao)}</td><td>${esc(row.om)}</td><td>${esc(row.natureza)}</td><td>${esc(row.projetoLabel||row.projeto)}</td><td>${esc(unique(row.sources.map(source=>source.planoInterno)).join(', '))}</td><td>${money(row.valorUsd)}</td></tr>`).join(''):`<tr><td colspan="7">Nenhuma ação integralmente financiável com os filtros selecionados.</td></tr>`;
-}
-function creditDimensionRows(analysis,dimension){
-  const creditByDigit=new Map(analysis.credits.map(row=>[row.digito,row]));const totals=new Map();
-  engine.buildPools(analysis.credits).forEach(pool=>{
-    const credit=creditByDigit.get(pool.digito)||{};let labels=[];
-    if(dimension==='om')labels=[(data.lookups.om||{})[pool.om]||pool.om];
-    else if(dimension==='acao')labels=[pool.acao||'Não informada'];
-    else if(dimension==='natureza')labels=[pool.natureza||'Não informada'];
-    else if(dimension==='pi')labels=[pool.planoInterno||'Não informado'];
-    else labels=(credit.projetosLabels||credit.projetos||[]).length?(credit.projetosLabels||credit.projetos):['Sem projeto'];
-    const share=pool.original/labels.length;labels.forEach(label=>totals.set(label,(totals.get(label)||0)+share));
-  });
-  return Array.from(totals,([label,value])=>({label,value})).sort((a,b)=>b.value-a.value);
-}
-async function drawReportBar(element,rows,title){
-  const top=rows.filter(row=>row.value>0).slice(0,20).reverse();const labels=top.map(row=>row.label.length>34?row.label.slice(0,34)+'…':row.label);
-  await Plotly.newPlot(element,[{type:'bar',orientation:'h',showlegend:false,y:labels,x:top.map(row=>row.value),customdata:top.map(row=>row.label),marker:{color:'#003676'},hovertemplate:'%{customdata}<br>Crédito: %{x:$,.2f}<extra></extra>'}],{height:520,margin:{l:185,r:22,t:48,b:48},title:{text:title,font:{size:16,color:'#00265f'}},paper_bgcolor:'#fff',plot_bgcolor:'#fff',font:{family:'Arial',size:11,color:'#16345e'},xaxis:{title:'Crédito disponível',gridcolor:'#e7edf5',tickprefix:'US$ ',tickformat:',.2s'},yaxis:{automargin:true}}, {displayModeBar:false,staticPlot:true});
-}
-async function drawReportRequestNature(element,analysis){
-  const natures=unique(analysis.compatible.map(row=>row.natureza)).sort();const reversed=natures.slice().reverse();
-  const traces=engine.STATUS_ORDER.map(prefix=>({type:'bar',orientation:'h',name:statusLabel(prefix),y:reversed,x:reversed.map(nature=>analysis.compatible.filter(row=>row.natureza===nature&&engine.statusPrefix(row.status)===prefix).reduce((sum,row)=>sum+Number(row.valorUsd||0),0)),marker:{color:engine.STATUS_COLORS[prefix]},hovertemplate:`%{y}<br>${statusLabel(prefix)}: %{x:$,.2f}<extra></extra>`}));
-  await Plotly.newPlot(element,traces,{height:520,margin:{l:90,r:22,t:48,b:48},title:{text:'Requisições por natureza e situação',font:{size:16,color:'#00265f'}},paper_bgcolor:'#fff',plot_bgcolor:'#fff',font:{family:'Arial',size:11,color:'#16345e'},xaxis:{title:'Valor das requisições',gridcolor:'#e7edf5',tickprefix:'US$ ',tickformat:',.2s'},yaxis:{automargin:true},barmode:'stack',legend:{orientation:'h',x:0,y:1.14,font:{size:9}}},{displayModeBar:false,staticPlot:true});
+function transferReportRows(plans){
+  const map=new Map();
+  plans.filter(row=>row.stage==='projeto'||row.stage==='pi').forEach(row=>(row.transfers||[]).forEach(item=>{
+    const destinos=(item.destinoDigitos||[]).join(', ')||'Definir destino';const destinoPi=(item.destinoPis||[]).join(', ')||row.destinoPi||'Definir PI';
+    const key=[row.stage,row.omCodigo,row.natureza,item.origemDigito,destinos,item.origemPi,destinoPi,row.projeto].join('|');
+    if(!map.has(key))map.set(key,{stageLabel:row.stageLabel,om:row.om,natureza:row.natureza,origem:item.origemDigito,destino:destinos,origemPi:item.origemPi,destinoPi,projeto:row.projetoLabel||row.projeto,requisicoes:new Set(),valor:0});
+    const target=map.get(key);target.requisicoes.add(row.requisicao);target.valor+=Number(item.valor||0);
+  }));
+  return Array.from(map.values()).sort((a,b)=>a.stageLabel.localeCompare(b.stageLabel)||b.valor-a.valor);
 }
 async function makeReportImages(analysis){
-  const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;width:2300px;background:#fff';const divs=Array.from({length:7},()=>document.createElement('div'));divs.forEach(div=>{div.style.width='1050px';host.appendChild(div);});document.body.appendChild(host);
+  const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;width:2300px;background:#fff';const divs=Array.from({length:2},()=>document.createElement('div'));divs.forEach(div=>{div.style.width='1050px';host.appendChild(div);});document.body.appendChild(host);
   try{
     await drawCharts(analysis,divs[0],divs[1],true);
-    await drawReportBar(divs[2],creditDimensionRows(analysis,'acao'),'Crédito disponível por ação orçamentária');
-    await drawReportBar(divs[3],creditDimensionRows(analysis,'natureza'),'Crédito disponível por natureza de despesa');
-    await drawReportBar(divs[4],creditDimensionRows(analysis,'pi'),'Crédito disponível por Plano Interno');
-    await drawReportBar(divs[5],creditDimensionRows(analysis,'projeto'),'Crédito disponível por projeto');
-    await drawReportRequestNature(divs[6],analysis);
-    return await Promise.all(divs.map((div,index)=>Plotly.toImage(div,{format:'png',width:1050,height:index<2?620:520,scale:1.25})));
+    return await Promise.all(divs.map(div=>Plotly.toImage(div,{format:'png',width:1050,height:620,scale:1.25})));
   }finally{divs.forEach(div=>{try{Plotly.purge(div);}catch(e){}});host.remove();}
 }
 async function generateReport(){
   const popup=window.open('','_blank');if(!popup){alert('Autorize pop-ups para gerar o relatório.');return;}
   popup.document.write('<p style="font-family:Arial;padding:30px">Gerando relatório de insights…</p>');
   try{
-    const bundle=reportAnalysis(),analysis=bundle.analysis,summary=analysis.summary,images=await makeReportImages(analysis),creditRows=creditReportRows(analysis),requestRows=requestReportRows(analysis);
+    const bundle=reportAnalysis(),analysis=bundle.analysis,summary=analysis.summary,images=await makeReportImages(analysis),actions=actionSummaryRows(analysis.allocation.plans),transfers=transferReportRows(analysis.allocation.plans);
     const omText=bundle.reportOms.length?bundle.reportOms.map(code=>(data.lookups.om||{})[code]||code).join('; '):'Todas as OM dos filtros analíticos';const actionText=bundle.reportActions.length?bundle.reportActions.join(', '):'Todas as ações dos filtros analíticos';
-    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de insights para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório de insights para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Relatório gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros simultâneos:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os cenários são analíticos e devem ser confirmados quanto à autorização orçamentária antes de qualquer movimentação.</p><h2>Indicadores</h2><div class="cards"><div class="card"><span>Crédito disponível</span><strong>${money(summary.creditoDisponivel)}</strong></div><div class="card"><span>Demanda compatível</span><strong>${money(summary.demandaCompativel)}</strong></div><div class="card"><span>Empenho potencial</span><strong>${money(summary.potencialEmpenho)}</strong></div><div class="card"><span>Requisições cobertas</span><strong>${integer(summary.requisicoesCobertas)}</strong></div><div class="card"><span>Saldo após potencial</span><strong>${money(summary.saldoAposPotencial)}</strong></div></div><h2>Comparação por OM</h2><div class="charts"><img src="${images[0]}"><img src="${images[1]}"></div><h2>Distribuição do crédito por ação, natureza, Plano Interno e projeto</h2><div class="charts"><img src="${images[2]}"><img src="${images[3]}"><img src="${images[4]}"><img src="${images[5]}"></div><h2>Crédito disponível por OM, ação, natureza, PI e projeto</h2><table><thead><tr><th>OM requisitante</th><th>Ação</th><th>Natureza</th><th>Plano Interno</th><th>Projeto</th><th>Crédito disponível</th></tr></thead><tbody>${creditRows.length?creditRows.map(row=>`<tr><td>${esc(row.om)}</td><td>${esc(row.acao)}</td><td>${esc(row.natureza)}</td><td>${esc(row.pi)}</td><td>${esc(row.projetos)}</td><td>${money(row.saldo)}</td></tr>`).join(''):'<tr><td colspan="6">Sem crédito nos filtros selecionados.</td></tr>'}</tbody></table><h2>Situação e valores das requisições por natureza de despesa</h2><img style="width:100%;border:1px solid #dfe7f1;border-radius:8px" src="${images[6]}"><table><thead><tr><th>Natureza</th><th>Situação</th><th>Quantidade</th><th>Valor</th></tr></thead><tbody>${requestRows.length?requestRows.map(row=>`<tr><td>${esc(row.natureza)}</td><td>${esc(row.status)}</td><td>${integer(row.qtd)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="4">Sem requisições compatíveis.</td></tr>'}</tbody></table><h2>Plano de ação objetivo</h2><table><thead><tr><th>Ação</th><th>Requisição</th><th>OM</th><th>Natureza</th><th>Projeto</th><th>PI de origem</th><th>Valor</th></tr></thead><tbody>${planReportTable(analysis.allocation.plans)}</tbody></table></body></html>`;
+    const actionBody=actions.map(row=>`<tr><td class="action">${esc(row.label)}</td><td>${integer(row.qtd)}</td><td>${money(row.valor)}</td></tr>`).join('');
+    const transferBody=transfers.length?transfers.map(row=>`<tr><td class="action">${esc(row.stageLabel)}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.origem)} → ${esc(row.destino)}</td><td>${esc(row.origemPi||'N/I')} → ${esc(row.destinoPi)}</td><td>${esc(row.projeto)}</td><td>${integer(row.requisicoes.size)}</td><td>${money(row.valor)}</td></tr>`).join(''):'<tr><td colspan="7">Nenhuma realocação necessária nos filtros selecionados.</td></tr>';
+    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório executivo para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório executivo para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Os cenários devem ser confirmados quanto à autorização orçamentária antes de qualquer movimentação.</p><div class="cards"><div class="card"><span>Crédito disponível</span><strong>${money(summary.creditoDisponivel)}</strong></div><div class="card"><span>Demanda compatível</span><strong>${money(summary.demandaCompativel)}</strong></div><div class="card"><span>Empenho potencial</span><strong>${money(summary.potencialEmpenho)}</strong></div><div class="card"><span>Requisições cobertas</span><strong>${integer(summary.requisicoesCobertas)}</strong></div><div class="card"><span>Saldo após potencial</span><strong>${money(summary.saldoAposPotencial)}</strong></div></div><h2>Crédito × demanda por OM e natureza de despesa</h2><div class="charts"><img src="${images[0]}"><img src="${images[1]}"></div><p class="muted">Os gráficos usam as mesmas categorias, ordem e escala monetária.</p><h2>Resumo das ações</h2><table><thead><tr><th>Ação</th><th>Requisições</th><th>Valor</th></tr></thead><tbody>${actionBody}</tbody></table><h2>Realocações recomendadas</h2><table><thead><tr><th>Ação</th><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Projeto destino</th><th>Req.</th><th>Valor</th></tr></thead><tbody>${transferBody}</tbody></table><p class="muted">As linhas consolidam requisições com a mesma rota orçamentária. Valores correspondem à parcela proveniente de cada dígito de origem.</p></body></html>`;
     popup.document.open();popup.document.write(html);popup.document.close();
   }catch(error){console.error(error);popup.document.body.innerHTML='<p style="font-family:Arial;padding:30px;color:#8b1a1a">Não foi possível gerar o relatório. Recarregue o painel e tente novamente.</p>';}
 }

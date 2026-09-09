@@ -9,8 +9,8 @@
   </style>
 </head>
 <body><main class="wrap"><h1>Teste de aceitação — Compatibilização de créditos e processos</h1><div class="summary" id="summary">Executando verificações…</div><div id="results"></div><p class="meta" id="meta"></p></main>
-<script src="compatibilizacao-data.js?v=20260909-1"></script>
-<script src="compatibilizacao-engine.js?v=20260909-1"></script>
+<script src="compatibilizacao-data.js?v=20260909-2"></script>
+<script src="compatibilizacao-engine.js?v=20260909-2"></script>
 <script>
 (async function(){
   const tests=[];const add=(name,ok,detail)=>tests.push({name,ok:Boolean(ok),detail});
@@ -25,12 +25,19 @@
     add('Nenhum dígito foi sobrealocado',[...used].every(([d,v])=>v<=(available.get(d)||0)+tol),`${used.size} dígitos utilizados nos cenários`);
     add('Ação orçamentária preservada por requisição',all.allocation.plans.every(p=>new Set(p.sources.map(s=>s.acao)).size===1),'Nenhuma requisição combina ações distintas');
     add('Realocação entre projetos preserva o PI',all.allocation.plans.filter(p=>p.stage==='projeto').every(p=>new Set(p.sources.map(s=>s.planoInterno)).size===1),'Cenários entre projetos mantêm ação e Plano Interno');
+    add('Realocações identificam dígitos de origem e destino',all.allocation.plans.filter(p=>p.stage==='projeto'||p.stage==='pi').every(p=>p.transfers?.length&&p.transfers.every(t=>t.origemDigito&&t.destinoDigitos?.length)),`${all.allocation.plans.filter(p=>p.stage==='projeto'||p.stage==='pi').length} propostas com rota de dígitos explícita`);
+    const creditComposite=all.creditByOmNatureza.reduce((sum,row)=>sum+row.valor,0);const demandComposite=all.demandByOmNaturezaStatus.reduce((sum,row)=>sum+Object.values(row.values).reduce((subtotal,value)=>subtotal+value,0),0);
+    add('Crédito consolidado por OM e natureza',Math.abs(creditComposite-all.summary.creditoDisponivel)<tol&&all.creditByOmNatureza.every(row=>row.key===E.omNaturezaKey(row.omCodigo,row.natureza)),`${all.creditByOmNatureza.length} categorias reconciliadas`);
+    add('Requisições consolidadas por OM e natureza',Math.abs(demandComposite-all.summary.demandaCompativel)<tol&&all.demandByOmNaturezaStatus.every(row=>row.key===E.omNaturezaKey(row.omCodigo,row.natureza)),`${all.demandByOmNaturezaStatus.length} categorias reconciliadas`);
     add('Escopo anterior ao empenho',D.requisicoes.every(r=>['I-','P-','C-','G-','M-'].some(prefix=>r.status.toUpperCase().startsWith(prefix))&&r.valorUsd>0),'Somente requisições com valor positivo nas cinco situações previstas');
-    const ls=E.analyze(D,{om:['LS']},{om:['LS']});add('Filtro simultâneo de OM',ls.creditByOm.every(r=>r.omCodigo==='LS')&&ls.requests.every(r=>r.omCodigo==='LS')&&ls.summary.creditoDisponivel<all.summary.creditoDisponivel,'A seleção de OM altera crédito, requisições e potencial');
+    const ls=E.analyze(D,{om:['LS']},{om:['LS']});add('Filtro simultâneo de OM',ls.creditByOmNatureza.every(r=>r.omCodigo==='LS')&&ls.requests.every(r=>r.omCodigo==='LS')&&ls.summary.creditoDisponivel<all.summary.creditoDisponivel,'A seleção de OM altera crédito, requisições e potencial');
     const a=E.analyze(D,{acao:['2048']},{}),b=E.analyze(D,{acao:['20XV']},{});add('Filtro de ação orçamentária',Math.abs(a.summary.creditoDisponivel-b.summary.creditoDisponivel)>tol,'Ações distintas retornam saldos e análises distintas');
     const pageText=await fetch('compatibilizacao.html',{cache:'no-store'}).then(r=>r.text());const page=new DOMParser().parseFromString(pageText,'text/html');
     add('Painel contém todos os filtros',page.querySelectorAll('section[aria-labelledby="creditFiltersTitle"] select').length===7&&page.querySelectorAll('section[aria-labelledby="requestFiltersTitle"] select').length===4&&page.querySelector('#filterReqText'),'7 filtros de crédito e 5 filtros de requisições');
     add('Relatório possui filtros simultâneos',page.querySelector('#reportOm')&&page.querySelector('#reportAcao')&&page.querySelector('#generateCompatReport'),'OM requisitante + ação orçamentária + geração de relatório');
+    const panelText=await fetch('compatibilizacao-panel.js',{cache:'no-store'}).then(r=>r.text());
+    add('Gráficos usam uma escala monetária comum',panelText.includes('series.sharedMax')&&panelText.match(/chartLayout\([^)]*series\.sharedMax\)/g)?.length===2,'Os dois gráficos recebem o mesmo limite máximo calculado');
+    add('Relatório executivo conciso',panelText.includes('Resumo das ações')&&panelText.includes('Realocações recomendadas')&&!panelText.includes('Distribuição do crédito por ação, natureza, Plano Interno e projeto'),'Relatório reduzido aos indicadores, comparação e ações prioritárias');
     const indexText=await fetch('index.html',{cache:'no-store'}).then(r=>r.text());const index=new DOMParser().parseFromString(indexText,'text/html');const cards=[...index.querySelectorAll('.home-card')];
     add('Card posicionado ao lado de Crédito Disponível',cards[0]?.getAttribute('href')==='credito.html'&&cards[1]?.getAttribute('href')==='compatibilizacao.html','O novo card ocupa a segunda posição da grade inicial');
   }catch(error){add('Execução geral',false,error&&error.message?error.message:String(error));}
