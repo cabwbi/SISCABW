@@ -99,6 +99,24 @@
         "atualizadoEm": "2026-09-08T23:42:28Z"
       }
     ],
+    "compatibilizacao": [
+      {
+        "arquivo": "digitos(2).XLS",
+        "atualizadoEm": "2026-09-08T23:42:27Z"
+      },
+      {
+        "arquivo": "requisicoes(2).XLS",
+        "atualizadoEm": "2026-09-08T23:42:28Z"
+      },
+      {
+        "arquivo": "descricao_OM(2).XLS",
+        "atualizadoEm": "2026-09-08T23:42:27Z"
+      },
+      {
+        "arquivo": "descricao_projetos(2).XLS",
+        "atualizadoEm": "2026-09-08T23:42:27Z"
+      }
+    ],
     "processos": [
       {
         "arquivo": "requisicoes(2).XLS",

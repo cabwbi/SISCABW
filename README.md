@@ -1,5 +1,16 @@
 # SISCABW — documentação consolidada
 
+## Evolução de 09/09/2026 — Compatibilização de créditos e processos
+
+- Novo card ao lado de `Crédito Disponível`, com cálculo automático do valor estimado de empenho potencial.
+- Novo painel `compatibilizacao.html`, alimentado por `digitos.xlsx` e `requisicoes.xlsx`.
+- Filtros multisseleção para créditos e requisições, comparação gráfica alinhada por OM e relatório de insights filtrável simultaneamente por OM requisitante e ação orçamentária.
+- Mecanismo executado integralmente no navegador: cada saldo de dígito é tratado como recurso finito e não pode ser utilizado duas vezes.
+- Ordem de compatibilização dos mapas aprovados: correspondência direta por OM + ação + natureza + projeto; realocação entre projetos dentro da mesma ação e PI; realocação entre Planos Internos dentro da mesma ação. OM, ação e natureza são preservadas em todas as etapas.
+- Quando um dígito atende mais de uma OM, o saldo é rateado igualmente entre elas para impedir duplicidade nos totais.
+- O gerador embarcado passou a criar também `compatibilizacao-data.js`, mantendo a atualização futura pelas nove planilhas Excel.
+- Após a publicação, `CHECK_COMPATIBILIZACAO.html` executa no próprio GitHub Pages os testes de aceite do mecanismo, filtros, integridade das alocações e posição do card.
+
 Este arquivo reúne os 48 documentos `README_*.md` presentes no pacote de referência de 17/08/2026. As seções abaixo preservam o conteúdo histórico original; datas, nomes de fontes e totais nelas registrados podem representar versões anteriores do painel.
 
 ## Estado do pacote consolidado

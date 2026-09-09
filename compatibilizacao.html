@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+  <title>Painel CABW - Compatibilização de créditos e processos</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="compatibilizacao.css?v=20260909-1">
+</head>
+<body class="compat-page">
+<nav class="navbar navbar-expand-lg navbar-dark cabw-navbar" aria-label="Navegação principal">
+  <a class="navbar-brand" href="index.html">Painel CABW</a>
+  <img src="cabw_logo.png" alt="Brasão da Comissão Aeronáutica Brasileira em Washington" class="header-logo">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação"><span class="navbar-toggler-icon"></span></button>
+  <div class="collapse navbar-collapse" id="navbarNav"><ul class="navbar-nav mr-auto">
+    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-fill"></i><span>Início</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="credito.html"><i class="bi bi-bar-chart-line"></i><span>Crédito Disponível</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="contratos.html"><i class="bi bi-file-earmark-check"></i><span>Contratos</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="processos.html"><i class="bi bi-clipboard2-check"></i><span>Processos de Contratação</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="governanca.html"><i class="bi bi-diagram-3"></i><span>Governança</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="suprimento-fundos.html"><i class="bi bi-cash-coin"></i><span>Suprimento de Fundos</span></a></li>
+  </ul></div>
+</nav>
+
+<main class="compat-main">
+  <header class="compat-hero">
+    <a class="compat-back" href="index.html"><i class="bi bi-arrow-left"></i> Voltar à página principal</a>
+    <div class="compat-hero__title"><span class="compat-hero__icon"><i class="bi bi-intersect"></i></span><h1>Compatibilização de créditos e processos</h1></div>
+    <p>Ambiente analítico para comparar o crédito disponível com requisições anteriores ao empenho, identificar compatibilidades e orientar o emprego do crédito com base em OM, natureza de despesa, projeto, Plano Interno e ação orçamentária.</p>
+    <span class="compat-meta" id="compatGeneratedAt">Carregando data dos dados…</span>
+  </header>
+
+  <section class="compat-workbench" aria-label="Filtros e relatórios">
+    <div class="compat-filter-stack">
+      <section class="compat-panel" aria-labelledby="creditFiltersTitle">
+        <div class="compat-panel__heading"><i class="bi bi-wallet2"></i><div><h2 id="creditFiltersTitle">Filtros de créditos</h2><p>Selecione uma ou mais opções da planilha de dígitos. Somente saldos positivos compõem o crédito disponível.</p></div></div>
+        <div class="compat-filter-grid">
+          <label class="compat-field"><span>OM detentora do crédito</span><select class="compat-native" multiple id="filterCreditOm"></select></label>
+          <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="filterCreditAcao"></select></label>
+          <label class="compat-field"><span>Plano Interno</span><select class="compat-native" multiple id="filterCreditPi"></select></label>
+          <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterCreditNatureza"></select></label>
+          <label class="compat-field"><span>Projeto</span><select class="compat-native" multiple id="filterCreditProjeto"></select></label>
+          <label class="compat-field"><span>Fonte</span><select class="compat-native" multiple id="filterCreditFonte"></select></label>
+          <label class="compat-field"><span>Objetivo resumido do dígito</span><select class="compat-native" multiple id="filterCreditObjetivo"></select></label>
+        </div>
+      </section>
+
+      <section class="compat-panel" aria-labelledby="requestFiltersTitle">
+        <div class="compat-panel__heading"><i class="bi bi-card-checklist"></i><div><h2 id="requestFiltersTitle">Filtros de requisições</h2><p>Refine simultaneamente as requisições em avaliação, cotação, mapa e mapa aprovado.</p></div></div>
+        <div class="compat-filter-grid compat-filter-grid--requests">
+          <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="filterReqOm"></select></label>
+          <label class="compat-field"><span>Projeto</span><select class="compat-native" multiple id="filterReqProjeto"></select></label>
+          <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterReqNatureza"></select></label>
+          <label class="compat-field"><span>Prioridade</span><select class="compat-native" multiple id="filterReqPrioridade"></select></label>
+          <label class="compat-field"><span>Nomenclatura / descrição</span><div class="compat-term"><input id="filterReqText" type="search" placeholder="Digite e pressione Enter"><button id="addReqTerm" type="button" title="Adicionar termo"><i class="bi bi-plus-lg"></i></button></div><div class="compat-term__chips" id="reqTermChips"></div></label>
+        </div>
+        <div class="compat-filters-footer"><button class="compat-reset" id="resetCompatFilters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpar todos os filtros</button><span class="compat-filter-status" id="compatFilterStatus">Preparando análise…</span></div>
+      </section>
+    </div>
+
+    <aside class="compat-card compat-report" aria-labelledby="reportTitle">
+      <span class="compat-report__icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
+      <h2 id="reportTitle">Relatório de insights para emprego do crédito</h2>
+      <p>Selecione simultaneamente OM requisitante e ação orçamentária. O relatório reunirá tabelas, gráficos e planos objetivos de emprego ou realocação.</p>
+      <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="reportOm"></select></label>
+      <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="reportAcao"></select></label>
+      <button class="compat-report__button" id="generateCompatReport" type="button"><i class="bi bi-printer"></i> Gerar relatório</button>
+    </aside>
+  </section>
+
+  <section class="compat-kpis" aria-label="Indicadores de compatibilização">
+    <article class="compat-kpi"><span>Crédito disponível</span><strong id="kpiCompatCredit">US$ 0,00</strong><small>Saldo dos dígitos filtrados, sem duplicação entre OM.</small></article>
+    <article class="compat-kpi"><span>Demanda compatível</span><strong id="kpiCompatDemand">US$ 0,00</strong><small>Requisições com cobertura estrutural de OM, natureza e valor individual.</small></article>
+    <article class="compat-kpi compat-kpi--accent"><span>Empenho potencial</span><strong id="kpiCompatPotential">US$ 0,00</strong><small>Mapas aprovados integralmente cobertos após as três etapas da análise.</small></article>
+    <article class="compat-kpi"><span>Requisições cobertas</span><strong id="kpiCompatCount">0</strong><small>Quantidade de mapas aprovados integralmente financiáveis.</small></article>
+    <article class="compat-kpi"><span>Saldo após potencial</span><strong id="kpiCompatRemaining">US$ 0,00</strong><small>Crédito disponível menos o empenho potencial calculado.</small></article>
+  </section>
+
+  <div class="compat-section-heading"><div><h2>Crédito e requisições compatíveis por OM</h2><p>Os gráficos usam a mesma ordem de OM para permitir comparação direta.</p></div><div class="compat-method">Dígitos compartilhados são rateados igualmente entre as OM indicadas, preservando o saldo total. A requisição entra no gráfico quando existe crédito da mesma OM e natureza suficiente para o seu valor individual.</div></div>
+  <section class="compat-aligned">
+    <article class="compat-chart-card"><h3>Crédito disponível da OM</h3><p>Saldos filtrados, do maior para o menor valor.</p><div class="compat-chart" id="chartCompatCredit"></div></article>
+    <article class="compat-chart-card"><h3>Requisições compatíveis por situação</h3><p>Barras empilhadas com os valores das requisições por etapa anterior ao empenho.</p><div class="compat-chart" id="chartCompatRequests"></div></article>
+  </section>
+
+  <div class="compat-section-heading"><div><h2>Planos de ação para maximização do empenho</h2><p>Os valores respeitam o saldo finito de cada dígito e não são contados em mais de uma ação.</p></div></div>
+  <section class="compat-plan-grid">
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">A</span><h3>Empenho imediato</h3></div><div class="compat-plan__total" id="totalImmediate">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>Requisição</th><th>OM</th><th>ND</th><th>Projeto</th><th>Valor</th></tr></thead><tbody id="tableImmediate"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">B</span><h3>Realocação entre projetos</h3></div><div class="compat-plan__total" id="totalProjectMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Origem → destino</th><th>PI</th><th>Valor</th></tr></thead><tbody id="tableProjectMove"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">C</span><h3>Realocação entre Planos Internos</h3></div><div class="compat-plan__total" id="totalPiMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>PI origem → destino</th><th>Projeto</th><th>Valor</th></tr></thead><tbody id="tablePiMove"></tbody></table></div></article>
+  </section>
+  <p class="compat-source" id="compatSource">Fontes: digitos.xlsx e requisicoes.xlsx.</p>
+</main>
+
+<script src="auth.js?v=auth-cabw-2026"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="compatibilizacao-data.js?v=20260909-1"></script>
+<script src="compatibilizacao-engine.js?v=20260909-1"></script>
+<script src="compatibilizacao-panel.js?v=20260909-1"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
