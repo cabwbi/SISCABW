@@ -16,6 +16,13 @@
     "reparosCompraerExpedidos": 20,
     "outrosReparosExpedidos": 65
   },
+  "pagamentosResumo": {
+    "ano": 2026,
+    "quantidadeNlPagamento": 2233,
+    "valorNlPagamentoUsd": 87553294.0,
+    "empresasPagas": 209,
+    "fonte": "NL_requisicao.xlsx (NL PGTO preenchida) + última versão da PO em ordem_de_compra.xlsx"
+  },
   "paineis": {
     "entrada": [
       {

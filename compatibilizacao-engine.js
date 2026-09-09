@@ -103,7 +103,7 @@ function takeFromPools(candidates,amount){
     pool.remaining-=used;left-=used;
     sources.push({
       digito:pool.digito,valor:used,acao:pool.acao,planoInterno:pool.planoInterno,
-      projetos:pool.projetos.slice(),fonte:pool.fonte,objetivo:pool.objetivo
+      natureza:pool.natureza,projetos:pool.projetos.slice(),fonte:pool.fonte,objetivo:pool.objetivo
     });
   });
   return {left,sources};
@@ -124,6 +124,7 @@ function planTransfers(catalog,req,sources,stage){
       origemDigito:str(source.digito),
       destinoDigitos:unique(destinations.map(credit=>credit.digito)),
       valor:number(source.valor),
+      natureza:str(req.natureza),
       origemAcao:str(source.acao),
       origemPi:str(source.planoInterno),
       origemProjetos:unique(source.projetos),

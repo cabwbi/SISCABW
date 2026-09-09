@@ -1,5 +1,16 @@
 # SISCABW — documentação consolidada
 
+## Evolução de 09/09/2026 — detalhamento gráfico e Indicadores Financeiros
+
+- O cabeçalho do painel de compatibilização usa texto branco com prioridade sobre as regras globais, incluindo título, descrição, data e link de retorno.
+- Os dois gráficos conservam sempre a mesma linha canônica `OM requisitante + natureza de despesa`. Os botões alteram apenas os segmentos internos: crédito consolidado, por projeto ou por ação; requisições por situação ou por projeto.
+- Cada segmento de crédito corresponde a um único saldo de dígito por OM; cada segmento de demanda corresponde a uma única requisição. A escala compartilhada continua baseada no maior total da linha e não no maior segmento.
+- Tooltips do crédito exibem ação, dígito e saldo disponível; tooltips das requisições exibem projeto, número, valor e os 30 primeiros caracteres da descrição.
+- A validação cobre os três estágios de emprego do crédito — imediato, ajuste de projeto e ajuste de PI — e exige igualdade exata da natureza de despesa entre requisição, origem e destino.
+- O menu `Finanças` foi incluído nas 25 barras de navegação. O card `Indicadores Financeiros` abre o painel externo homologado em nova janela.
+- Indicadores financeiros de 2026: 2.233 NL de pagamento, US$ 87.553.294,00 e 209 empresas. A regra considera `NL PGTO` preenchida em `NL_requisicao.xlsx` e cruza a PO com sua última versão em `ordem_de_compra.xlsx`.
+- O gerador embarcado grava `pagamentosResumo` em `data-update-status.json`, mantendo os indicadores atualizáveis pelas remessas futuras das nove planilhas.
+
 ## Evolução de 09/09/2026 — Compatibilização de créditos e processos
 
 - Novo card ao lado de `Crédito Disponível`, com cálculo automático do valor estimado de empenho potencial.
