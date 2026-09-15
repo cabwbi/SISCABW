@@ -988,3 +988,12 @@ Publicação: enviar o conteúdo interno do ZIP diretamente para a raiz do repos
 ## Documento original: `README_RELATORIOS_FILTROS.md`
 
 Atualização: área de relatórios nos painéis de Visão Executiva e Contratos; filtros iniciam sem seleção; logo CABW ajustado para não sobrepor menu.
+# Correções de navegação, validade dos mapas e consolidação dos gráficos — 15/09/2026
+
+- O menu superior **Crédito Disponível** abre `credito-menu.html`, com acesso à visão executiva e à compatibilização de créditos e processos.
+- O painel de materiais/publicações apresenta **Quantidade de requisições atrasadas**, contando requisições distintas em `Empenho aprovado` com DPE posterior à data corrente, conforme regra operacional informada.
+- A compatibilização inclui filtros multisseleção de **Situação da requisição** e **Validade do mapa**.
+- Mapas aprovados são classificados como `Válido` até 60 dias após a data de abertura e `Vencido` a partir do 61º dia, usando a data de atualização dos dados como referência.
+- O botão de adição da pesquisa textual foi removido; o texto digitado passa a ser aplicado diretamente ao clicar em **Consultar** ou pressionar Enter.
+- Os gráficos consolidam os valores por categoria. Requisições e dígitos individuais aparecem apenas na tooltip, evitando uma barra por registro.
+- Os arquivos de dados da atualização de 14/09/2026 foram preservados sem alteração.

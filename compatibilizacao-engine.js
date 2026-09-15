@@ -32,6 +32,16 @@ function textMatches(row,terms){
   const haystack=(str(row.nomenclatura)+' '+str(row.descricao)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   return terms.some(term=>haystack.includes(str(term).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()));
 }
+function dateOnly(value){
+  const match=str(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match?Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3])):NaN;
+}
+function mapValidity(row,referenceDate){
+  if(statusPrefix(row&&row.status)!=='M-')return '';
+  const opened=dateOnly(row&&row.dataAbertura),reference=dateOnly(referenceDate);
+  if(!Number.isFinite(opened)||!Number.isFinite(reference))return '';
+  return Math.floor((reference-opened)/86400000)<=60?'valido':'vencido';
+}
 
 function filterCredits(credits,filters){
   const f=filters||{};
@@ -52,6 +62,8 @@ function filterRequisitions(rows,filters){
     equalsAny(row.projeto,f.projeto)&&
     equalsAny(row.natureza,f.natureza)&&
     equalsAny(row.prioridade,f.prioridade)&&
+    equalsAny(row.status,f.situacao)&&
+    equalsAny(mapValidity(row,f.dataReferencia),f.validadeMapa)&&
     textMatches(row,f.termos)
   ));
 }
@@ -261,7 +273,7 @@ function analyze(data,creditFilters,requestFilters){
 }
 
 root.CABW_COMPAT_ENGINE={
-  STATUS_ORDER,STATUS_COLORS,statusPrefix,filterCredits,filterRequisitions,buildPools,
+  STATUS_ORDER,STATUS_COLORS,statusPrefix,mapValidity,filterCredits,filterRequisitions,buildPools,
   allocateMapApproved,compatibleRequests,creditByOm,demandByOmStatus,
   omNaturezaKey,creditByOmNatureza,demandByOmNaturezaStatus,destinationCredits,planTransfers,analyze
 };

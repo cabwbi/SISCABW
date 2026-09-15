@@ -265,6 +265,16 @@
     return { absolute, percent, comparable: comparable.length };
   }
 
+  function requisitionsWithFutureDpe(rows) {
+    const now = new Date();
+    const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    return new Set(rows.filter(row => {
+      const status = norm(row.status);
+      const dpe = String(row.dpe || '').slice(0, 10);
+      return status.includes('empenho aprovado') && /^\d{4}-\d{2}-\d{2}$/.test(dpe) && dpe > today;
+    }).map(row => String(row.requisicao || row.id || '').trim()).filter(Boolean)).size;
+  }
+
   function kpiCard(label, value, icon, note, action) {
     const isDispatch = String(action || '').startsWith('repair-dispatched-');
     const heading = isDispatch
@@ -294,7 +304,7 @@
         : 'Sem valor de referência no recorte',
     ]);
     if (pageMode === 'materials') {
-      base.push(['Itens em atraso', number(sum(filteredRows, 'itensAtrasados')), 'bi-clock-history', 'Quantidade pendente com DPE vencida']);
+      base.push(['Quantidade de requisições atrasadas', number(requisitionsWithFutureDpe(filteredRows)), 'bi-clock-history', 'Requisições em Empenho aprovado com DPE posterior à data de hoje']);
     } else {
       const repaired = countReturn(filteredRows, 'Reparado');
       const ber = countReturn(filteredRows, 'BER');
