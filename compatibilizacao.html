@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="compatibilizacao.css?v=20260915-1">
+  <link rel="stylesheet" href="compatibilizacao.css?v=20260915-3">
 </head>
 <body class="compat-page">
 <nav class="navbar navbar-expand-lg navbar-dark cabw-navbar" aria-label="Navegação principal">
@@ -57,6 +57,7 @@
           <label class="compat-field"><span>Prioridade</span><select class="compat-native" multiple id="filterReqPrioridade"></select></label>
           <label class="compat-field"><span>Situação da requisição</span><select class="compat-native" multiple id="filterReqStatus"></select></label>
           <label class="compat-field"><span>Validade do mapa</span><select class="compat-native" multiple id="filterReqValidade"></select></label>
+          <label class="compat-field"><span>Ano do certame (data de abertura)</span><select class="compat-native" multiple id="filterReqAno"></select></label>
           <label class="compat-field"><span>Nomenclatura / descrição</span><div class="compat-term"><input id="filterReqText" type="search" placeholder="Filtre desde o 1º caractere"></div></label>
         </div>
         <div class="compat-filters-footer"><div class="compat-query-actions"><button class="compat-consult" id="applyCompatFilters" type="button"><i class="bi bi-search"></i> Consultar</button><button class="compat-reset" id="resetCompatFilters" type="button"><i class="bi bi-arrow-counterclockwise"></i> Limpar seleções</button></div><span class="compat-filter-status" id="compatFilterStatus" aria-live="polite">Preparando análise…</span></div>
@@ -66,7 +67,7 @@
     <aside class="compat-card compat-report" aria-labelledby="reportTitle">
       <span class="compat-report__icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
       <h2 id="reportTitle">Relatório para emprego do crédito</h2>
-      <p>Gere duas listas objetivas: potenciais empenhos imediatos e ajustes entre projetos, sempre com as requisições e os dígitos envolvidos.</p>
+      <p>Gere quatro listas objetivas por validade do mapa e nível de ajuste, sempre com as requisições e os dígitos envolvidos.</p>
       <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="reportOm"></select></label>
       <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="reportAcao"></select></label>
       <button class="compat-report__button" id="generateCompatReport" type="button"><i class="bi bi-printer"></i> Gerar relatório</button>
@@ -76,8 +77,8 @@
   <section class="compat-kpis" aria-label="Indicadores de compatibilização">
     <article class="compat-kpi"><span>Crédito disponível</span><strong id="kpiCompatCredit">US$ 0,00</strong><small>Saldo dos dígitos filtrados, sem duplicação entre OM.</small></article>
     <article class="compat-kpi"><span>Demanda compatível</span><strong id="kpiCompatDemand">US$ 0,00</strong><small>Requisições com cobertura estrutural de OM, natureza e valor individual.</small></article>
-    <article class="compat-kpi compat-kpi--accent"><span>Empenho potencial</span><strong id="kpiCompatPotential">US$ 0,00</strong><small>Mapas aprovados integralmente cobertos após as três etapas da análise.</small></article>
-    <article class="compat-kpi"><span>Requisições cobertas</span><strong id="kpiCompatCount">0</strong><small>Quantidade de mapas aprovados integralmente financiáveis.</small></article>
+    <article class="compat-kpi compat-kpi--accent"><span>Empenho potencial</span><strong id="kpiCompatPotential">US$ 0,00</strong><small>Somente mapas aprovados válidos e integralmente cobertos pela análise.</small></article>
+    <article class="compat-kpi"><span>Valor total pronto para empenho</span><strong id="kpiCompatReady">US$ 0,00</strong><small>Soma das requisições filtradas em mapa aprovado e ainda válido.</small></article>
     <article class="compat-kpi"><span>Saldo após potencial</span><strong id="kpiCompatRemaining">US$ 0,00</strong><small>Crédito disponível menos o empenho potencial calculado.</small></article>
   </section>
 
@@ -90,8 +91,9 @@
   <div class="compat-section-heading"><div><h2>Planos de ação para maximização do empenho</h2><p>Os valores respeitam o saldo finito de cada dígito; origem e destino preservam a mesma natureza de despesa da requisição.</p></div></div>
   <section class="compat-plan-grid">
     <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">A</span><h3>Empenho imediato</h3></div><div class="compat-plan__total compat-plan__total--labeled"><small>Total potencialmente consumido</small><strong id="totalImmediate">US$ 0,00</strong></div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>Requisição</th><th>OM / ND</th><th>Projeto</th><th>Dígito(s) aplicável(is) / parcela</th><th>Valor potencialmente consumido</th></tr></thead><tbody id="tableImmediate"></tbody></table></div></article>
-    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">B</span><h3>Realocação entre projetos</h3></div><div class="compat-plan__total" id="totalProjectMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>Projeto origem → destino</th><th>Valor</th></tr></thead><tbody id="tableProjectMove"></tbody></table></div></article>
-    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">C</span><h3>Realocação entre Planos Internos</h3></div><div class="compat-plan__total" id="totalPiMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Valor</th></tr></thead><tbody id="tablePiMove"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">B</span><h3>Cenário mediante revalidação do mapa</h3></div><div class="compat-plan__total compat-plan__total--labeled"><small>Valor informativo — não financiável</small><strong id="totalRevalidation">US$ 0,00</strong></div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>Requisição</th><th>OM / ND</th><th>Projeto</th><th>Dígito(s) potencialmente aplicável(is)</th><th>Valor</th></tr></thead><tbody id="tableRevalidation"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">C</span><h3>Empenho possível com eventual ajuste de projeto</h3></div><div class="compat-plan__total" id="totalProjectMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>Projeto origem → destino</th><th>Validade</th><th>Valor</th></tr></thead><tbody id="tableProjectMove"></tbody></table></div></article>
+    <article class="compat-card compat-plan"><div class="compat-plan__head"><span class="compat-plan__number">D</span><h3>Empenho possível com eventual ajuste de PI e/ou projeto</h3></div><div class="compat-plan__total" id="totalPiMove">US$ 0,00</div><div class="compat-table-wrap"><table class="compat-table"><thead><tr><th>OM / ND</th><th>Dígito origem → destino</th><th>PI origem → destino</th><th>Validade</th><th>Valor</th></tr></thead><tbody id="tablePiMove"></tbody></table></div></article>
   </section>
   <p class="compat-source" id="compatSource">Fontes: digitos.xlsx e requisicoes.xlsx.</p>
 </main>
@@ -99,8 +101,8 @@
 <script src="auth.js?v=auth-cabw-2026"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="compatibilizacao-data.js?v=20260909-3"></script>
-  <script src="compatibilizacao-engine.js?v=20260915-1"></script>
-<script src="compatibilizacao-panel.js?v=20260915-1"></script>
+  <script src="compatibilizacao-engine.js?v=20260915-3"></script>
+<script src="compatibilizacao-panel.js?v=20260915-3"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

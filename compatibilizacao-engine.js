@@ -64,6 +64,7 @@ function filterRequisitions(rows,filters){
     equalsAny(row.prioridade,f.prioridade)&&
     equalsAny(row.status,f.situacao)&&
     equalsAny(mapValidity(row,f.dataReferencia),f.validadeMapa)&&
+    equalsAny(str(row.dataAbertura).slice(0,4),f.anoCertame)&&
     textMatches(row,f.termos)
   ));
 }
@@ -146,7 +147,7 @@ function planTransfers(catalog,req,sources,stage){
   });
 }
 
-function allocateMapApproved(credits,requests,catalog){
+function allocateMapApproved(credits,requests,catalog,referenceDate){
   const pools=buildPools(credits);
   const approved=(requests||[]).filter(row=>statusPrefix(row.status)==='M-').slice().sort((a,b)=>(
     priorityRank(a.prioridade)-priorityRank(b.prioridade)||
@@ -154,43 +155,62 @@ function allocateMapApproved(credits,requests,catalog){
     str(a.dataAbertura).localeCompare(str(b.dataAbertura))||
     str(a.requisicao).localeCompare(str(b.requisicao))
   ));
-  const plans=[];const uncovered=[];
+  const plans=[];
+  function allocateStage(rows,key,label,eligible,candidatesFor){
+    const pending=[];
+    rows.forEach(req=>{
+      if(!eligible(req)){pending.push(req);return;}
+      const value=Math.max(0,number(req.valorUsd));
+      if(!value)return;
+      const candidates=candidatesFor(req,value);
+      if(candidates.reduce((sum,pool)=>sum+pool.remaining,0)+0.005<value){pending.push(req);return;}
+      const result=takeFromPools(candidates,value);
+      if(result.left>0.005){throw new Error('Falha de alocação: saldo elegível insuficiente após validação.');}
+      const sourceActions=new Set(result.sources.map(source=>source.acao));
+      const destinationPi=unique((catalog||[]).filter(credit=>(
+        containsAny(credit.omCodigos,[req.omCodigo])&&str(credit.natureza)===str(req.natureza)&&containsAny(credit.projetos,[req.projeto])
+        &&sourceActions.has(str(credit.acao))
+      )).map(credit=>credit.planoInterno)).join(', ')||'Definir PI de destino';
+      const transfers=planTransfers(catalog,req,result.sources,key);
+      plans.push({
+        stage:key,stageLabel:label,requisicao:req.requisicao,omCodigo:req.omCodigo,om:req.om,
+        natureza:req.natureza,projeto:req.projeto,projetoLabel:req.projetoLabel,prioridade:req.prioridade,
+        status:req.status,valorUsd:value,destinoPi:destinationPi,descricao:req.descricao||req.nomenclatura,
+        dataAbertura:req.dataAbertura,validadeMapa:mapValidity(req,referenceDate),sources:result.sources,transfers,
+        origemDigitos:unique(transfers.map(item=>item.origemDigito)),
+        destinoDigitos:unique(transfers.flatMap(item=>item.destinoDigitos))
+      });
+    });
+    return pending;
+  }
+  function baseAndMappings(req){
+    const base=pools.filter(pool=>pool.remaining>0&&poolMatchesBase(pool,req));
+    const mappings=targetMappings(catalog,req);
+    return {base,targetActions:new Set(mappings.map(item=>item.acao)),targetPairs:new Set(mappings.map(item=>item.acao+'|'+item.pi))};
+  }
+  let remaining=approved.slice();
+  remaining=allocateStage(remaining,'imediato','Empenho imediato',req=>mapValidity(req,referenceDate)==='valido',(req,value)=>{
+    const {base}=baseAndMappings(req);return candidateGroup(base.filter(pool=>poolMatchesProject(pool,req)),value,pool=>pool.acao||'N/I');
+  });
+  remaining=allocateStage(remaining,'projeto','Empenho possível com eventual ajuste de projeto',req=>mapValidity(req,referenceDate)==='valido',(req,value)=>{
+    const {base,targetPairs}=baseAndMappings(req);return candidateGroup(base.filter(pool=>targetPairs.has(pool.acao+'|'+pool.planoInterno)),value,pool=>(pool.acao||'N/I')+'|'+(pool.planoInterno||'N/I'));
+  });
+  remaining=allocateStage(remaining,'pi','Empenho possível com eventual ajuste de PI e/ou projeto',req=>mapValidity(req,referenceDate)==='valido',(req,value)=>{
+    const {base,targetActions}=baseAndMappings(req);return candidateGroup(base.filter(pool=>targetActions.has(pool.acao)),value,pool=>pool.acao||'N/I');
+  });
+  remaining=allocateStage(remaining,'revalidacao','Cenário condicionado à revalidação do mapa',req=>mapValidity(req,referenceDate)==='vencido',(req,value)=>{
+    const {base}=baseAndMappings(req);return candidateGroup(base.filter(pool=>poolMatchesProject(pool,req)),value,pool=>pool.acao||'N/I');
+  });
+  const uncovered=remaining.map(req=>({...req,creditoEstrutural:pools.filter(pool=>pool.remaining>0&&poolMatchesBase(pool,req)).reduce((sum,pool)=>sum+pool.remaining,0)}));
+  /* Cada requisição aparece em, no máximo, uma etapa; o saldo dos dígitos é consumido entre as etapas. */
   approved.forEach(req=>{
+    if(plans.some(plan=>plan.requisicao===req.requisicao)||uncovered.some(row=>row.requisicao===req.requisicao))return;
     const value=Math.max(0,number(req.valorUsd));
     if(!value)return;
-    const base=pools.filter(pool=>pool.remaining>0&&poolMatchesBase(pool,req));
-    const mappings=targetMappings(catalog,req);const targetActions=new Set(mappings.map(item=>item.acao));const targetPairs=new Set(mappings.map(item=>item.acao+'|'+item.pi));
-    const direct=candidateGroup(base.filter(pool=>poolMatchesProject(pool,req)),value,pool=>pool.acao||'N/I');
-    const project=candidateGroup(base.filter(pool=>targetPairs.has(pool.acao+'|'+pool.planoInterno)),value,pool=>(pool.acao||'N/I')+'|'+(pool.planoInterno||'N/I'));
-    const pi=candidateGroup(base.filter(pool=>targetActions.has(pool.acao)),value,pool=>pool.acao||'N/I');
-    const stages=[
-      {key:'imediato',label:'Empenho imediato',candidates:direct},
-      {key:'projeto',label:'Realocação entre projetos',candidates:project},
-      {key:'pi',label:'Realocação entre Planos Internos',candidates:pi}
-    ];
-    const stage=stages.find(item=>item.candidates.reduce((sum,pool)=>sum+pool.remaining,0)+0.005>=value);
-    if(!stage){
-      uncovered.push({...req,creditoEstrutural:base.reduce((sum,pool)=>sum+pool.remaining,0)});
-      return;
-    }
-    const result=takeFromPools(stage.candidates,value);
-    if(result.left>0.005){throw new Error('Falha de alocação: saldo elegível insuficiente após validação.');}
-    const sourceActions=new Set(result.sources.map(source=>source.acao));
-    const destinationPi=unique((catalog||[]).filter(credit=>(
-      containsAny(credit.omCodigos,[req.omCodigo])&&str(credit.natureza)===str(req.natureza)&&containsAny(credit.projetos,[req.projeto])
-      &&sourceActions.has(str(credit.acao))
-    )).map(credit=>credit.planoInterno)).join(', ')||'Definir PI de destino';
-    const transfers=planTransfers(catalog,req,result.sources,stage.key);
-    plans.push({
-      stage:stage.key,stageLabel:stage.label,requisicao:req.requisicao,omCodigo:req.omCodigo,om:req.om,
-      natureza:req.natureza,projeto:req.projeto,projetoLabel:req.projetoLabel,prioridade:req.prioridade,
-      status:req.status,valorUsd:value,destinoPi:destinationPi,descricao:req.descricao||req.nomenclatura,
-      sources:result.sources,transfers,
-      origemDigitos:unique(transfers.map(item=>item.origemDigito)),
-      destinoDigitos:unique(transfers.flatMap(item=>item.destinoDigitos))
-    });
+    uncovered.push({...req,creditoEstrutural:0});
   });
-  const potential=plans.reduce((sum,row)=>sum+number(row.valorUsd),0);
+  const financeablePlans=plans.filter(row=>row.validadeMapa==='valido');
+  const potential=financeablePlans.reduce((sum,row)=>sum+number(row.valorUsd),0);
   const totalCredit=pools.reduce((sum,pool)=>sum+pool.original,0);
   return {
     pools,plans,uncovered,
@@ -198,8 +218,9 @@ function allocateMapApproved(credits,requests,catalog){
       creditoDisponivel:totalCredit,
       potencialEmpenho:potential,
       saldoAposPotencial:Math.max(0,totalCredit-potential),
-      requisicoesCobertas:plans.length,
+      requisicoesCobertas:financeablePlans.length,
       empenhoImediato:plans.filter(row=>row.stage==='imediato').reduce((sum,row)=>sum+row.valorUsd,0),
+      revalidacaoMapa:plans.filter(row=>row.stage==='revalidacao').reduce((sum,row)=>sum+row.valorUsd,0),
       realocacaoProjetos:plans.filter(row=>row.stage==='projeto').reduce((sum,row)=>sum+row.valorUsd,0),
       realocacaoPi:plans.filter(row=>row.stage==='pi').reduce((sum,row)=>sum+row.valorUsd,0)
     }
@@ -256,7 +277,9 @@ function analyze(data,creditFilters,requestFilters){
   const credits=filterCredits(data.creditos||[],creditFilters).filter(row=>number(row.saldo)>0);
   const requests=filterRequisitions(data.requisicoes||[],requestFilters);
   const compatible=compatibleRequests(credits,requests,data.creditos||[]);
-  const allocation=allocateMapApproved(credits,requests,data.creditos||[]);
+  const referenceDate=(requestFilters||{}).dataReferencia||str((data.meta||{}).geradoEm).slice(0,10);
+  const allocation=allocateMapApproved(credits,requests,data.creditos||[],referenceDate);
+  const readyToCommit=requests.filter(row=>statusPrefix(row.status)==='M-'&&mapValidity(row,referenceDate)==='valido').reduce((sum,row)=>sum+number(row.valorUsd),0);
   return {
     credits,requests,compatible,allocation,
     creditByOm:creditByOm(credits,(data.lookups||{}).om||{}),
@@ -265,6 +288,7 @@ function analyze(data,creditFilters,requestFilters){
     demandByOmNaturezaStatus:demandByOmNaturezaStatus(compatible,(data.lookups||{}).om||{}),
     summary:{
       ...allocation.summary,
+      valorProntoEmpenho:readyToCommit,
       demandaCompativel:compatible.reduce((sum,row)=>sum+number(row.valorUsd),0),
       requisicoesCompativeis:compatible.length,
       omsAnalisadas:unique(credits.flatMap(row=>row.omCodigos)).length

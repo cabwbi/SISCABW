@@ -1,5 +1,15 @@
 # SISCABW — documentação consolidada
 
+## Ajustes de 15/09/2026 — validade de mapas e relatórios
+
+- Somente requisições com mapa aprovado válido integram os valores e cenários classificados como financiáveis; mapas vencidos permanecem apenas em uma área informativa condicionada à revalidação.
+- O relatório do painel de crédito disponível exporta os gráficos com margens e resolução ampliadas, evitando o corte dos rótulos externos dos gráficos de pizza.
+- Os textos superiores da seleção de painéis de crédito e de Processos de Contratação receberam contraste branco explícito.
+- O painel de compatibilização ganhou filtro de ano pela data de abertura e o KPI `Valor total pronto para empenho`, restrito a mapas aprovados válidos por até 60 dias.
+- A validade do mapa passou a constar nas tooltips das requisições e no relatório para emprego do crédito.
+- Os planos de ação foram divididos em quatro grupos exclusivos: empenho imediato, revalidação do mapa, ajuste de projeto e ajuste de PI e/ou projeto.
+- Os arquivos de dados permanecem os mesmos da atualização homologada de 14/09/2026.
+
 ## Evolução de 09/09/2026 — detalhamento gráfico e Indicadores Financeiros
 
 - O cabeçalho do painel de compatibilização usa texto branco com prioridade sobre as regras globais, incluindo título, descrição, data e link de retorno.
