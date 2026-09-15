@@ -208,17 +208,25 @@ function immediateSourceCell(row){
   return sources.map(source=>`<div><strong>${esc(source.digito||'N/I')}</strong><br><small>Parcela: ${money(source.valor)}</small></div>`).join('')||'Não identificado';
 }
 function emptyRow(cols,text){return `<tr><td class="compat-empty" colspan="${cols}">${esc(text)}</td></tr>`;}
+function adjustmentType(row){return String(row.stage||'').startsWith('projeto')?'Ajuste de projeto':'Ajuste de PI e/ou projeto';}
+function adjustmentRoute(row){
+  if(String(row.stage||'').startsWith('projeto')){const origins=unique(row.sources.flatMap(source=>source.projetos||[]).filter(code=>code!==row.projeto)).join(', ')||'Projeto compartilhado';return `${origins} → ${row.projeto}`;}
+  const sourcePi=unique(row.sources.map(source=>source.planoInterno)).join(', ')||'Não informado';return `${sourcePi} → ${row.destinoPi}`;
+}
+function adjustmentTableRows(rows,emptyText){return rows.length?rows.slice(0,200).map(row=>`<tr title="${esc(row.descricao||'')}"><td>${esc(row.requisicao)}</td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(adjustmentType(row))}</td><td>${esc(transferText(row))}</td><td>${esc(adjustmentRoute(row))}</td><td>${esc(mapValidityDetail(row))}</td><td>${money(row.valorUsd)}</td></tr>`).join(''):emptyRow(7,emptyText);}
 function renderPlans(analysis){
   const plans=analysis.allocation.plans;
-  const immediate=planRows(plans,'imediato'),revalidation=planRows(plans,'revalidacao'),project=planRows(plans,'projeto'),pi=planRows(plans,'pi');
+  const immediate=planRows(plans,'imediato'),revalidation=planRows(plans,'revalidacao');
+  const validAdjustments=plans.filter(row=>row.stage==='projeto'||row.stage==='pi').sort((a,b)=>b.valorUsd-a.valorUsd);
+  const invalidAdjustments=plans.filter(row=>row.stage==='projeto_vencido'||row.stage==='pi_vencido').sort((a,b)=>b.valorUsd-a.valorUsd);
   $('#totalImmediate').textContent=money(immediate.reduce((sum,row)=>sum+row.valorUsd,0));
   $('#totalRevalidation').textContent=money(revalidation.reduce((sum,row)=>sum+row.valorUsd,0));
-  $('#totalProjectMove').textContent=money(project.reduce((sum,row)=>sum+row.valorUsd,0));
-  $('#totalPiMove').textContent=money(pi.reduce((sum,row)=>sum+row.valorUsd,0));
+  $('#totalValidAdjustment').textContent=money(validAdjustments.reduce((sum,row)=>sum+row.valorUsd,0));
+  $('#totalInvalidAdjustment').textContent=money(invalidAdjustments.reduce((sum,row)=>sum+row.valorUsd,0));
   $('#tableImmediate').innerHTML=immediate.length?immediate.map(row=>`<tr title="${esc(row.descricao)}"><td>${esc(row.requisicao)}<br><small>${esc(mapValidityDetail(row))}</small></td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.projetoLabel||row.projeto)}</td><td>${immediateSourceCell(row)}</td><td>${money(row.valorUsd)}</td></tr>`).join(''):emptyRow(5,'Nenhuma requisição com mapa válido integralmente coberta sem realocação.');
   $('#tableRevalidation').innerHTML=revalidation.length?revalidation.map(row=>`<tr title="${esc(row.descricao)}"><td>${esc(row.requisicao)}<br><small>${esc(mapValidityDetail(row))}</small></td><td>${esc(row.om)}<br>ND ${esc(row.natureza)}</td><td>${esc(row.projetoLabel||row.projeto)}</td><td>${immediateSourceCell(row)}</td><td>${money(row.valorUsd)}</td></tr>`).join(''):emptyRow(5,'Nenhuma requisição com mapa vencido integralmente coberta sem realocação.');
-  $('#tableProjectMove').innerHTML=project.length?project.slice(0,200).map(row=>{const origins=unique(row.sources.flatMap(source=>source.projetos||[]).filter(code=>code!==row.projeto)).join(', ')||'Projeto compartilhado';return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(transferText(row))}</td><td>${esc(origins)} → ${esc(row.projeto)}</td><td>${esc(mapValidityDetail(row))}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(5,'Nenhum ajuste de projeto necessário.');
-  $('#tablePiMove').innerHTML=pi.length?pi.slice(0,200).map(row=>{const sourcePi=unique(row.sources.map(source=>source.planoInterno)).join(', ')||'Não informado';return `<tr title="Requisição ${esc(row.requisicao)}"><td>${esc(row.om)}<br>${esc(row.natureza)}</td><td>${esc(transferText(row))}</td><td>${esc(sourcePi)} → ${esc(row.destinoPi)}</td><td>${esc(mapValidityDetail(row))}</td><td>${money(row.valorUsd)}</td></tr>`;}).join(''):emptyRow(5,'Nenhum ajuste de PI e/ou projeto necessário.');
+  $('#tableValidAdjustment').innerHTML=adjustmentTableRows(validAdjustments,'Nenhum mapa válido necessita de ajuste de Projeto ou PI.');
+  $('#tableInvalidAdjustment').innerHTML=adjustmentTableRows(invalidAdjustments,'Nenhum mapa vencido possui cenário de ajuste de Projeto ou PI.');
 }
 function render(){
   if(!engine){$('#compatFilterStatus').textContent='Mecanismo de compatibilidade indisponível.';return;}
@@ -262,9 +270,10 @@ function immediateReportRows(plans,stage){
 }
 function adjustmentReportRows(plans,stage){
   const map=new Map();
-  (plans||[]).filter(row=>stage?row.stage===stage:(row.stage==='projeto'||row.stage==='pi')).forEach(row=>(row.transfers||[]).forEach(item=>{
+  const selectedStages=Array.isArray(stage)?stage:(stage?[stage]:['projeto','pi']);
+  (plans||[]).filter(row=>selectedStages.includes(row.stage)).forEach(row=>(row.transfers||[]).forEach(item=>{
     const origemProjetos=unique(item.origemProjetos||[]),destinoDigitos=unique(item.destinoDigitos||[]),destinoPis=unique(item.destinoPis||[]);const projetoDestino=row.projetoLabel||item.destinoProjeto||row.projeto;
-    const tipo=row.stage==='projeto'?'Entre projetos (mesmo PI)':'Entre projetos com ajuste de PI';
+    const tipo=String(row.stage).startsWith('projeto')?'Entre projetos (mesmo PI)':'Entre projetos com ajuste de PI';
     const key=[row.stage,row.omCodigo,row.natureza,item.origemAcao,item.origemDigito,destinoDigitos.join(','),origemProjetos.join(','),item.origemPi,destinoPis.join(','),row.projeto].join('|');
     if(!map.has(key))map.set(key,{tipo,om:row.om,omCodigo:row.omCodigo,natureza:row.natureza,acao:item.origemAcao,origemDigito:item.origemDigito,destinoDigitos,origemProjetos,projetoDestino,origemPi:item.origemPi,destinoPis,requisicoes:new Set(),validades:new Set(),valor:0});
     const target=map.get(key);target.requisicoes.add(row.requisicao);target.validades.add(mapValidityDetail(row));target.valor+=Number(item.valor||0);
@@ -282,9 +291,9 @@ function generateReport(){
   const popup=window.open('','_blank');if(!popup){alert('Autorize pop-ups para gerar o relatório.');return;}
   popup.document.write('<p style="font-family:Arial;padding:30px">Gerando relatório para emprego do crédito…</p>');
   try{
-    const bundle=reportAnalysis(),plans=bundle.analysis.allocation.plans,immediate=immediateReportRows(plans,'imediato'),revalidation=immediateReportRows(plans,'revalidacao'),project=adjustmentReportRows(plans,'projeto'),pi=adjustmentReportRows(plans,'pi');
+    const bundle=reportAnalysis(),plans=bundle.analysis.allocation.plans,immediate=immediateReportRows(plans,'imediato'),revalidation=immediateReportRows(plans,'revalidacao'),validAdjustments=adjustmentReportRows(plans,['projeto','pi']),invalidAdjustments=adjustmentReportRows(plans,['projeto_vencido','pi_vencido']);
     const omText=bundle.reportOms.length?bundle.reportOms.map(code=>(data.lookups.om||{})[code]||code).join('; '):'Todas as OM dos filtros analíticos';const actionText=bundle.reportActions.length?bundle.reportActions.join(', '):'Todas as ações dos filtros analíticos';
-    const sections=[reportArea('Empenho imediato',immediate,directReportBody(immediate,'Nenhum empenho imediato com mapa válido.'),'potencial',false),reportArea('Cenário mediante revalidação do mapa',revalidation,directReportBody(revalidation,'Nenhum mapa vencido com cobertura direta.'),'informativo, não financiável',false),reportArea('Empenho possível com eventual ajuste de projeto',project,adjustmentReportBody(project,'Nenhum ajuste de projeto necessário.'),'a ajustar',true),reportArea('Empenho possível com eventual ajuste de PI e/ou projeto',pi,adjustmentReportBody(pi,'Nenhum ajuste de PI e/ou projeto necessário.'),'a ajustar',true)].join('');
+    const sections=[reportArea('Empenho imediato',immediate,directReportBody(immediate,'Nenhum empenho imediato com mapa válido.'),'potencial',false),reportArea('Cenário mediante revalidação do mapa',revalidation,directReportBody(revalidation,'Nenhum mapa vencido com cobertura direta.'),'informativo, não financiável',false),reportArea('Mapas válidos mediante ajuste de Projeto e/ou PI',validAdjustments,adjustmentReportBody(validAdjustments,'Nenhum mapa válido necessita de ajuste.'),'financiável mediante ajuste',true),reportArea('Mapas não válidos mediante ajuste de Projeto e/ou PI',invalidAdjustments,adjustmentReportBody(invalidAdjustments,'Nenhum mapa vencido possui cenário de ajuste.'),'informativo, não financiável',true)].join('');
     const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório para emprego do crédito</title>${reportStyles()}</head><body><div class="print"><button onclick="window.print()">Imprimir / salvar em PDF</button></div><h1>Relatório para emprego do crédito</h1><div class="meta">Dados atualizados em ${esc(data.meta.geradoEm||'data não informada')} · Gerado em ${new Date().toLocaleString('pt-BR')}</div><p class="note"><strong>Filtros:</strong> OM requisitante: ${esc(omText)} · Ação orçamentária: ${esc(actionText)}.<br>Somente requisições com mapa aprovado válido por até 60 dias contados da data de abertura são classificadas como financiáveis. A área de revalidação é exclusivamente informativa e não integra o empenho potencial.</p>${sections}<p class="muted">As quatro áreas são mutuamente exclusivas. Empenho imediato e ajustes de projeto/PI incluem apenas mapas válidos; confirme os dígitos de destino antes de qualquer movimentação.</p></body></html>`;
     popup.document.open();popup.document.write(html);popup.document.close();
   }catch(error){console.error(error);popup.document.body.innerHTML='<p style="font-family:Arial;padding:30px;color:#8b1a1a">Não foi possível gerar o relatório. Recarregue o painel e tente novamente.</p>';}
@@ -306,6 +315,6 @@ function init(){
   render();
   Object.assign(window.CABW_COMPAT_PANEL_TEST,{getAnalysis:()=>currentAnalysis,creditFilters,requestFilters,reportAnalysis,applyFilters});
 }
-window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,creditSegments,requestSegments,creditTrace,requestTrace,statusLegendTraces,totalAnnotations,shortDescription,mapValidityDetail,aggregateSegments,compactDetails,setChartMode,getChartModes:()=>({...chartModes}),immediateDigitRows,immediateReportRows,adjustmentReportRows,reportMetrics,generateReport,mergeSelection,harmonizeFilters};
+window.CABW_COMPAT_PANEL_TEST={chartSeries,chartLayout,drawCharts,creditSegments,requestSegments,creditTrace,requestTrace,statusLegendTraces,totalAnnotations,shortDescription,mapValidityDetail,aggregateSegments,compactDetails,setChartMode,getChartModes:()=>({...chartModes}),immediateDigitRows,immediateReportRows,adjustmentReportRows,adjustmentType,adjustmentRoute,reportMetrics,generateReport,mergeSelection,harmonizeFilters};
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(error){console.error('CABW compatibility error',error);const status=$('#compatFilterStatus');if(status)status.textContent='Não foi possível inicializar a análise.';}});
 })();

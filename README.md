@@ -3,6 +3,7 @@
 ## Ajustes de 15/09/2026 — validade de mapas e relatórios
 
 - Somente requisições com mapa aprovado válido integram os valores e cenários classificados como financiáveis; mapas vencidos permanecem apenas em uma área informativa condicionada à revalidação.
+- As duas tabelas inferiores consolidam ajustes de Projeto e/ou PI: mapas válidos à esquerda e mapas vencidos à direita, sem incorporar estes últimos ao empenho potencial.
 - O relatório do painel de crédito disponível exporta os gráficos com margens e resolução ampliadas, evitando o corte dos rótulos externos dos gráficos de pizza.
 - Os textos superiores da seleção de painéis de crédito e de Processos de Contratação receberam contraste branco explícito.
 - O painel de compatibilização ganhou filtro de ano pela data de abertura e o KPI `Valor total pronto para empenho`, restrito a mapas aprovados válidos por até 60 dias.

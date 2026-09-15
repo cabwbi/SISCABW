@@ -126,7 +126,7 @@ function destinationCredits(catalog,req,source,stage){
   return (catalog||[]).filter(credit=>{
     if(!containsAny(credit.omCodigos,[req.omCodigo])||str(credit.natureza)!==str(req.natureza)||!containsAny(credit.projetos,[req.projeto]))return false;
     if(str(credit.acao)!==str(source.acao))return false;
-    return stage!=='projeto'||str(credit.planoInterno)===str(source.planoInterno);
+    return !str(stage).startsWith('projeto')||str(credit.planoInterno)===str(source.planoInterno);
   }).sort((a,b)=>str(a.digito).localeCompare(str(b.digito)));
 }
 
@@ -201,6 +201,12 @@ function allocateMapApproved(credits,requests,catalog,referenceDate){
   remaining=allocateStage(remaining,'revalidacao','Cenário condicionado à revalidação do mapa',req=>mapValidity(req,referenceDate)==='vencido',(req,value)=>{
     const {base}=baseAndMappings(req);return candidateGroup(base.filter(pool=>poolMatchesProject(pool,req)),value,pool=>pool.acao||'N/I');
   });
+  remaining=allocateStage(remaining,'projeto_vencido','Cenário de mapa vencido com ajuste de projeto',req=>mapValidity(req,referenceDate)==='vencido',(req,value)=>{
+    const {base,targetPairs}=baseAndMappings(req);return candidateGroup(base.filter(pool=>targetPairs.has(pool.acao+'|'+pool.planoInterno)),value,pool=>(pool.acao||'N/I')+'|'+(pool.planoInterno||'N/I'));
+  });
+  remaining=allocateStage(remaining,'pi_vencido','Cenário de mapa vencido com ajuste de PI e/ou projeto',req=>mapValidity(req,referenceDate)==='vencido',(req,value)=>{
+    const {base,targetActions}=baseAndMappings(req);return candidateGroup(base.filter(pool=>targetActions.has(pool.acao)),value,pool=>pool.acao||'N/I');
+  });
   const uncovered=remaining.map(req=>({...req,creditoEstrutural:pools.filter(pool=>pool.remaining>0&&poolMatchesBase(pool,req)).reduce((sum,pool)=>sum+pool.remaining,0)}));
   /* Cada requisição aparece em, no máximo, uma etapa; o saldo dos dígitos é consumido entre as etapas. */
   approved.forEach(req=>{
@@ -222,7 +228,8 @@ function allocateMapApproved(credits,requests,catalog,referenceDate){
       empenhoImediato:plans.filter(row=>row.stage==='imediato').reduce((sum,row)=>sum+row.valorUsd,0),
       revalidacaoMapa:plans.filter(row=>row.stage==='revalidacao').reduce((sum,row)=>sum+row.valorUsd,0),
       realocacaoProjetos:plans.filter(row=>row.stage==='projeto').reduce((sum,row)=>sum+row.valorUsd,0),
-      realocacaoPi:plans.filter(row=>row.stage==='pi').reduce((sum,row)=>sum+row.valorUsd,0)
+      realocacaoPi:plans.filter(row=>row.stage==='pi').reduce((sum,row)=>sum+row.valorUsd,0),
+      ajustesMapasVencidos:plans.filter(row=>row.stage==='projeto_vencido'||row.stage==='pi_vencido').reduce((sum,row)=>sum+row.valorUsd,0)
     }
   };
 }
