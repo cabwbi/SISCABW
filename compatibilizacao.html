@@ -35,25 +35,17 @@
 
   <section class="compat-workbench" aria-label="Filtros e relatórios">
     <div class="compat-filter-stack">
-      <section class="compat-panel" aria-labelledby="creditFiltersTitle">
-        <div class="compat-panel__heading"><i class="bi bi-wallet2"></i><div><h2 id="creditFiltersTitle">Filtros de créditos</h2><p>Marque uma ou mais opções da planilha de dígitos e, ao concluir, clique em Consultar. Somente saldos positivos compõem o crédito disponível.</p></div></div>
+      <section class="compat-panel" aria-labelledby="combinedFiltersTitle">
+        <div class="compat-panel__heading"><i class="bi bi-intersect"></i><div><h2 id="combinedFiltersTitle">Filtros de créditos e requisições</h2><p>OM e natureza de despesas são aplicadas simultaneamente aos dígitos e às requisições. Os demais campos refinam a respectiva fonte; depois das seleções, clique em Consultar.</p></div></div>
         <div class="compat-filter-grid">
-          <label class="compat-field"><span>OM detentora do crédito</span><select class="compat-native" multiple id="filterCreditOm"></select></label>
+          <label class="compat-field"><span>Organização Militar</span><select class="compat-native" multiple id="filterSharedOm"></select></label>
+          <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterSharedNatureza"></select></label>
           <label class="compat-field"><span>Ação orçamentária</span><select class="compat-native" multiple id="filterCreditAcao"></select></label>
           <label class="compat-field"><span>Plano Interno</span><select class="compat-native" multiple id="filterCreditPi"></select></label>
-          <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterCreditNatureza"></select></label>
-          <label class="compat-field"><span>Projeto</span><select class="compat-native" multiple id="filterCreditProjeto"></select></label>
+          <label class="compat-field"><span>Projeto do crédito</span><select class="compat-native" multiple id="filterCreditProjeto"></select></label>
           <label class="compat-field"><span>Fonte</span><select class="compat-native" multiple id="filterCreditFonte"></select></label>
           <label class="compat-field"><span>Objetivo resumido do dígito</span><select class="compat-native" multiple id="filterCreditObjetivo"></select></label>
-        </div>
-      </section>
-
-      <section class="compat-panel" aria-labelledby="requestFiltersTitle">
-        <div class="compat-panel__heading"><i class="bi bi-card-checklist"></i><div><h2 id="requestFiltersTitle">Filtros de requisições</h2><p>Marque várias opções antes da consulta. OM, natureza e projeto selecionados aqui também restringem o crédito exibido.</p></div></div>
-        <div class="compat-filter-grid compat-filter-grid--requests">
-          <label class="compat-field"><span>OM requisitante</span><select class="compat-native" multiple id="filterReqOm"></select></label>
-          <label class="compat-field"><span>Projeto</span><select class="compat-native" multiple id="filterReqProjeto"></select></label>
-          <label class="compat-field"><span>Natureza de despesas</span><select class="compat-native" multiple id="filterReqNatureza"></select></label>
+          <label class="compat-field"><span>Projeto da requisição</span><select class="compat-native" multiple id="filterReqProjeto"></select></label>
           <label class="compat-field"><span>Prioridade</span><select class="compat-native" multiple id="filterReqPrioridade"></select></label>
           <label class="compat-field"><span>Situação da requisição</span><select class="compat-native" multiple id="filterReqStatus"></select></label>
           <label class="compat-field"><span>Validade do mapa</span><select class="compat-native" multiple id="filterReqValidade"></select></label>

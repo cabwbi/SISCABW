@@ -61,16 +61,14 @@ function updateAllMultis(){$$('.compat-native').forEach(select=>select._compatUp
 
 function initFilters(){
   const credits=data.creditos||[];const requests=data.requisicoes||[];const omLabels=(data.lookups||{}).om||{};const projectLabels=(data.lookups||{}).projetos||{};
-  fillSelect('#filterCreditOm',options(credits.flatMap(row=>row.omCodigos||[]),omLabels),'Todas as OM');
+  fillSelect('#filterSharedOm',options(credits.flatMap(row=>row.omCodigos||[]).concat(requests.map(row=>row.omCodigo)),omLabels),'Todas as OM');
+  fillSelect('#filterSharedNatureza',options(credits.map(row=>row.natureza).concat(requests.map(row=>row.natureza))),'Todas as naturezas');
   fillSelect('#filterCreditAcao',options(credits.map(row=>row.acao)),'Todas as ações');
   fillSelect('#filterCreditPi',options(credits.map(row=>row.planoInterno)),'Todos os PI');
-  fillSelect('#filterCreditNatureza',options(credits.map(row=>row.natureza)),'Todas as naturezas');
   fillSelect('#filterCreditProjeto',options(credits.flatMap(row=>row.projetos||[]),projectLabels),'Todos os projetos');
   fillSelect('#filterCreditFonte',options(credits.map(row=>row.fonte)),'Todas as fontes');
   fillSelect('#filterCreditObjetivo',options(credits.map(row=>row.objetivo)),'Todos os objetivos');
-  fillSelect('#filterReqOm',options(requests.map(row=>row.omCodigo),omLabels),'Todas as OM');
   fillSelect('#filterReqProjeto',options(requests.map(row=>row.projeto),projectLabels),'Todos os projetos');
-  fillSelect('#filterReqNatureza',options(requests.map(row=>row.natureza)),'Todas as naturezas');
   fillSelect('#filterReqPrioridade',options(requests.map(row=>row.prioridade).map(value=>value==='0'?'0':value),{'0':'0 - Não definida','1':'1 - Prioridade máxima','2':'2','3':'3','4':'4','5':'5'}),'Todas as prioridades');
   fillSelect('#filterReqStatus',options(requests.map(row=>row.status)),'Todas as situações');
   fillSelect('#filterReqValidade',options(['valido','vencido'],{'valido':'Válido','vencido':'Vencido'}),'Todas as validades');
@@ -80,8 +78,8 @@ function initFilters(){
   $$('.compat-filter-stack .compat-native').forEach(select=>select.addEventListener('change',markFiltersDirty));
   document.addEventListener('click',event=>{if(!event.target.closest('.compat-ms'))$$('.compat-ms.open').forEach(item=>{item.classList.remove('open');item.querySelector('.compat-ms__button')?.setAttribute('aria-expanded','false');});});
 }
-function creditFilters(){return {om:selections($('#filterCreditOm')),acao:selections($('#filterCreditAcao')),planoInterno:selections($('#filterCreditPi')),natureza:selections($('#filterCreditNatureza')),projeto:selections($('#filterCreditProjeto')),fonte:selections($('#filterCreditFonte')),objetivo:selections($('#filterCreditObjetivo'))};}
-function requestFilters(){const typed=String($('#filterReqText')?.value||'').trim();return {om:selections($('#filterReqOm')),projeto:selections($('#filterReqProjeto')),natureza:selections($('#filterReqNatureza')),prioridade:selections($('#filterReqPrioridade')),situacao:selections($('#filterReqStatus')),validadeMapa:selections($('#filterReqValidade')),anoCertame:selections($('#filterReqAno')),dataReferencia:String(data.meta.geradoEm||'').slice(0,10),termos:typed?[typed]:[]};}
+function creditFilters(){return {om:selections($('#filterSharedOm')),acao:selections($('#filterCreditAcao')),planoInterno:selections($('#filterCreditPi')),natureza:selections($('#filterSharedNatureza')),projeto:selections($('#filterCreditProjeto')),fonte:selections($('#filterCreditFonte')),objetivo:selections($('#filterCreditObjetivo'))};}
+function requestFilters(){const typed=String($('#filterReqText')?.value||'').trim();return {om:selections($('#filterSharedOm')),projeto:selections($('#filterReqProjeto')),natureza:selections($('#filterSharedNatureza')),prioridade:selections($('#filterReqPrioridade')),situacao:selections($('#filterReqStatus')),validadeMapa:selections($('#filterReqValidade')),anoCertame:selections($('#filterReqAno')),dataReferencia:String(data.meta.geradoEm||'').slice(0,10),termos:typed?[typed]:[]};}
 
 function markFiltersDirty(){
   filtersDirty=true;

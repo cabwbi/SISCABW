@@ -41,6 +41,7 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - O faturamento e o histórico mensal são associados por PO e NL.
 - A consolidação para prestação de contas empilha todos os contratos da categoria, independentemente dos filtros correntes.
 - Vigência em vermelho: menos de 90 dias, incluindo contratos vencidos. Vigência em amarelo: de 90 a 150 dias.
+- No relatório consolidado, o histórico mensal usa cinza para o ano anterior e azul para o ano atual; o rótulo fica sobre a barra e a tooltip relaciona as faturas do mês. A tabela de faturamento é ordenada da NL mais recente para a mais antiga e separada por mês.
 
 ### Requisições
 
@@ -56,6 +57,7 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 ### Compatibilização de crédito e processos
 
 - Compatibilidade sempre exige a mesma natureza de despesa entre crédito e requisição.
+- Organização Militar e natureza de despesas possuem filtros únicos, aplicados simultaneamente aos créditos e às requisições.
 - Empenho imediato exige OM, ND, projeto e mapa válido compatíveis.
 - Ajustes de projeto ou PI preservam OM e ND e respeitam o saldo finito de cada dígito.
 - Mapas vencidos aparecem apenas como cenário informativo de revalidação, não como valor financiável.
