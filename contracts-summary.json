@@ -7,26 +7,26 @@
   },
   "totals": {
     "valorContrato": 1125778828.19,
-    "totalEmpenhadoUsd": 657533767.09,
-    "totalFaturadoUsd": 550285016.56
+    "totalEmpenhadoUsd": 657263613.5,
+    "totalFaturadoUsd": 550741202.3
   },
   "byCategory": {
     "administrativos": {
       "count": 26,
       "valorContrato": 12859401.01,
-      "totalEmpenhadoUsd": 12370311.23,
-      "totalFaturadoUsd": 11841848.49
+      "totalEmpenhadoUsd": 12303598.58,
+      "totalFaturadoUsd": 11856196.12
     },
     "finalisticos": {
       "count": 60,
       "valorContrato": 641836137.83,
-      "totalEmpenhadoUsd": 252968609.72,
-      "totalFaturadoUsd": 163582449.27
+      "totalEmpenhadoUsd": 253025168.78,
+      "totalFaturadoUsd": 164024287.38
     },
     "fms": {
       "count": 53,
       "valorContrato": 471083289.35,
-      "totalEmpenhadoUsd": 392194846.14,
+      "totalEmpenhadoUsd": 391934846.14,
       "totalFaturadoUsd": 374860718.8
     }
   }

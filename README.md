@@ -1,5 +1,14 @@
 # SISCABW — documentação consolidada
 
+## Evolução de 18/09/2026 — CABW em Números
+
+- A página inicial foi convertida em uma visão executiva responsiva com seis áreas: Gestão de Crédito, Restos a Pagar, Contratos, Requisições, Finanças e Suprimento de Fundos.
+- Os indicadores da página são gerados em `home-data.js` a partir das mesmas nove fontes Excel dos painéis detalhados; nenhum total permanece fixado manualmente no HTML.
+- Requisições homologadas exigem CERTAME SILOMS preenchido e situação Mapa aprovado ou número de Ordem de Compra preenchido; reparos continuam exigindo `R` no quarto caractere da requisição.
+- Fornecedores pagos elegíveis são vinculados a contratos ou a requisições com CERTAME SILOMS, e a maior NL dos últimos 30 dias é calculada pela data de atualização.
+- Os menus superiores foram padronizados como Gestão de Crédito, Contratos, Requisições, Finanças, Governança e ARC e Suprimento de Fundos.
+- O gerador e a validação automática foram ampliados para manter a nova visão executiva nas futuras atualizações.
+
 ## Ajustes de 15/09/2026 — validade de mapas e relatórios
 
 - Somente requisições com mapa aprovado válido integram os valores e cenários classificados como financiáveis; mapas vencidos permanecem apenas em uma área informativa condicionada à revalidação.
