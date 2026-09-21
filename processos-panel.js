@@ -11,6 +11,36 @@
   const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
   const norm = value => String(value || '').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
+  function supplierNameFromLabel(code, label) {
+    const normalizedCode = String(code || '').trim();
+    const normalizedLabel = String(label || '').trim();
+    if (!normalizedCode || !normalizedLabel || normalizedLabel === normalizedCode) return '';
+    const prefix = `${normalizedCode} - `;
+    return normalizedLabel.toLocaleUpperCase('pt-BR').startsWith(prefix.toLocaleUpperCase('pt-BR'))
+      ? normalizedLabel.slice(prefix.length).trim()
+      : '';
+  }
+
+  function buildSupplierNames(rows) {
+    const names = new Map();
+    rows.forEach(row => {
+      const code = String(row.empresaVencedoraCodigo || '').trim();
+      const name = supplierNameFromLabel(code, row.empresaVencedora);
+      if (code && name && (!names.has(code) || name.length > names.get(code).length)) names.set(code, name);
+    });
+    return names;
+  }
+
+  function normalizeSupplierLabels(rows, supplierNames) {
+    rows.forEach(row => {
+      const code = String(row.empresaVencedoraCodigo || '').trim();
+      if (!code) return;
+      const existingName = supplierNameFromLabel(code, row.empresaVencedora);
+      const name = supplierNames.get(code) || existingName || 'Nome não cadastrado na base';
+      row.empresaVencedora = `${code} - ${name}`;
+    });
+  }
+
   function dateTime(value) {
     if (!value) return 'Data de geração não informada';
     const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
@@ -689,6 +719,9 @@
   }
 
   function initDashboard() {
+    const allRows = (DATA.materials || []).concat(DATA.repairs || [], DATA.otherRepairs || []);
+    const supplierNames = buildSupplierNames(allRows);
+    normalizeSupplierLabels(allRows, supplierNames);
     sourceRows = pageMode === 'repairs' ? (DATA.repairs || []) : (DATA.materials || []);
     otherRepairRows = pageMode === 'repairs' ? (DATA.otherRepairs || []) : [];
     filteredRows = sourceRows.slice();
@@ -706,7 +739,7 @@
     applyFilters();
   }
 
-  window.CABW_PROCESSOS_PANEL_TEST = { mapValidityValue, fieldValue, companyChartLabel };
+  window.CABW_PROCESSOS_PANEL_TEST = { mapValidityValue, fieldValue, companyChartLabel, buildSupplierNames, normalizeSupplierLabels };
   document.addEventListener('DOMContentLoaded', () => {
     if (pageMode === 'landing') initLanding();
     if (pageMode === 'materials' || pageMode === 'repairs') initDashboard();

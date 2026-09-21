@@ -84,7 +84,7 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - A consolidação administrativa usa exclusivamente contratos com Grande Comando `CW`.
 - A consolidação finalística exclui contratos `CW` e contratos FMS do fornecedor `W2525`.
 - Materiais e Publicações dispõe de filtro de validade do mapa comparativo, calculada em 60 dias desde a data de abertura.
-- Nos gráficos por empresa, o eixo exibe CAGE e até 20 caracteres do nome; a identificação integral permanece na tooltip.
+- Nos gráficos, filtros, tabelas e relatórios por empresa, o fornecedor é consolidado pelo CAGE e exibe também o nome obtido das ordens de compra; o eixo limita o nome a 20 caracteres e mantém a identificação integral na tooltip. Quando o CAGE ainda não possui nome em nenhuma ordem da base, o painel informa explicitamente `Nome não cadastrado na base`.
 
 ## Arquivos gerados
 
