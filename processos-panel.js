@@ -46,6 +46,7 @@
     ['requisicao', 'Número da requisição'],
     ['certame', 'Número do certame SILOMS'],
     ['status', 'Situação da requisição'],
+    ['validadeMapa', 'Validade do mapa comparativo'],
     ['po', 'Número da ordem de compra'],
     ['situacaoRetorno', 'Situação de retorno do item'],
     ['situacaoReparavel', 'Situação do reparável'],
@@ -72,8 +73,27 @@
   let selectedLogisticsStages = new Set();
   let activeAnalyticalFilters = [];
 
+  function mapValidityValue(row) {
+    if (!norm(row && row.status).includes('mapa aprovado')) return '';
+    const opened = Date.parse(`${String(row.dataAbertura || '').slice(0, 10)}T00:00:00Z`);
+    const reference = Date.parse(`${String(DATA.meta.dataReferenciaPrazos || DATA.meta.geradoEm || '').slice(0, 10)}T00:00:00Z`);
+    if (!Number.isFinite(opened) || !Number.isFinite(reference)) return '';
+    return Math.floor((reference - opened) / 86400000) <= 60 ? 'Válido' : 'Vencido';
+  }
+
+  function fieldValue(row, field) {
+    return field === 'validadeMapa' ? mapValidityValue(row) : String(row[field] || '').trim();
+  }
+
+  function companyChartLabel(label) {
+    const match = String(label || '').match(/^([^\s-]+)\s*-\s*(.+)$/);
+    if (!match) return String(label || '').length > 20 ? `${String(label).slice(0, 20).trimEnd()}...` : String(label || '');
+    const company = match[2].trim();
+    return `${match[1]} - ${company.length > 20 ? `${company.slice(0, 20).trimEnd()}...` : company}`;
+  }
+
   function unique(rows, field) {
-    const values = Array.from(new Set(rows.map(row => String(row[field] || '').trim()).filter(Boolean)));
+    const values = Array.from(new Set(rows.map(row => fieldValue(row, field)).filter(Boolean)));
     if (field === 'faixaValor') return RANGE_ORDER.filter(value => values.includes(value));
     return values.sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   }
@@ -247,7 +267,7 @@
     return row.reparavelExpedidoAoFornecedor === true || (status.startsWith('l-') && status.includes('reparav') && status.includes('fornec'));
   }
   function matchesCurrentAnalyticalFilters(row) {
-    return activeAnalyticalFilters.every(([field, values]) => values.has(String(row[field] || '').trim()));
+    return activeAnalyticalFilters.every(([field, values]) => values.has(fieldValue(row, field)));
   }
   function matchesCurrentLogisticsFilter(row) {
     return !selectedLogisticsStages.size || selectedLogisticsStages.has(logisticsStageId(row));
@@ -291,7 +311,7 @@
     let dispatchKpis = [];
     const base = [
       ['Quantidade de requisições', number(filteredRows.length), 'bi-file-earmark-text', 'Registros no escopo selecionado'],
-      ['Valor total empenhado', money(sum(filteredRows, 'valorEmpenhadoUsd')), 'bi-currency-dollar', 'Soma do valor das requisições'],
+      [pageMode === 'materials' ? 'Valor total homologado' : 'Valor total empenhado', money(sum(filteredRows, 'valorEmpenhadoUsd')), 'bi-currency-dollar', pageMode === 'materials' ? 'Soma do valor homologado das requisições' : 'Soma do valor das requisições'],
       ['Requisitantes atendidos', number(countDistinct(filteredRows, 'om')), 'bi-buildings', 'OMs requisitantes distintas'],
     ];
     const saving = economy(filteredRows);
@@ -354,12 +374,16 @@
     if (!window.Plotly) { element.innerHTML = '<p class="proc-empty">Biblioteca de gráficos não carregada.</p>'; return; }
     const items = topBuckets(rows, key, valueField, 14);
     const x = items.map(item => item.value);
-    const y = items.map(item => item.label);
+    const fullLabels = items.map(item => item.label);
+    const y = fullLabels.map(label => {
+      if (pageMode !== 'materials' || key !== 'empresaVencedora' || label === 'Outros') return label;
+      return companyChartLabel(label);
+    });
     Plotly.react(element, [{
       type: 'bar', orientation: 'h', x, y,
       marker: { color },
-      customdata: x.map(value => isMoney ? money(value) : number(value)),
-      hovertemplate: '<b>%{y}</b><br>%{customdata}<extra></extra>',
+      customdata: x.map((value, index) => [isMoney ? money(value) : number(value), fullLabels[index]]),
+      hovertemplate: '<b>%{customdata[1]}</b><br>%{customdata[0]}<extra></extra>',
     }], {
       margin: { l: 185, r: 24, t: 18, b: 42 },
       xaxis: { gridcolor: '#e6edf5', zeroline: false, tickformat: isMoney ? '$,.2s' : ',.0f', automargin: true },
@@ -682,6 +706,7 @@
     applyFilters();
   }
 
+  window.CABW_PROCESSOS_PANEL_TEST = { mapValidityValue, fieldValue, companyChartLabel };
   document.addEventListener('DOMContentLoaded', () => {
     if (pageMode === 'landing') initLanding();
     if (pageMode === 'materials' || pageMode === 'repairs') initDashboard();

@@ -59,6 +59,7 @@
         <label class="proc-filter-field"><span>Número da requisição</span><select multiple data-filter="requisicao"></select></label>
         <label class="proc-filter-field"><span>Número do certame SILOMS</span><select multiple data-filter="certame"></select></label>
         <label class="proc-filter-field"><span>Situação da requisição</span><select multiple data-filter="status"></select></label>
+        <label class="proc-filter-field"><span>Validade do mapa comparativo</span><select multiple data-filter="validadeMapa"></select></label>
         <label class="proc-filter-field"><span>Número da ordem de compra</span><select multiple data-filter="po"></select></label>
       </div>
     </section>
@@ -68,14 +69,14 @@
     <section class="proc-section" aria-labelledby="chartsTitle">
       <div class="proc-section-heading"><div><h2 id="chartsTitle">Visão gerencial</h2><p id="procFilteredTotal">Carregando requisições…</p></div></div>
       <div class="proc-chart-grid">
-        <article class="proc-chart-card"><h3>Valores por OM requisitante</h3><p>Valor total empenhado das requisições</p><div class="proc-chart" id="chartValorOm"></div></article>
+        <article class="proc-chart-card"><h3>Valores por OM requisitante</h3><p>Valor total homologado das requisições</p><div class="proc-chart" id="chartValorOm"></div></article>
         <article class="proc-chart-card"><h3>Quantidade por OM requisitante</h3><p>Número de requisições</p><div class="proc-chart" id="chartQtdOm"></div></article>
         <article class="proc-chart-card"><h3>Quantidade por empresa vencedora</h3><p>Número de requisições</p><div class="proc-chart" id="chartQtdEmpresa"></div></article>
-        <article class="proc-chart-card"><h3>Valores por empresa vencedora</h3><p>Valor total empenhado das requisições</p><div class="proc-chart" id="chartValorEmpresa"></div></article>
+        <article class="proc-chart-card"><h3>Valores por empresa vencedora</h3><p>Valor total homologado das requisições</p><div class="proc-chart" id="chartValorEmpresa"></div></article>
         <article class="proc-chart-card"><h3>Quantidade por projeto</h3><p>Número de requisições</p><div class="proc-chart" id="chartQtdProjeto"></div></article>
-        <article class="proc-chart-card"><h3>Valores por projeto</h3><p>Valor total empenhado das requisições</p><div class="proc-chart" id="chartValorProjeto"></div></article>
+        <article class="proc-chart-card"><h3>Valores por projeto</h3><p>Valor total homologado das requisições</p><div class="proc-chart" id="chartValorProjeto"></div></article>
         <article class="proc-chart-card"><h3>Quantidade por situação</h3><p>Número de requisições por situação da requisição</p><div class="proc-chart" id="chartQtdSituacao"></div></article>
-        <article class="proc-chart-card"><h3>Valores por situação</h3><p>Valor total empenhado por situação da requisição</p><div class="proc-chart" id="chartValorSituacao"></div></article>
+        <article class="proc-chart-card"><h3>Valores por situação</h3><p>Valor total homologado por situação da requisição</p><div class="proc-chart" id="chartValorSituacao"></div></article>
       </div>
     </section>
 
@@ -83,7 +84,7 @@
       <div class="proc-section-heading"><div><h2 id="tableTitle">Requisições filtradas</h2><p>Detalhamento das requisições e das ordens de compra associadas</p></div></div>
       <div class="proc-table-wrap">
         <table class="proc-table">
-          <thead><tr><th>Requisição</th><th>Certame</th><th>Descrição</th><th>Quantidade</th><th>Fabricante</th><th>Empresa vencedora</th><th>Ordem de compra</th><th>Valor empenhado</th><th>Saldo da PO</th><th>Situação</th><th>DPE</th></tr></thead>
+          <thead><tr><th>Requisição</th><th>Certame</th><th>Descrição</th><th>Quantidade</th><th>Fabricante</th><th>Empresa vencedora</th><th>Ordem de compra</th><th>Valor homologado</th><th>Saldo da PO</th><th>Situação</th><th>DPE</th></tr></thead>
           <tbody id="procTableBody"></tbody>
         </table>
       </div>
@@ -93,7 +94,7 @@
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="processos-data.js"></script>
-  <script src="processos-panel.js?v=20260915-1"></script>
+  <script src="processos-panel.js?v=20260921-1"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

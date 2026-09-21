@@ -75,6 +75,16 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - Crédito total recebido = crédito disponível + empenhos realizados.
 - Fornecedores pagos qualificados devem estar ligados a contrato ou a requisição com certame SILOMS.
 - Suprimento de fundos usa projeto `SF` para crédito, empenho e saldo não liquidado.
+- A compatibilização limita automaticamente as requisições ao ano da atualização e ao ano anterior; a janela avança com a data dos novos dados.
+- O relatório de compatibilização reproduz os dois gráficos do painel conforme os filtros aplicados.
+- O painel de Suprimento de Fundos gera relatório detalhado para impressão/PDF com filtros, KPI, gráficos e ordens de compra.
+
+### Relatórios e escopos
+
+- A consolidação administrativa usa exclusivamente contratos com Grande Comando `CW`.
+- A consolidação finalística exclui contratos `CW` e contratos FMS do fornecedor `W2525`.
+- Materiais e Publicações dispõe de filtro de validade do mapa comparativo, calculada em 60 dias desde a data de abertura.
+- Nos gráficos por empresa, o eixo exibe CAGE e até 20 caracteres do nome; a identificação integral permanece na tooltip.
 
 ## Arquivos gerados
 
