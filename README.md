@@ -40,6 +40,9 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - A última versão de cada PO é a versão financeira vigente.
 - O faturamento e o histórico mensal são associados por PO e NL.
 - A consolidação para prestação de contas empilha todos os contratos da categoria, independentemente dos filtros correntes.
+- Na visualização em tela, cada contrato ocupa duas páginas navegáveis: informações gerais e execução financeira na primeira; histórico, saldo das POs, média mensal e liquidações na segunda.
+- A média mensal de liquidações considera todos os meses já encerrados no exercício da base, inclusive meses sem liquidação, e exclui o mês corrente.
+- A lista de liquidações apresenta inicialmente os dois meses mais recentes e pode ser expandida; na impressão ou geração de PDF, todo o histórico é exibido automaticamente.
 - Vigência em vermelho: menos de 90 dias, incluindo contratos vencidos. Vigência em amarelo: de 90 a 150 dias.
 - No relatório consolidado, o histórico mensal usa cinza para o ano anterior e azul para o ano atual; o rótulo fica sobre a barra e a tooltip relaciona as faturas do mês. A tabela de faturamento é ordenada da NL mais recente para a mais antiga e separada por mês.
 
