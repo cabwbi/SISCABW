@@ -158,6 +158,14 @@ As páginas `CHECK_DADOS.html`, `CHECK_COMPATIBILIZACAO.html`, `CHECK_PUBLICACAO
 
 ## Publicação no GitHub Pages
 
+### Correção do filtro de pessoas no Suprimento de Fundos — 23/09/2026
+
+- O texto digitado no multisseletor passou a servir exclusivamente para pesquisar e reduzir as opções visíveis.
+- O botão `Aplicar seleção` confirma somente as caixas efetivamente marcadas, sem acrescentar automaticamente outros nomes que contenham o mesmo texto.
+- A ação `Marcar visíveis` atua apenas nas opções apresentadas pela pesquisa atual.
+- A filtragem dos dados continua usando correspondência exata do rótulo selecionado.
+
+
 Extraia o ZIP e publique seu conteúdo diretamente na raiz da branch configurada para o GitHub Pages. Faça primeiro a publicação em `cabwbi/teste`; após a homologação funcional e visual, replique os mesmos arquivos aprovados em `cabwbi/SISCABW`.
 
 Não publique planilhas-fonte, credenciais ou segredos no repositório. O acesso ao Google Drive deve permanecer apenas no GitHub Secrets.
