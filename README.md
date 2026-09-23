@@ -152,6 +152,9 @@ As páginas `CHECK_DADOS.html`, `CHECK_COMPATIBILIZACAO.html`, `CHECK_PUBLICACAO
 - No primeiro slide, as barras da execução financeira ficaram mais espessas e os rótulos, categorias e valores ganharam maior legibilidade.
 - No segundo slide, as categorias e os rótulos de valores do histórico mensal foram ampliados; os rótulos de valores usam peso normal para evitar sobreposição.
 - A seleção dos contratos administrativos segue a sequência operacional informada nas referências visuais. A referência ao contrato Dumonde 016/2021 não integra a base vigente; por isso, não foi criado registro sem fonte. Contratos atuais sem correspondência explícita nas imagens permanecem na lista antes do bloco final de transporte e logística.
+- Contratos da mesma empresa foram mantidos em sequência no seletor, incluindo CELLCO, SAHOURI, BARIC, MILCLEAN e NORVIK.
+- O gráfico mensal do segundo slide voltou a ocupar somente a largura disponível da tela, sem largura mínima por coluna e sem barra de rolagem horizontal em zoom de 100%.
+- Os rótulos monetários desse gráfico usam apenas o símbolo `$`, com fonte ampliada e peso normal; as tooltips preservam o valor completo em `US$`.
 
 ## Publicação no GitHub Pages
 
