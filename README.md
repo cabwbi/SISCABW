@@ -1,5 +1,12 @@
 # SISCABW — guia único de operação, atualização e publicação
 
+## Ajustes de 23/09/2026 — prestação de contas e Suprimento de Fundos
+
+- No segundo slide da consolidação para prestação de contas, a linha da média do ano corrente passou a ser azul.
+- A seleção de OM sincroniza o gráfico, o saldo empenhado a liquidar, a média mensal e a tabela de POs/liquidações.
+- A escala do gráfico permanece fixa na escala de “Todas OM”, permitindo comparar visualmente CABW, ADIAE-EUA e demais organizações.
+- No relatório de Suprimento de Fundos, o crédito disponível SF é exibido apenas quando nenhum filtro está aplicado.
+
 Este repositório contém o painel estático de Business Intelligence da Comissão Aeronáutica Brasileira em Washington (CABW). Todo o processamento é executado na geração do pacote; depois de publicado no GitHub Pages, o site funciona somente com HTML, CSS e JavaScript, sem depender do ChatGPT ou de um servidor de aplicação.
 
 ## Conteúdo do painel
