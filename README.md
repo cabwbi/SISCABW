@@ -146,6 +146,13 @@ As páginas `CHECK_DADOS.html`, `CHECK_COMPATIBILIZACAO.html`, `CHECK_PUBLICACAO
 - Pagamentos em 2026: 2.426 NL, no valor de US$ 105.387.982,85.
 - Data de referência: 17/09/2026 às 22:39:54, baseada no upload de `requisicoes`.
 
+## Ajuste visual da prestação de contas — 23/09/2026
+
+- O relatório consolidado ganhou maior largura útil, preservando o comportamento responsivo e a impressão em PDF.
+- No primeiro slide, as barras da execução financeira ficaram mais espessas e os rótulos, categorias e valores ganharam maior legibilidade.
+- No segundo slide, as categorias e os rótulos de valores do histórico mensal foram ampliados; os rótulos de valores usam peso normal para evitar sobreposição.
+- A seleção dos contratos administrativos segue a sequência operacional informada nas referências visuais. A referência ao contrato Dumonde 016/2021 não integra a base vigente; por isso, não foi criado registro sem fonte. Contratos atuais sem correspondência explícita nas imagens permanecem na lista antes do bloco final de transporte e logística.
+
 ## Publicação no GitHub Pages
 
 Extraia o ZIP e publique seu conteúdo diretamente na raiz da branch configurada para o GitHub Pages. Faça primeiro a publicação em `cabwbi/teste`; após a homologação funcional e visual, replique os mesmos arquivos aprovados em `cabwbi/SISCABW`.
