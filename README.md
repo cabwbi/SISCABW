@@ -165,6 +165,14 @@ As páginas `CHECK_DADOS.html`, `CHECK_COMPATIBILIZACAO.html`, `CHECK_PUBLICACAO
 - A ação `Marcar visíveis` atua apenas nas opções apresentadas pela pesquisa atual.
 - A filtragem dos dados continua usando correspondência exata do rótulo selecionado.
 
+### Médias e filtro por OM na prestação de contas — 23/09/2026
+
+- O gráfico mensal do segundo slide apresenta uma linha de média sobre as 12 colunas do exercício anterior e outra sobre as colunas do exercício atual.
+- A média do exercício atual considera exclusivamente os meses encerrados na data de atualização; a média do exercício anterior considera os 12 meses.
+- A legenda inferior identifica `Média de 2025` e `Média de 2026` e mostra o valor correspondente conforme o contrato e a OM selecionada.
+- Botões no canto superior direito permitem alternar entre todas as liquidações e cada OM identificada pela requisição da PO.
+- As barras, tooltips e médias são recalculadas para a OM selecionada; a tabela inferior e os indicadores consolidados permanecem integrais.
+
 
 Extraia o ZIP e publique seu conteúdo diretamente na raiz da branch configurada para o GitHub Pages. Faça primeiro a publicação em `cabwbi/teste`; após a homologação funcional e visual, replique os mesmos arquivos aprovados em `cabwbi/SISCABW`.
 
