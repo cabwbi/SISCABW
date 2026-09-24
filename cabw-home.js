@@ -4,10 +4,12 @@
   const meta=data.meta||{},credit=data.gestaoCredito||{},contracts=data.contratos||{},requests=data.requisicoes||{},finance=data.financas||{},sf=data.suprimentoFundos||{};
   const money=value=>'US$ '+Number(value||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const integer=value=>Number(value||0).toLocaleString('pt-BR',{maximumFractionDigits:0});
+  const percent=value=>Number(value||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'% do crédito recebido';
   const set=(key,value)=>document.querySelectorAll('[data-home="'+key+'"]').forEach(node=>node.textContent=value);
   const dateTime=value=>{const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);return match?`${match[3]}/${match[2]}/${match[1]} às ${match[4]}:${match[5]}:${match[6]}`:(value||'—');};
   set('updatedAt',dateTime(meta.geradoEm));set('year',meta.ano||finance.ano||'—');
-  set('creditReceived',money(credit.creditoRecebidoUsd));set('creditAvailable',money(credit.creditoDisponivelUsd));set('creditCommitted',money(credit.creditoEmpenhadoUsd));
+  set('creditReceived',money(credit.creditoRecebidoUsd));set('creditAvailable',money(credit.creditoNaoEmpenhadoUsd??credit.creditoDisponivelUsd));set('creditCommitted',money(credit.creditoEmpenhadoUsd));set('creditLiquidated',money(credit.creditoLiquidadoUsd));
+  set('creditReceivedPct','100,00% do crédito recebido');set('creditAvailablePct',percent(credit.percentualNaoEmpenhado));set('creditCommittedPct',percent(credit.percentualEmpenhado));set('creditLiquidatedPct',percent(credit.percentualLiquidado));
   set('contractsValue',money(contracts.valorContratadoUsd));set('contractsCommitted',money(contracts.valorEmpenhadoUsd));set('contractsBilled',money(contracts.valorFaturadoUsd));set('contractsCount',integer(contracts.quantidade));
   const categories=contracts.categorias||{};set('contractsBreakdown',`${integer(categories.administrativos)} administrativos · ${integer(categories.finalisticos)} finalísticos · ${integer(categories.fms)} FMS`);
   set('materialsCount',integer((requests.materiais||{}).quantidade));set('materialsValue',money((requests.materiais||{}).valorEmpenhadoUsd));set('repairsCount',integer((requests.reparos||{}).quantidade));set('repairsValue',money((requests.reparos||{}).valorEmpenhadoUsd));

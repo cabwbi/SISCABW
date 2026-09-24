@@ -88,6 +88,8 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 ### Crédito, finanças e suprimento de fundos
 
 - Crédito disponível = saldo dos dígitos + PO em assinatura que não seja `AMEND`.
+- Empenhos liquidados do exercício = soma das NL de liquidação vinculadas a ordens de compra iniciadas por `26T` (ou pelo ano corrente equivalente após atualização).
+- A página **Visão geral da Execução** apresenta a composição do crédito recebido em três fases: não empenhado, empenhado e não liquidado, e liquidado/pago. Os gráficos por Grande Comando, ação e o ranking de saldos de PO obedecem aos filtros do painel.
 - Crédito total recebido = crédito disponível + empenhos realizados.
 - Fornecedores pagos qualificados devem estar ligados a contrato ou a requisição com certame SILOMS.
 - Suprimento de fundos usa projeto `SF` para crédito, empenho e saldo não liquidado.
