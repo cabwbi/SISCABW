@@ -1,5 +1,11 @@
 # SISCABW — guia único de operação, atualização e publicação
 
+## Ajuste de 24/09/2026 — seletor de OM da prestação de contas
+
+- A opção técnica “Não informado” foi removida dos botões do gráfico do segundo slide porque não possuía dados úteis para gráfico, indicadores ou tabela.
+- Os registros sem OM classificada continuam contabilizados na visão consolidada “Todas OM”.
+- Os dados foram regenerados com as planilhas de 23/09/2026; o arquivo de volumes foi preservado da remessa anterior por não ter sido reenviado.
+
 ## Ajustes de 23/09/2026 — prestação de contas e Suprimento de Fundos
 
 - No segundo slide da consolidação para prestação de contas, a linha da média do ano corrente passou a ser azul.

@@ -247,7 +247,7 @@ function monthlyOmOptions(source){
 function contractOmOptions(r,source){
   const found=new Map(monthlyOmOptions(source).map(item=>[item.code,item]));
   contractPurchaseOrders(r).forEach(po=>{const info=accountabilityOmInfo({omCodigo:po.omCodigo,om:po.om},po);if(info.code&&!found.has(info.code))found.set(info.code,{code:info.code,label:(info.full.split(' - ')[0]||info.code).trim()||info.code,full:info.full});});
-  return Array.from(found.values()).sort((a,b)=>(a.code==='CW'?-1:b.code==='CW'?1:a.label.localeCompare(b.label,'pt-BR')));
+  return Array.from(found.values()).filter(item=>item.code!=='N/I').sort((a,b)=>(a.code==='CW'?-1:b.code==='CW'?1:a.label.localeCompare(b.label,'pt-BR')));
 }
 function monthlyAverageStats(source){
   const reference=parseIsoDate(root.meta&&root.meta.geradoEm)||new Date();
