@@ -7,7 +7,6 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const money=v=>'US$ '+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const num=v=>Number(v||0).toLocaleString('pt-BR');
 const pct=(a,b)=> b ? ((a/b)*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%' : '0,00%';
-const executionState={actionsExpanded:false};
 function selected(sel){if(!sel)return []; return Array.from(sel.selectedOptions).map(o=>o.value).filter(Boolean);}
 function unique(a){return Array.from(new Set(a.filter(v=>v!==undefined&&v!==null&&String(v).trim()!==''))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR'));}
 function omLabel(r){return r.omLabel || [r.sigla,r.nomeUgr].filter(Boolean).join(' - ') || 'N/I';}
@@ -138,13 +137,13 @@ function executionRows(digits,pos,sig,keyFn){
   (pos||[]).forEach(row=>{const item=get(row);item.committed+=Number(row.valorUsd||0);item.liquidatedRaw+=Number(row.liquidadoNlUsd||0);});
   return Array.from(grouped.values()).map(item=>{const received=item.available+item.committed,liquidated=Math.min(item.committed,Math.max(0,item.liquidatedRaw)),committedOpen=Math.max(0,item.committed-liquidated);return {...item,received,liquidated,committedOpen,availablePct:received?item.available/received*100:0,committedOpenPct:received?committedOpen/received*100:0,liquidatedPct:received?liquidated/received*100:0};}).filter(item=>item.received>0).sort((a,b)=>b.received-a.received||a.label.localeCompare(b.label,'pt-BR'));
 }
-function drawExecutionPhaseChart(id,rows,title,limit){
+function drawExecutionPhaseChart(id,rows,limit){
   const el=$('#'+id);if(!el)return;if(!window.Plotly){el.innerHTML='<p>Plotly não carregado.</p>';return;}
   const selected=(limit?rows.slice(0,limit):rows).slice().reverse();
   if(!selected.length){el.innerHTML='<p class="credit-empty-chart">Nenhum dado encontrado para os filtros aplicados.</p>';return;}
   const y=selected.map(row=>row.label),phaseTrace=(name,key,pctKey,color)=>({type:'bar',orientation:'h',name,y,x:selected.map(row=>row[pctKey]),customdata:selected.map(row=>[row[key],row.received,row[pctKey]]),text:selected.map(row=>row[pctKey]>=5?pct(row[key],row.received):''),textposition:'inside',insidetextanchor:'middle',textfont:{color:'#fff',size:11},marker:{color},hovertemplate:'<b>%{y}</b><br>'+name+': %{customdata[0]:$,.2f}<br>Participação: %{customdata[2]:.2f}%<br>Crédito recebido: %{customdata[1]:$,.2f}<extra></extra>'});
   const annotations=selected.map(row=>({xref:'paper',x:1.01,yref:'y',y:row.label,text:'<b>'+money(row.received)+'</b>',showarrow:false,xanchor:'left',font:{size:11,color:'#00265f'}}));
-  Plotly.newPlot(el,[phaseTrace('Crédito não empenhado','available','availablePct','#003b7a'),phaseTrace('Empenhado e não liquidado','committedOpen','committedOpenPct','#2878b8'),phaseTrace('Liquidado e pago','liquidated','liquidatedPct','#73b9e6')],{title:{text:title,font:{size:16}},height:Math.max(390,selected.length*38+145),barmode:'stack',margin:{l:260,r:155,t:76,b:66},xaxis:{title:'Percentual do crédito recebido',range:[0,100],ticksuffix:'%',fixedrange:true},yaxis:{automargin:true,categoryorder:'array',categoryarray:y,tickfont:{size:11}},legend:{orientation:'h',x:0,y:1.12},annotations,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});
+  Plotly.newPlot(el,[phaseTrace('Crédito não empenhado','available','availablePct','#003b7a'),phaseTrace('Empenhado e não liquidado','committedOpen','committedOpenPct','#2878b8'),phaseTrace('Liquidado e pago','liquidated','liquidatedPct','#73b9e6')],{height:Math.max(470,selected.length*43+105),barmode:'stack',margin:{l:330,r:190,t:64,b:66},xaxis:{title:'Percentual do crédito recebido',range:[0,100],ticksuffix:'%',fixedrange:true},yaxis:{type:'category',automargin:true,categoryorder:'array',categoryarray:y,tickfont:{size:12}},legend:{orientation:'h',x:0,y:1.09,font:{size:12}},annotations,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});
 }
 function shortLabel(value,max=34){const text=String(value||'Não informado').replace(/\s+/g,' ').trim();return text.length>max?text.slice(0,max-3)+'...':text;}
 function drawPoBalanceRanking(pos){
@@ -154,7 +153,7 @@ function drawPoBalanceRanking(pos){
   const y=rows.map(row=>row.po),companies=rows.map(row=>shortLabel(row.nomeFornecedor||row.fornecedor,31));
   const annotations=rows.map(row=>({xref:'paper',x:1.01,yref:'y',y:row.po,text:'<b>'+shortLabel(row.omSigla||row.omLabel,18)+'</b><br>'+shortLabel((row.projetosLabels||[]).join(', ')||row.projetoLabel,28),showarrow:false,xanchor:'left',align:'left',font:{size:10,color:'#24466e'}}));
   const custom=rows.map(row=>[row.po,row.data,Number(row.valorUsd||0),(row.requisicoes||[]).join(', ')||row.requisicaoPrincipal||'Não informada',String(row.descricaoRequisicao||row.objetoResumo||'Não informada').replace(/\s+/g,' ').trim(),row.omLabel||row.om,row.projetoLabel]);
-  Plotly.newPlot(el,[{type:'bar',orientation:'h',y,x:rows.map(row=>Number(row.empenhadoNaoLiquidadoUsd||0)),customdata:custom,text:rows.map(row=>money(row.empenhadoNaoLiquidadoUsd)),textposition:'outside',cliponaxis:false,marker:{color:'#0e63b6'},hovertemplate:'<b>PO %{customdata[0]}</b><br>Data da PO: %{customdata[1]}<br>Valor total: %{customdata[2]:$,.2f}<br>Requisição: %{customdata[3]}<br>Descrição: %{customdata[4]}<extra></extra>'}],{title:{text:'20 maiores saldos de POs de 2026 ainda não liquidados',font:{size:16}},height:Math.max(480,rows.length*39+140),margin:{l:280,r:330,t:66,b:58},xaxis:{title:'Saldo da PO ainda não liquidado (US$)'},yaxis:{tickmode:'array',tickvals:y,ticktext:companies,automargin:true,tickfont:{size:11}},annotations,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});
+  Plotly.newPlot(el,[{type:'bar',orientation:'h',y,x:rows.map(row=>Number(row.empenhadoNaoLiquidadoUsd||0)),customdata:custom,text:rows.map(row=>money(row.empenhadoNaoLiquidadoUsd)),textposition:'auto',cliponaxis:false,textfont:{size:12},marker:{color:'#0e63b6'},hovertemplate:'<b>PO %{customdata[0]}</b><br>Data da PO: %{customdata[1]}<br>Valor total: %{customdata[2]:$,.2f}<br>Requisição: %{customdata[3]}<br>Descrição: %{customdata[4]}<extra></extra>'}],{height:Math.max(560,rows.length*43+80),margin:{l:310,r:360,t:20,b:60},xaxis:{title:'Saldo da PO ainda não liquidado (US$)',automargin:true},yaxis:{type:'category',tickmode:'array',tickvals:y,ticktext:companies,automargin:true,tickfont:{size:12}},annotations,paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff'}, {displayModeBar:false,responsive:true});
 }
 function renderExecutive(){
   if(!$('#kpiCreditAvailable')) return;
@@ -165,9 +164,8 @@ function renderExecutive(){
   const summaryCell=(value,share)=>`<strong>${money(value)}</strong><small>${pct(share,total)} do crédito recebido</small>`;
   const table=$('#executiveSummaryBody'); if(table)table.innerHTML=`<tr><td>2026</td><td class="text-right">${summaryCell(total,total)}</td><td class="text-right">${summaryCell(empenhado,empenhado)}</td><td class="text-right">${summaryCell(credito,credito)}</td><td class="text-right">${summaryCell(empenhadoAberto,empenhadoAberto)}</td><td class="text-right">${summaryCell(liquidado,liquidado)}</td></tr>`;
   const gcRows=executionRows(digits,pos,sig,gcFromDigit),actionRows=executionRows(digits,pos,sig,r=>r.acao||'Sem ação');
-  drawExecutionPhaseChart('executionByGcChart',gcRows,'Execução do crédito por Grande Comando');
-  drawExecutionPhaseChart('executionByActionChart',actionRows,'Execução do crédito por ação',executionState.actionsExpanded?0:10);
-  const actionButton=$('#toggleAllActions');if(actionButton)actionButton.innerHTML=executionState.actionsExpanded?'<i class="bi bi-arrows-collapse"></i> Mostrar as 10 principais ações':'<i class="bi bi-arrows-expand"></i> Ver todas as ações';
+  drawExecutionPhaseChart('executionByGcChart',gcRows);
+  drawExecutionPhaseChart('executionByActionChart',actionRows,10);
   drawPoBalanceRanking(pos);
   drawBar('creditByGcChart',agg(digits.concat(validSig),gcFromDigit,r=>r.saldo!==undefined?r.saldo:r.valorUsd),'Crédito disponível por Grande Comando','Saldo + POs em assinatura',{fullAxisLabels:true});
   drawBar('poByGcChart',agg(pos,gcFromDigit,r=>r.valorUsd),'PO por Grande Comando conforme dígito','Valor empenhado',{fullAxisLabels:true}); drawBar('poByCompanyChart',agg(pos,r=>r.fornecedor||'N/I',r=>r.valorUsd),'Empenhos por empresa','Valor empenhado'); drawBar('poByProjectChart',agg(pos,r=>projectLabels(r).join(', ')||'Sem projeto',r=>r.valorUsd),'Empenhos por projeto','Valor empenhado'); renderDigitsTable(digits);
@@ -200,5 +198,5 @@ async function generateCreditReport(){
 
 function renderAll(){renderExecutive();renderUG();renderAction();renderDetail();renderConsistency();}
 window.CABW_CREDIT_PANEL_TEST={executionMetrics,executionRows,gcFromDigit,eligibleSignature,rowMatches,filtered};
-document.addEventListener('DOMContentLoaded',()=>{try{initFilters();$('#toggleAllActions')?.addEventListener('click',()=>{executionState.actionsExpanded=!executionState.actionsExpanded;renderExecutive();}); renderAll(); const reportButton=$('#generateCreditReport');if(reportButton){reportButton.addEventListener('click',generateCreditReport);reportButton.__cabwReportBound=true;}}catch(e){console.error('CABW credit error',e);}});
+document.addEventListener('DOMContentLoaded',()=>{try{initFilters();renderAll(); const reportButton=$('#generateCreditReport');if(reportButton){reportButton.addEventListener('click',generateCreditReport);reportButton.__cabwReportBound=true;}}catch(e){console.error('CABW credit error',e);}});
 })();
