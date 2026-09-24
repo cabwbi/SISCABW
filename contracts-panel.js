@@ -336,7 +336,68 @@ function accountabilityContractHtml(r,index){
   return pageOne+pageTwo;
 }
 function accountabilityNavigationScript(){return `<script>
-(function(){const slides=Array.from(document.querySelectorAll('.contract-slide'));const position=document.getElementById('slidePosition');const prev=document.getElementById('slidePrev');const next=document.getElementById('slideNext');const jump=document.getElementById('contractJump');let current=0;function show(index){if(!slides.length)return;current=Math.max(0,Math.min(index,slides.length-1));slides.forEach((slide,i)=>slide.classList.toggle('is-active',i===current));const active=slides[current];const contractIndex=Number(active.dataset.contractIndex||0);const part=Number(active.dataset.slidePart||1);if(position)position.textContent='Contrato '+(contractIndex+1)+' · página '+part+'/2';if(jump)jump.value=String(contractIndex);if(prev)prev.disabled=current===0;if(next)next.disabled=current===slides.length-1;window.scrollTo({top:0,behavior:'smooth'});}window.accountabilityPrev=()=>show(current-1);window.accountabilityNext=()=>show(current+1);window.accountabilityJump=value=>show(Number(value)*2);window.accountabilityPrint=()=>{document.documentElement.classList.add('accountability-printing');requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));};window.addEventListener('afterprint',()=>document.documentElement.classList.remove('accountability-printing'));window.accountabilityFilterOm=button=>{const history=button&&button.closest('.month-history');const slide=button&&button.closest('.contract-slide');if(!history||!slide)return;const selected=button.dataset.om;history.querySelectorAll('.month-om-button').forEach(item=>{const active=item===button;item.classList.toggle('is-active',active);item.setAttribute('aria-pressed',active?'true':'false');});slide.querySelectorAll('.month-history-view').forEach(view=>{view.hidden=view.dataset.omView!==selected;});slide.querySelectorAll('.accountability-detail-view').forEach(view=>{view.hidden=view.dataset.omDetail!==selected;});};document.addEventListener('keydown',event=>{if(event.key==='ArrowLeft')window.accountabilityPrev();if(event.key==='ArrowRight')window.accountabilityNext();});show(0);}());
+(function(){
+  const slides=Array.from(document.querySelectorAll('.contract-slide'));
+  const position=document.getElementById('slidePosition');
+  const prev=document.getElementById('slidePrev');
+  const next=document.getElementById('slideNext');
+  const jump=document.getElementById('contractJump');
+  let current=0;
+  let boundaryLockUntil=0;
+  let wheelAccumulated=0;
+  let wheelDirection=0;
+  let wheelResetTimer=0;
+  function interactiveTarget(target){return !!(target&&target.closest&&target.closest('input,select,textarea,[contenteditable="true"]'));}
+  function show(index){
+    if(!slides.length)return false;
+    const target=Math.max(0,Math.min(index,slides.length-1));
+    if(target===current&&slides[current].classList.contains('is-active'))return false;
+    current=target;
+    slides.forEach((slide,i)=>slide.classList.toggle('is-active',i===current));
+    const active=slides[current];
+    const contractIndex=Number(active.dataset.contractIndex||0);
+    const part=Number(active.dataset.slidePart||1);
+    if(position)position.textContent='Contrato '+(contractIndex+1)+' · página '+part+'/2';
+    if(jump)jump.value=String(contractIndex);
+    if(prev)prev.disabled=current===0;
+    if(next)next.disabled=current===slides.length-1;
+    wheelAccumulated=0;
+    window.scrollTo({top:0,left:0,behavior:'auto'});
+    return true;
+  }
+  window.accountabilityPrev=()=>show(current-1);
+  window.accountabilityNext=()=>show(current+1);
+  window.accountabilityJump=value=>show(Number(value)*2);
+  window.accountabilityPrint=()=>{document.documentElement.classList.add('accountability-printing');requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));};
+  window.addEventListener('afterprint',()=>document.documentElement.classList.remove('accountability-printing'));
+  window.accountabilityFilterOm=button=>{const history=button&&button.closest('.month-history');const slide=button&&button.closest('.contract-slide');if(!history||!slide)return;const selected=button.dataset.om;history.querySelectorAll('.month-om-button').forEach(item=>{const active=item===button;item.classList.toggle('is-active',active);item.setAttribute('aria-pressed',active?'true':'false');});slide.querySelectorAll('.month-history-view').forEach(view=>{view.hidden=view.dataset.omView!==selected;});slide.querySelectorAll('.accountability-detail-view').forEach(view=>{view.hidden=view.dataset.omDetail!==selected;});};
+  document.addEventListener('keydown',event=>{
+    if(event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||interactiveTarget(event.target))return;
+    const forward=event.key==='ArrowRight'||event.key==='ArrowDown'||event.key==='PageDown'||event.key===' ';
+    const backward=event.key==='ArrowLeft'||event.key==='ArrowUp'||event.key==='PageUp';
+    if(!forward&&!backward)return;
+    event.preventDefault();
+    if(forward)window.accountabilityNext();else window.accountabilityPrev();
+  });
+  window.addEventListener('wheel',event=>{
+    if(event.ctrlKey||interactiveTarget(event.target)||Date.now()<boundaryLockUntil)return;
+    const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+    const atTop=window.scrollY<=2;
+    const atBottom=window.scrollY>=maxScroll-2;
+    const direction=Math.sign(event.deltaY);
+    const eligible=(direction>0&&atBottom&&current<slides.length-1)||(direction<0&&atTop&&current>0);
+    if(!eligible){wheelAccumulated=0;wheelDirection=0;return;}
+    event.preventDefault();
+    if(direction!==wheelDirection){wheelAccumulated=0;wheelDirection=direction;}
+    wheelAccumulated+=Math.abs(event.deltaY);
+    clearTimeout(wheelResetTimer);
+    wheelResetTimer=setTimeout(()=>{wheelAccumulated=0;wheelDirection=0;},280);
+    if(wheelAccumulated<70)return;
+    boundaryLockUntil=Date.now()+700;
+    if(direction>0)window.accountabilityNext();else window.accountabilityPrev();
+  },{passive:false});
+  show(0);
+}());
 <\/script>`;}
 function accountabilityReportHtml(rows,title,updated){
   const options=rows.map((r,index)=>'<option value="'+index+'">'+(index+1)+'. '+esc(r.numero||r.contrato||'Contrato')+' · '+esc(r.empresa||'Empresa não informada')+'</option>').join('');
