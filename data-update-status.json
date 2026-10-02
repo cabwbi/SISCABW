@@ -1,25 +1,25 @@
 {
-  "geradoEm": "2026-10-01 06:49:56",
+  "geradoEm": "2026-10-01 22:55:09",
   "fusoHorarioExibicao": "America/New_York",
   "processosResumo": {
     "materiais2026": {
       "ano": 2026,
-      "requisicoes": 526,
-      "valorEmpenhadoUsd": 14622896.62
+      "requisicoes": 528,
+      "valorEmpenhadoUsd": 14839800.62
     },
     "reparos2026": {
       "ano": 2026,
       "requisicoes": 69,
       "valorEmpenhadoUsd": 587453.86
     },
-    "totalEscopo": 4201,
+    "totalEscopo": 4203,
     "reparosCompraerExpedidos": 20,
     "outrosReparosExpedidos": 64
   },
   "pagamentosResumo": {
     "ano": 2026,
     "quantidadeNlPagamento": 2645,
-    "valorNlPagamentoUsd": 110725442.89,
+    "valorNlPagamentoUsd": 110725742.89,
     "empresasPagas": 225,
     "empresasPagasElegiveis": 121,
     "maiorPagamentoUltimos30Dias": {
@@ -35,36 +35,36 @@
   "paineis": {
     "entrada": [
       {
-        "arquivo": "NL_requisicao(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "NL_requisicao(20261002-025459).XLS",
+        "atualizadoEm": "2026-10-02T02:54:59Z"
       },
       {
-        "arquivo": "Ordem_de_compra_em_assinatura(20261001-104952).XLS",
-        "atualizadoEm": "2026-10-01T10:49:52Z"
+        "arquivo": "Ordem_de_compra_em_assinatura(20261002-025459).XLS",
+        "atualizadoEm": "2026-10-02T02:54:59Z"
       },
       {
-        "arquivo": "controle_financeiro_contratos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "controle_financeiro_contratos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       },
       {
         "arquivo": "volumes(3).xls",
@@ -73,152 +73,152 @@
     ],
     "contratos": [
       {
-        "arquivo": "controle_financeiro_contratos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "controle_financeiro_contratos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "NL_requisicao(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "NL_requisicao(20261002-025459).XLS",
+        "atualizadoEm": "2026-10-02T02:54:59Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       }
     ],
     "credito": [
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "Ordem_de_compra_em_assinatura(20261001-104952).XLS",
-        "atualizadoEm": "2026-10-01T10:49:52Z"
+        "arquivo": "Ordem_de_compra_em_assinatura(20261002-025459).XLS",
+        "atualizadoEm": "2026-10-02T02:54:59Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       }
     ],
     "compatibilizacao": [
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       }
     ],
     "processos": [
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       },
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "controle_financeiro_contratos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "controle_financeiro_contratos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       }
     ],
     "governanca": [
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       }
     ],
     "rp": [
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "NL_requisicao(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "NL_requisicao(20261002-025459).XLS",
+        "atualizadoEm": "2026-10-02T02:54:59Z"
       },
       {
-        "arquivo": "requisicoes(20261001-104956).XLS",
-        "atualizadoEm": "2026-10-01T10:49:56Z"
+        "arquivo": "requisicoes(20261002-025509).XLS",
+        "atualizadoEm": "2026-10-02T02:55:09Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "controle_financeiro_contratos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "controle_financeiro_contratos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       }
     ],
     "suprimento": [
       {
-        "arquivo": "ordem_de_compra(20261001-104954).XLS",
-        "atualizadoEm": "2026-10-01T10:49:54Z"
+        "arquivo": "ordem_de_compra(20261002-025507).XLS",
+        "atualizadoEm": "2026-10-02T02:55:07Z"
       },
       {
-        "arquivo": "digitos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "digitos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_OM(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_OM(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       },
       {
-        "arquivo": "descricao_projetos(20261001-104951).XLS",
-        "atualizadoEm": "2026-10-01T10:49:51Z"
+        "arquivo": "descricao_projetos(20261002-025457).XLS",
+        "atualizadoEm": "2026-10-02T02:54:57Z"
       }
     ]
   }
