@@ -3,7 +3,9 @@
 ## Ajuste de 05/10/2026 — ocorrências da prestação de contas
 
 - A consolidação para prestação de contas passou a apresentar, no primeiro slide de cada contrato, as ocorrências registradas na fonte `historico_obs`.
-- O mês anterior ao da referência dos dados fica aberto; o mês corrente e o histórico dos meses anteriores podem ser expandidos.
+- O mês anterior e o mês corrente ficam abertos; somente o histórico dos demais meses permanece expansível.
+- A coluna `DATA` de `historico_obs` é interpretada no padrão brasileiro dia/mês/ano, inclusive com correção das datas ambíguas convertidas pelo XLS legado.
+- A tipografia das datas e observações foi ampliada para leitura durante apresentações.
 - A associação é feita entre o identificador da primeira coluna de `historico_obs` e a primeira coluna do controle financeiro de contratos, com normalização de códigos numéricos.
 - O acesso externo de Finanças passou a usar explicitamente `https://camaraajcv.github.io/cabw-pagamentos./index.html`.
 

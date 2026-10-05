@@ -203,8 +203,23 @@ function contractOccurrencesHtml(r){
   const groups=new Map();
   otherRows.forEach(item=>{const key=occurrenceMonthKey(item.data)||'sem-data';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);});
   const history=Array.from(groups.entries()).sort((a,b)=>b[0].localeCompare(a[0])).map(([key,items])=>'<section class="occurrence-month-group"><h4>'+esc(occurrenceMonthLabel(key))+'</h4>'+occurrenceListHtml(items,'Nenhuma ocorrência registrada.')+'</section>').join('');
-  return '<section class="occurrences-panel" aria-label="Ocorrências do contrato"><h3 class="section-title">Ocorrências</h3><p class="occurrence-reference">Mês de análise: <strong>'+esc(occurrenceMonthLabel(previousKey))+'</strong></p>'+occurrenceListHtml(previousRows,'Nenhuma ocorrência registrada em '+occurrenceMonthLabel(previousKey)+'.')+'<details class="occurrence-details occurrence-current"><summary>Ocorrências de '+esc(occurrenceMonthLabel(currentKey))+' <span>'+num(currentRows.length)+'</span></summary>'+occurrenceListHtml(currentRows,'Nenhuma ocorrência registrada em '+occurrenceMonthLabel(currentKey)+'.')+'</details><details class="occurrence-details occurrence-history"><summary>HISTÓRICO DE OCORRÊNCIAS DE MESES ANTERIORES <span>'+num(otherRows.length)+'</span></summary>'+(history||'<p class="occurrence-empty">Nenhuma ocorrência registrada em outros meses.</p>')+'</details></section>';
+  return '<section class="occurrences-panel" aria-label="Ocorrências do contrato"><h3 class="section-title">Ocorrências</h3><section class="occurrence-open-month occurrence-previous"><h4>Ocorrências de '+esc(occurrenceMonthLabel(previousKey))+' <span>'+num(previousRows.length)+'</span></h4>'+occurrenceListHtml(previousRows,'Nenhuma ocorrência registrada em '+occurrenceMonthLabel(previousKey)+'.')+'</section><section class="occurrence-open-month occurrence-current"><h4>Ocorrências de '+esc(occurrenceMonthLabel(currentKey))+' <span>'+num(currentRows.length)+'</span></h4>'+occurrenceListHtml(currentRows,'Nenhuma ocorrência registrada em '+occurrenceMonthLabel(currentKey)+'.')+'</section><details class="occurrence-details occurrence-history"><summary>HISTÓRICO DE OCORRÊNCIAS DE MESES ANTERIORES <span>'+num(otherRows.length)+'</span></summary>'+(history||'<p class="occurrence-empty">Nenhuma ocorrência registrada em outros meses.</p>')+'</details></section>';
 }
+function occurrenceAccessibilityStyles(){return `<style>
+.occurrence-open-month{margin-top:14px;border-top:1px solid #d6e0ec;padding-top:11px}
+.occurrence-open-month:first-of-type{margin-top:0;border-top:0;padding-top:0}
+.occurrence-open-month h4{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px;color:#003b7a;font-size:15px;font-weight:900}
+.occurrence-open-month h4 span{min-width:32px;border-radius:999px;background:#003b7a;color:#fff;padding:3px 9px;text-align:center;font-size:13px}
+.occurrence-item{grid-template-columns:112px 1fr;padding:12px 14px}
+.occurrence-item time{font-size:14px;padding:5px 9px}
+.occurrence-item p{font-size:16px;line-height:1.45}
+.occurrence-item small{font-size:12px}
+.occurrence-empty{font-size:14px}
+.occurrence-details summary{font-size:14px;padding:3px 0}
+.occurrence-month-group h4{font-size:14px}
+@media(max-width:1000px){.occurrence-item{grid-template-columns:1fr}.occurrence-item time{justify-self:start}}
+@media print{.occurrence-item p{font-size:11.5px}.occurrence-item time,.occurrence-open-month h4,.occurrence-details summary,.occurrence-month-group h4{font-size:10.5px}.occurrence-item small,.occurrence-empty{font-size:9.5px}}
+</style>`;}
 function activeMonthsInYearForRows(rows, year){
   const generatedAt=parseIsoDate(root.meta&&root.meta.geradoEm); const referenceDate=generatedAt||new Date(); const y=Number(year);
   const yearStart=new Date(y,0,1); const naturalYearEnd=new Date(y,11,31);
@@ -424,7 +439,7 @@ function accountabilityNavigationScript(){return `<script>
 function accountabilityReportHtml(rows,title,updated){
   const options=rows.map((r,index)=>'<option value="'+index+'">'+(index+1)+'. '+esc(r.numero||r.contrato||'Contrato')+' · '+esc(r.empresa||'Empresa não informada')+'</option>').join('');
   const controls='<div class="report-controls"><button id="slidePrev" type="button" onclick="accountabilityPrev()">Página anterior</button><span class="slide-position" id="slidePosition"></span><button class="primary" id="slideNext" type="button" onclick="accountabilityNext()">Próxima página</button><select id="contractJump" onchange="accountabilityJump(this.value)" aria-label="Ir para contrato">'+options+'</select><button type="button" onclick="accountabilityPrint()">Imprimir / salvar PDF</button></div>';
-  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prestação de contas - '+esc(title)+'</title>'+accountabilityStyles()+'</head><body><header class="report-head"><div><h1>Consolidação para prestação de contas — '+esc(title)+'</h1><p>'+num(rows.length)+' contrato(s) · dados atualizados em '+esc(updated)+'</p></div>'+controls+'</header><main class="report-body">'+(rows.map(accountabilityContractHtml).join('')||'<p>Nenhum contrato encontrado nesta categoria.</p>')+'</main>'+accountabilityNavigationScript()+'</body></html>';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prestação de contas - '+esc(title)+'</title>'+accountabilityStyles()+occurrenceAccessibilityStyles()+'</head><body><header class="report-head"><div><h1>Consolidação para prestação de contas — '+esc(title)+'</h1><p>'+num(rows.length)+' contrato(s) · dados atualizados em '+esc(updated)+'</p></div>'+controls+'</header><main class="report-body">'+(rows.map(accountabilityContractHtml).join('')||'<p>Nenhum contrato encontrado nesta categoria.</p>')+'</main>'+accountabilityNavigationScript()+'</body></html>';
 }
 function generateAccountabilityReport(){
   const cat=document.body.getAttribute('data-contract-category'); const rows=sortAccountabilityRows(accountabilityRowsForCategory(cat),cat); const title=$('#contract-section-title')?.textContent?.trim()||'Contratos';
