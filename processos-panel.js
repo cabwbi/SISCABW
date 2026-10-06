@@ -321,7 +321,13 @@
   }
   function dispatchedRowsForCurrentFilters(group) {
     const rows = group === 'other' ? otherRepairRows : sourceRows;
-    return rows.filter(row => matchesCurrentAnalyticalFilters(row) && matchesCurrentLogisticsFilter(row) && isDispatchedToSupplier(row));
+    return rows.filter(row => matchesCurrentAnalyticalFilters(row) && matchesCurrentLogisticsFilter(row) && isDispatchedToSupplier(row) && (!highValueDispatchedOnly || isHighValueDispatched(row)));
+  }
+  function custodySummary(rows) {
+    const custodyRows = rows.filter(isRepairableInSupplierCustody);
+    const companies = new Map();
+    custodyRows.forEach(row => { const company = String(row.empresaVencedora || 'Não informado').trim() || 'Não informado'; companies.set(company, (companies.get(company) || 0) + Number(row.valorReparavelUsd || 0)); });
+    return { rows: custodyRows, total: sum(custodyRows, 'valorReparavelUsd'), top: Array.from(companies, ([company, value]) => ({ company, value })).filter(item => item.value > 0).sort((a, b) => b.value - a.value).slice(0, 3) };
   }
   function economy(rows) {
     const comparable = rows.filter(row => Number(row.valorReferenciaUsd || 0) > 0);
@@ -383,6 +389,8 @@
       const tdrPreparation = averageElapsed(filteredRows, 'dataExpedicaoReparavel', 'dataTdr');
       const tdrAnalysis = averageElapsed(filteredRows, 'dataTdr', 'dataAnaliseTdr');
       const highValueDispatched = filteredRows.filter(isHighValueDispatched);
+      const custody = custodySummary(filteredRows);
+      const custodyTop = custody.top.length ? custody.top.map((item, index) => `${index + 1}. ${item.company} — ${money(item.value)}`).join('\n') : 'Sem valores de reparáveis no recorte';
       base.push(
         ['Quantidade de itens', number(sum(filteredRows, 'quantidade')), 'bi-box-seam', 'Soma das quantidades requisitadas'],
         ['BER', number(ber), 'bi-exclamation-octagon', 'Itens classificados como BER'],
@@ -391,6 +399,7 @@
         ['Reparados', number(repaired), 'bi-check2-circle', 'Itens com retorno reparado'],
         ['Em processo', number(countReturn(filteredRows, 'Em processo')), 'bi-hourglass-split', 'Condição de retorno ainda em branco'],
         ['Percentual de sucesso', percentage(successRate), 'bi-bullseye', completed ? `${number(repaired)} reparado(s) de ${number(completed)} item(ns) concluído(s)` : 'Sem itens concluídos no recorte'],
+        ['Valor de reparáveis sob custódia', money(custody.total), 'bi-building-lock', custodyTop],
         ['Tempo de elaboração de TDR', `${number(tdrPreparation.average)} dias`, 'bi-stopwatch', `${number(tdrPreparation.count)} requisição(ões) com datas válidas`],
         ['Tempo de análise de TDR', `${number(tdrAnalysis.average)} dias`, 'bi-hourglass-bottom', `${number(tdrAnalysis.count)} requisição(ões) com datas válidas; intervalos negativos ignorados`],
         ['Expedidos acima de US$ 25 mil', number(highValueDispatched.length), 'bi-cash-stack', 'Valor do reparável superior a US$ 25.000 · clique para filtrar', 'repair-high-value-dispatched'],
@@ -447,6 +456,25 @@
       font: { family: 'Montserrat, Arial, sans-serif', color: '#244160' },
       showlegend: false,
     }, { displayModeBar: false, responsive: true });
+  }
+
+  function drawCustodyByCompany(rows) {
+    const element = document.getElementById('chartCustodiaEmpresa');
+    if (!element || !window.Plotly) return;
+    const categories = ['Empenho aprovado', 'Reparável expedido ao fornecedor'];
+    const groups = new Map();
+    rows.filter(isRepairableInSupplierCustody).forEach(row => {
+      const company = String(row.empresaVencedora || 'Não informado').trim() || 'Não informado';
+      const category = isDispatchedToSupplier(row) ? categories[1] : categories[0];
+      if (!groups.has(company)) groups.set(company, { company, total: 0, values: new Map(categories.map(item => [item, 0])) });
+      const value = Number(row.valorReparavelUsd || 0), group = groups.get(company);
+      group.values.set(category, group.values.get(category) + value); group.total += value;
+    });
+    const companies = Array.from(groups.values()).filter(item => item.total > 0).sort((a, b) => b.total - a.total).reverse();
+    if (!companies.length) { element.innerHTML = '<p class="proc-empty">Nenhum valor de reparável sob custódia para os filtros aplicados.</p>'; return; }
+    const traces = categories.map((category, index) => ({ type: 'bar', orientation: 'h', name: category, y: companies.map(item => item.company), x: companies.map(item => item.values.get(category)), customdata: companies.map(item => [item.company, category, item.values.get(category), item.total]), marker: { color: index ? '#d49b16' : '#2878b8' }, hovertemplate: '<b>%{customdata[0]}</b><br>Situação: %{customdata[1]}<br>Valor da categoria: %{customdata[2]:$,.2f}<br>Total da empresa: %{customdata[3]:$,.2f}<extra></extra>' }));
+    const annotations = companies.map(item => ({ xref: 'paper', x: 1.01, yref: 'y', y: item.company, text: `<b>${money(item.total)}</b>`, showarrow: false, xanchor: 'left', font: { size: 10, color: '#00265f' } }));
+    Plotly.react(element, traces, { barmode: 'stack', height: Math.max(430, companies.length * 42 + 135), margin: { l: 230, r: 150, t: 20, b: 80 }, xaxis: { title: 'Valor do reparável (US$)', gridcolor: '#e6edf5', zeroline: false, automargin: true }, yaxis: { automargin: true, tickfont: { size: 10 } }, legend: { orientation: 'h', x: .5, xanchor: 'center', y: -0.16, yanchor: 'top' }, annotations, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#fff', font: { family: 'Montserrat, Arial, sans-serif', color: '#244160' } }, { displayModeBar: false, responsive: true });
   }
 
   function drawReturnByCompany() {
@@ -531,7 +559,7 @@
     drawBar('chartQtdSituacao', filteredRows, 'status', null, '#6f42c1', false);
     drawBar('chartValorSituacao', filteredRows, 'status', 'valorEmpenhadoUsd', '#8b5cc7', true);
     if (pageMode === 'repairs') {
-      drawBar('chartCustodiaEmpresa', filteredRows.filter(isRepairableInSupplierCustody), 'empresaVencedora', 'valorReparavelUsd', '#9b6a12', true);
+      drawCustodyByCompany(filteredRows);
       drawReturnByCompany();
     }
   }
@@ -770,7 +798,7 @@
     applyFilters();
   }
 
-  window.CABW_PROCESSOS_PANEL_TEST = { mapValidityValue, fieldValue, companyChartLabel, buildSupplierNames, normalizeSupplierLabels };
+  window.CABW_PROCESSOS_PANEL_TEST = { mapValidityValue, fieldValue, companyChartLabel, buildSupplierNames, normalizeSupplierLabels, isDispatchedToSupplier, isRepairableInSupplierCustody, custodySummary };
   document.addEventListener('DOMContentLoaded', () => {
     if (pageMode === 'landing') initLanding();
     if (pageMode === 'materials' || pageMode === 'repairs') initDashboard();

@@ -81,6 +81,7 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - Requisição atrasada de material/publicação: situação `Empenho aprovado` e DPE anterior à data de referência dos dados.
 - Economia da licitação: valor de referência menos valor total, com valor absoluto e percentual.
 - No painel de reparos, o valor sob custódia por empresa soma `VALOR DO REPARÁVEL` nas situações `Empenho aprovado` e `Reparável expedido ao fornecedor`.
+- O valor sob custódia é apresentado em KPI com as três maiores empresas do recorte e em gráfico empilhado por situação, sempre obedecendo aos filtros ativos.
 - O indicador de alto valor considera reparáveis expedidos ao fornecedor com `VALOR DO REPARÁVEL` superior a US$ 25.000 e funciona também como filtro do painel.
 - O tempo de elaboração do TDR é calculado entre `DT REP EXP FORN` e `DATA TDR`; o tempo de análise usa `DATA TDR` e `DATA ANÁLISE TDR`. Intervalos negativos e datas vazias são desconsiderados.
 
@@ -111,6 +112,7 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - O relatório de compatibilização reproduz os dois gráficos do painel conforme os filtros aplicados.
 - O painel de Suprimento de Fundos gera relatório detalhado para impressão/PDF com filtros, KPI, gráficos e ordens de compra.
 - Na Visão geral da Execução, cada filtro exige confirmação pelo botão `Selecionar`; os dados somente são recalculados após `Consultar`. O relatório inclui o crédito disponível por grupo de OM indicado no dígito e separa a lista de dígitos pelos mesmos grupos de OMs.
+- A Visão geral da Execução e seu relatório apresentam o crédito disponível por OM em barras empilhadas por natureza de despesa, com o total de cada OM. No relatório, cada tabela de dígitos informa também seu saldo total.
 
 ### Relatórios e escopos
 
