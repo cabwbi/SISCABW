@@ -142,7 +142,7 @@ function creditByOmNatureModel(digits,validSig){
   return {natures,oms};
 }
 function drawCreditByOmNature(target,digits,validSig,options={}){
-  const el=typeof target==='string'?$('#'+target):target;if(!el||!window.Plotly)return Promise.resolve();const model=creditByOmNatureModel(digits,validSig),oms=model.oms.slice().reverse(),profile=viewportProfile();
+  const el=typeof target==='string'?$('#'+target):target;if(!el||!window.Plotly)return Promise.resolve();const model=creditByOmNatureModel(digits,validSig),oms=model.oms.slice(0,10).reverse(),profile=viewportProfile();
   if(!oms.length){el.innerHTML='<p class="credit-empty-chart">Nenhum crédito disponível para os filtros aplicados.</p>';return Promise.resolve();}
   const palette=['#003b7a','#2878b8','#73b9e6','#0b7a75','#7b61a8','#d49b16','#64748b','#4f7eaa','#2e8b57','#9b6a12'];
   const traces=model.natures.map((nature,index)=>({type:'bar',orientation:'h',name:nature,y:oms.map(row=>row.label),x:oms.map(row=>row.values.get(nature)||0),customdata:oms.map(row=>[row.label,nature,row.values.get(nature)||0,row.total]),marker:{color:palette[index%palette.length]},hovertemplate:'<b>%{customdata[0]}</b><br>Natureza: %{customdata[1]}<br>Valor da categoria: %{customdata[2]:$,.2f}<br>Total da OM: %{customdata[3]:$,.2f}<extra></extra>'}));
@@ -238,7 +238,7 @@ function digitGroupTablesHtml(digits){
 async function reportCreditByOmImage(digits,validSig){
   if(!window.Plotly)return '';
   const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:1400px;height:720px';document.body.appendChild(host);
-  const rows=agg((digits||[]).concat(validSig||[]),r=>omGroup(r).label,r=>r.saldo!==undefined?r.saldo:r.valorUsd).filter(r=>r.value>0).reverse();
+  const rows=agg((digits||[]).concat(validSig||[]),r=>omGroup(r).label,r=>r.saldo!==undefined?r.saldo:r.valorUsd).filter(r=>r.value>0).slice(0,10).reverse();
   if(!rows.length){host.remove();return '';}
   try{await drawCreditByOmNature(host,digits,validSig,{staticPlot:true});return await Plotly.toImage(host,{format:'png',width:1400,height:Math.max(620,rows.length*42+160),scale:1.3});}catch(e){console.warn('Falha ao gerar gráfico do relatório por OM',e);return '';}finally{try{Plotly.purge(host);}catch(e){}host.remove();}
 }
