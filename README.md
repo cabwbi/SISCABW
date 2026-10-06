@@ -113,6 +113,8 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - O painel de Suprimento de Fundos gera relatório detalhado para impressão/PDF com filtros, KPI, gráficos e ordens de compra.
 - Na Visão geral da Execução, cada filtro exige confirmação pelo botão `Selecionar`; os dados somente são recalculados após `Consultar`. O relatório inclui o crédito disponível por grupo de OM indicado no dígito e separa a lista de dígitos pelos mesmos grupos de OMs.
 - A Visão geral da Execução e seu relatório apresentam o crédito disponível por OM em barras empilhadas por natureza de despesa, com o total de cada OM. No relatório, cada tabela de dígitos informa também seu saldo total.
+- A tabela inferior da Visão geral da Execução é segregada por grupo de OM e ordenada do maior para o menor saldo agregado, assim como as tabelas dos relatórios. O resumo executivo destaca as quatro OMs com maior saldo disponível.
+- O relatório simplificado da Visão geral da Execução apresenta exclusivamente as listas de dígitos por OM e seus totais, respeitando os filtros aplicados.
 
 ### Relatórios e escopos
 
