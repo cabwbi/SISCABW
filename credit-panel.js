@@ -18,6 +18,7 @@ function omCodes(r){
 }
 function projectLabels(r){ if(Array.isArray(r.projetosLabels)&&r.projetosLabels.length) return r.projetosLabels; if(r.projetoLabel)return [r.projetoLabel]; if(Array.isArray(r.projetos))return r.projetos; if(r.projeto)return [r.projeto]; return [];}
 const digitLookup=new Map((data.digits||[]).map(d=>[String(d.digito||'').trim(),d]));
+let creditOmDetailMode='natureza';
 function gcFromDigit(r){const d=digitLookup.get(String(r.digito||'').trim()); return (d&&(d.gcDescricao||d.gcDesc||d.grandComando||d.gc)) || r.gcDescricao || r.grandComando || 'N/I';}
 function viewportProfile(){const width=Math.max(document.documentElement?.clientWidth||0,window.innerWidth||0);return {width,mobile:width<=640,compact:width<=900};}
 function wrapHoverLabel(value,max=30){const words=String(value||'Não informado').replace(/\s+/g,' ').trim().split(' ');const lines=[];let line='';words.forEach(word=>{const next=(line+' '+word).trim();if(line&&next.length>max){lines.push(line);line=word;}else line=next;});if(line)lines.push(line);return lines.join('<br>');}
@@ -135,19 +136,21 @@ function drawBar(id, rows, title, yTitle, options={}){
   const leftMargin=options.fullAxisLabels?Math.min(390,Math.max(190,longest*6.3)):130;
   Plotly.newPlot(el,[{type:'bar',orientation:'h',y:shownLabels,x:top.map(r=>r.value),customdata:fullLabels,text:top.map(r=>money(r.value)),textposition:'auto',hovertemplate:'%{customdata}<br>Valor: %{x:$,.2f}<extra></extra>',marker:{color:'#003b7a'}}],{title:{text:title,font:{size:16}},height:Math.max(360,top.length*30+120),margin:{l:leftMargin,r:30,t:60,b:50},xaxis:{title:yTitle||'US$'},yaxis:{automargin:true,tickfont:{size:11}}}, {displayModeBar:false,responsive:true}).then(()=>addAxisTitles(el, shownLabels, fullLabels));
 }
-function creditByOmNatureModel(digits,validSig){
-  const rows=(digits||[]).concat(validSig||[]),groups=new Map(),natureTotals=new Map();
-  rows.forEach(row=>{const om=omGroup(row).label,nature=String(row.natureza||'Natureza não informada'),value=Number(row.saldo!==undefined?row.saldo:row.valorUsd)||0;if(value<=0)return;if(!groups.has(om))groups.set(om,new Map());groups.get(om).set(nature,(groups.get(om).get(nature)||0)+value);natureTotals.set(nature,(natureTotals.get(nature)||0)+value);});
-  const natures=Array.from(natureTotals).sort((a,b)=>b[1]-a[1]).map(([name])=>name),oms=Array.from(groups,([label,values])=>({label,values,total:Array.from(values.values()).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);
-  return {natures,oms};
+function creditByOmNatureModel(digits,validSig,detailMode='natureza'){
+  const rows=(digits||[]).concat(validSig||[]),groups=new Map(),categoryTotals=new Map(),byProject=detailMode==='projeto';
+  rows.forEach(row=>{const om=omGroup(row).label,category=byProject?(projectLabels(row).join(', ')||'Projeto não informado'):String(row.natureza||'Natureza não informada'),value=Number(row.saldo!==undefined?row.saldo:row.valorUsd)||0;if(value<=0)return;if(!groups.has(om))groups.set(om,new Map());groups.get(om).set(category,(groups.get(om).get(category)||0)+value);categoryTotals.set(category,(categoryTotals.get(category)||0)+value);});
+  const categories=Array.from(categoryTotals).sort((a,b)=>b[1]-a[1]).map(([name])=>name),oms=Array.from(groups,([label,values])=>({label,values,total:Array.from(values.values()).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);
+  return {categories,natures:categories,oms,detailMode};
 }
 function drawCreditByOmNature(target,digits,validSig,options={}){
-  const el=typeof target==='string'?$('#'+target):target;if(!el||!window.Plotly)return Promise.resolve();const model=creditByOmNatureModel(digits,validSig),oms=model.oms.slice(0,10).reverse(),profile=viewportProfile();
+  const el=typeof target==='string'?$('#'+target):target;if(!el||!window.Plotly)return Promise.resolve();const detailMode=options.detailMode||(typeof target==='string'?creditOmDetailMode:'natureza'),model=creditByOmNatureModel(digits,validSig,detailMode),oms=model.oms.slice(0,10).reverse(),profile=viewportProfile(),categoryLabel=detailMode==='projeto'?'Projeto':'Natureza';
   if(!oms.length){el.innerHTML='<p class="credit-empty-chart">Nenhum crédito disponível para os filtros aplicados.</p>';return Promise.resolve();}
   const palette=['#003b7a','#2878b8','#73b9e6','#0b7a75','#7b61a8','#d49b16','#64748b','#4f7eaa','#2e8b57','#9b6a12'];
-  const traces=model.natures.map((nature,index)=>({type:'bar',orientation:'h',name:nature,y:oms.map(row=>row.label),x:oms.map(row=>row.values.get(nature)||0),customdata:oms.map(row=>[row.label,nature,row.values.get(nature)||0,row.total]),marker:{color:palette[index%palette.length]},hovertemplate:'<b>%{customdata[0]}</b><br>Natureza: %{customdata[1]}<br>Valor da categoria: %{customdata[2]:$,.2f}<br>Total da OM: %{customdata[3]:$,.2f}<extra></extra>'}));
+  const traces=model.categories.map((category,index)=>({type:'bar',orientation:'h',name:category,y:oms.map(row=>row.label),x:oms.map(row=>row.values.get(category)||0),customdata:oms.map(row=>[row.label,category,row.values.get(category)||0,row.total]),marker:{color:palette[index%palette.length]},hovertemplate:`<b>%{customdata[0]}</b><br>${categoryLabel}: %{customdata[1]}<br>Valor da categoria: %{customdata[2]:$,.2f}<br>Total da OM: %{customdata[3]:$,.2f}<extra></extra>`}));
   const annotations=oms.map(row=>({xref:'paper',x:1.01,yref:'y',y:row.label,text:`<b>${money(row.total)}</b>`,showarrow:false,xanchor:'left',font:{size:profile.mobile?10:14,color:'#00265f'}}));
   const margin=profile.mobile?{l:135,r:90,t:24,b:125}:profile.compact?{l:250,r:155,t:24,b:110}:{l:365,r:195,t:24,b:110};
+  const detailText=$('#creditOmDetailDescription');if(typeof target==='string'&&detailText)detailText.textContent=detailMode==='projeto'?'Barras empilhadas por projeto; o valor total de cada OM ou grupo aparece à direita.':'Barras empilhadas por natureza de despesas; o valor total de cada OM ou grupo aparece à direita.';
+  $all('[data-credit-om-detail]').forEach(button=>{const active=button.dataset.creditOmDetail===detailMode;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});
   return Plotly.react(el,traces,{barmode:'stack',height:Math.max(profile.mobile?600:470,oms.length*(profile.mobile?40:48)+170),margin,xaxis:{title:'Crédito disponível (US$)',automargin:true,tickfont:{size:profile.mobile?10:13},titlefont:{size:profile.mobile?11:14}},yaxis:{automargin:true,tickfont:{size:profile.mobile?10:14}},legend:{orientation:'h',x:0.5,xanchor:'center',y:-0.18,yanchor:'top',font:{size:profile.mobile?10:13}},annotations,hoverlabel:{font:{size:profile.mobile?11:14}},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'#fff',font:{family:'Montserrat, Arial, sans-serif',color:'#244160'}},{displayModeBar:false,responsive:!options.staticPlot,staticPlot:!!options.staticPlot});
 }
 function executionMetrics(digits,pos,sig){
@@ -226,7 +229,7 @@ function omGroup(row){
 }
 function digitGroups(digits){
   const groups=new Map();
-  digits.forEach(row=>{const group=omGroup(row);if(!groups.has(group.key))groups.set(group.key,{key:group.key,label:group.label,rows:[],total:0});const item=groups.get(group.key);item.rows.push(row);item.total+=Number(row.saldo||0);});
+  digits.filter(row=>Number(row.saldo||0)>0).forEach(row=>{const group=omGroup(row);if(!groups.has(group.key))groups.set(group.key,{key:group.key,label:group.label,rows:[],total:0});const item=groups.get(group.key);item.rows.push(row);item.total+=Number(row.saldo||0);});
   return Array.from(groups.values()).map(group=>({...group,rows:group.rows.slice().sort((a,b)=>Number(b.saldo||0)-Number(a.saldo||0))})).sort((a,b)=>b.total-a.total||a.label.localeCompare(b.label,'pt-BR'));
 }
 function digitGroupTablesHtml(digits){
@@ -258,5 +261,5 @@ function generateSimplifiedCreditReport(){
 
 function renderAll(){renderExecutive();renderUG();renderAction();renderDetail();renderConsistency();}
 window.CABW_CREDIT_PANEL_TEST={executionMetrics,executionRows,gcFromDigit,eligibleSignature,rowMatches,filtered,viewportProfile,wrapHoverLabel,omAcronyms,drawExecutionPhaseChart,drawPoBalanceRanking,creditByOmNatureModel,omGroup,digitGroups,digitGroupTablesHtml};
-document.addEventListener('DOMContentLoaded',()=>{try{initFilters();renderAll();let resizeTimer=0,lastWidth=window.innerWidth;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(Math.abs(window.innerWidth-lastWidth)<24)return;lastWidth=window.innerWidth;renderExecutive();},180);});const reportButton=$('#generateCreditReport');if(reportButton){reportButton.addEventListener('click',generateCreditReport);reportButton.__cabwReportBound=true;}const simplifiedButton=$('#generateSimplifiedCreditReport');if(simplifiedButton){simplifiedButton.addEventListener('click',generateSimplifiedCreditReport);simplifiedButton.__cabwReportBound=true;}}catch(e){console.error('CABW credit error',e);}});
+document.addEventListener('DOMContentLoaded',()=>{try{initFilters();renderAll();let resizeTimer=0,lastWidth=window.innerWidth;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(Math.abs(window.innerWidth-lastWidth)<24)return;lastWidth=window.innerWidth;renderExecutive();},180);});$all('[data-credit-om-detail]').forEach(button=>button.addEventListener('click',()=>{creditOmDetailMode=button.dataset.creditOmDetail==='projeto'?'projeto':'natureza';const {digits,sig}=filtered();drawCreditByOmNature('creditByOmNatureChart',digits,(sig||[]).filter(eligibleSignature),{detailMode:creditOmDetailMode});}));const reportButton=$('#generateCreditReport');if(reportButton){reportButton.addEventListener('click',generateCreditReport);reportButton.__cabwReportBound=true;}const simplifiedButton=$('#generateSimplifiedCreditReport');if(simplifiedButton){simplifiedButton.addEventListener('click',generateSimplifiedCreditReport);simplifiedButton.__cabwReportBound=true;}}catch(e){console.error('CABW credit error',e);}});
 })();

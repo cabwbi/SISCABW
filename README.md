@@ -115,6 +115,8 @@ O arquivo `requisicoes` é a referência temporal da publicação. A data exibid
 - A Visão geral da Execução e seu relatório apresentam o crédito disponível por OM em barras empilhadas por natureza de despesa, com o total de cada OM. No relatório, cada tabela de dígitos informa também seu saldo total.
 - A tabela inferior da Visão geral da Execução é segregada por grupo de OM e ordenada do maior para o menor saldo agregado, assim como as tabelas dos relatórios. O resumo executivo destaca as quatro OMs com maior saldo disponível.
 - O gráfico empilhado por natureza de despesa limita a visualização às dez OMs ou grupos de OMs com maior saldo disponível no recorte filtrado.
+- Esse gráfico permite alternar o detalhamento empilhado entre natureza de despesa e projeto, sem alterar o total de cada OM ou grupo.
+- As listas de dígitos do painel, do relatório completo e do relatório simplificado omitem registros com saldo igual a zero.
 - O relatório simplificado da Visão geral da Execução apresenta exclusivamente as listas de dígitos por OM e seus totais, respeitando os filtros aplicados.
 
 ### Relatórios e escopos
