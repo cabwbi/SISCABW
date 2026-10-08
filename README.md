@@ -1,5 +1,11 @@
 # SISCABW — guia único de operação, atualização e publicação
 
+## Ajuste de 07/10/2026 — autonomia estimada dos contratos
+
+- A página 2 da consolidação para prestação de contas apresenta a autonomia estimada do saldo empenhado a liquidar com base na média mensal do exercício corrente e na média mensal do exercício anterior.
+- A autonomia é exibida em meses, com uma casa decimal. Valores menores que 1 mês ficam em vermelho, valores de 1 a 2 meses ficam em amarelo e valores superiores a 2 meses permanecem em azul.
+- Os indicadores acompanham o filtro por OM. Quando não existe média mensal positiva para a base de comparação, o resultado é apresentado como `N/D`.
+
 ## Ajuste de 05/10/2026 — ocorrências da prestação de contas
 
 - A consolidação para prestação de contas passou a apresentar, no primeiro slide de cada contrato, as ocorrências registradas na fonte `historico_obs`.
