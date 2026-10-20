@@ -1,26 +1,26 @@
 {
-  "geradoEm": "2026-10-19 01:00:49",
+  "geradoEm": "2026-10-20 09:16:08",
   "fusoHorarioExibicao": "America/New_York",
   "processosResumo": {
     "materiais2026": {
       "ano": 2026,
-      "requisicoes": 619,
-      "valorEmpenhadoUsd": 16011903.49
+      "requisicoes": 626,
+      "valorEmpenhadoUsd": 16123860.9
     },
     "reparos2026": {
       "ano": 2026,
       "requisicoes": 69,
       "valorEmpenhadoUsd": 587453.86
     },
-    "totalEscopo": 4294,
+    "totalEscopo": 4301,
     "reparosCompraerExpedidos": 30,
     "outrosReparosExpedidos": 66
   },
   "pagamentosResumo": {
     "ano": 2026,
-    "quantidadeNlPagamento": 2760,
-    "valorNlPagamentoUsd": 118497647.8,
-    "empresasPagas": 229,
+    "quantidadeNlPagamento": 2763,
+    "valorNlPagamentoUsd": 118498760.95,
+    "empresasPagas": 230,
     "empresasPagasElegiveis": 122,
     "maiorPagamentoUltimos30Dias": {
       "fornecedor": "7F5X5 - ACE AERONAUTICS, LLC",
@@ -36,197 +36,197 @@
     "entrada": [
       {
         "arquivo": "NL_requisicao.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "Ordem_de_compra_em_assinatura.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "controle_financeiro_contratos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "historico_obs.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "volumes.xlsx",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "contratos": [
       {
         "arquivo": "controle_financeiro_contratos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "historico_obs.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "NL_requisicao.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "credito": [
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "Ordem_de_compra_em_assinatura.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "compatibilizacao": [
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "processos": [
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "controle_financeiro_contratos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "governanca": [
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "rp": [
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "NL_requisicao.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "requisicoes.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "controle_financeiro_contratos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ],
     "suprimento": [
       {
         "arquivo": "ordem_de_compra.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "digitos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_OM.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       },
       {
         "arquivo": "descricao_projetos.xls",
-        "atualizadoEm": "2026-10-19 01:00:49"
+        "atualizadoEm": "2026-10-20 09:16:08"
       }
     ]
   }
